@@ -63,6 +63,10 @@ Then the usual autotools process applies:
     $ make
     $ sudo make install
 
+It should also work without installing, libtool provides a wrapper script for this:
+
+    $ ./mumble-pluginbot-plusplus --help
+
 ## License
 
 mumble-pluginbot-plusplus is licensed under the AGPLv3+ license. The original code is licensed under the MIT license.

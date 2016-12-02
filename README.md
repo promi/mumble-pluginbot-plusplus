@@ -41,8 +41,10 @@ What doesn't work:
 The code is using modern C++ language features only present in C++14 and partly C++17. It currently uses the experimental filesystem library.
 
 - GCC 6.2+ or Clang 3.8+
-- autoconf + automake
-- OpenSSL
+- autoconf
+- automake
+- libtool
+- OpenSSL (libcrypto + libssl)
 - libopus 1.1
 - libprotobuf
 - protobuf (for the protoc compiler)

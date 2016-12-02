@@ -1,7 +1,7 @@
 \#*\#
 .\#*
 *~
-mrpbpp
+mumble-pluginbot-plusplus
 aclocal.m4
 config.*
 missing
@@ -21,7 +21,6 @@ compile
 libtool
 ltmain.sh
 .libs/
-mrpbpp-nettest
 _cert/
 m4/
 src/mumble/Mumble.pb.cc

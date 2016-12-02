@@ -1,4 +1,5 @@
 AUTOMAKE_OPTIONS = subdir-objects
+ACLOCAL_AMFLAGS = -I m4
 
 lib_LTLIBRARIES = \
 	libaither.la \
@@ -16,16 +17,16 @@ libaither_la_SOURCES = \
 	src/aither/console-logger.cc \
 	src/aither/void-logger.cc
 
-libmumble-pluginbot-plusplus_io_la_SOURCES = \
+libmumble_pluginbot_plusplus_io_la_SOURCES = \
 	src/io/sample-reader.cc \
 	src/io/sample-writer.cc \
 	src/io/raw-s16le-file-sample-reader.cc \
 	src/io/raw-s16le-file-sample-writer.cc
 
-libmumble-pluginbot-plusplus_network_la_SOURCES = \
+libmumble_pluginbot_plusplus_network_la_SOURCES = \
 	src/network/tcp-socket.cc
 
-libmumble-pluginbot-plusplus_openssl_la_SOURCES = \
+libmumble_pluginbot_plusplus_openssl_la_SOURCES = \
 	src/openssl/basic-input-output.cc \
 	src/openssl/memory-basic-input-output.cc \
 	src/openssl/openssl.cc \
@@ -41,11 +42,11 @@ libmumble-pluginbot-plusplus_openssl_la_SOURCES = \
 	src/openssl/x509/extension-factory.cc \
 	src/openssl/x509/name.cc
 
-libmumble-pluginbot-plusplus_opus_la_SOURCES = \
+libmumble_pluginbot_plusplus_opus_la_SOURCES = \
 	src/opus/decoder.cc \
 	src/opus/encoder.cc
 
-libmumble-pluginbot-plusplus_mumble_la_SOURCES = \
+libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/audio-player.cc \
 	src/mumble/audio-recorder.cc \
 	src/mumble/cert-manager.cc \
@@ -60,7 +61,7 @@ libmumble-pluginbot-plusplus_mumble_la_SOURCES = \
 	src/mumble/udp-packet.cc \
 	src/mumble/user.cc
 
-mumble-pluginbot-plusplus_SOURCES = \
+mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \
 	src/pluginbot/main.cc \
 	src/pluginbot/conf.cc
@@ -71,10 +72,10 @@ AM_CPPFLAGS = \
 	-Wextra \
 	-pedantic \
 	-I$(srcdir)/src \
-	$(mumble-pluginbot-plusplus_CFLAGS)
+	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
 
-mumble-pluginbot-plusplus_LDADD = \
-	$(mumble-pluginbot-plusplus_LIBS) \
+mumble_pluginbot_plusplus_LDADD = \
+	$(MUMBLE_PLUGINBOT_PLUSPLUS_LIBS) \
 	-lm \
 	libaither.la \
 	libmumble-pluginbot-plusplus-io.la \

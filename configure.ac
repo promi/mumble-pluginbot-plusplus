@@ -1,12 +1,14 @@
 AC_INIT([mrpbpp], 1.0)
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
-AC_PROG_LIBTOOL
+LT_INIT
 
-PKG_CHECK_MODULES(MRPBPP, [opus >= 1.1 openssl protobuf])
+PKG_CHECK_MODULES(MUMBLE_PLUGINBOT_PLUSPLUS, [opus >= 1.1 openssl protobuf])
 
 AC_CONFIG_FILES([Makefile])
 
 AC_OUTPUT
+

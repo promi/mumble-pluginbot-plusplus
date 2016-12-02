@@ -45,14 +45,17 @@ The code is using modern C++ language features only present in C++14 and partly 
 - OpenSSL
 - libopus 1.1
 - libprotobuf
+- protobuf (for the protoc compiler)
 
 ## Building + Installing
 
-The repository is autotools-based, you have to regenerate the configure script with commands like:
+The repository is autotools-based, you have to regenerate the configure script:
 
-    $ automake --add-missing
-    $ libtoolize --add-missing
-    $ autoreconf
+    $ ./autogen.sh
+
+Currently the protobuf files are not automatically build by the build scripts. You have to do this yourself:
+
+    $ cd src/mumble && protoc --cpp_out=. Mumble.proto && cd -
 
 Then the usual autotools process applies:
 

@@ -24,6 +24,11 @@ namespace OpenSSL::PKey
 {
   RSA::RSA ()
   {
+    m_rsa = RSA_new ();
+    if (m_rsa == nullptr)
+      {
+        throw std::string ("RSA_new () failed");
+      }
   }
 
   RSA::RSA (::RSA *rsa, bool has_private)
@@ -33,10 +38,20 @@ namespace OpenSSL::PKey
 
   RSA::RSA (size_t size) : RSA ()
   {
-    m_rsa = RSA_generate_key (size, RSA_F4, nullptr, nullptr);
-    if (m_rsa == nullptr)
+    // See also http://stackoverflow.com/a/30493975/426242
+    using BN_ptr = std::unique_ptr<BIGNUM, decltype(&::BN_free)>;
+    BN_ptr bn {BN_new (), ::BN_free};
+    if (bn == nullptr)
       {
-        throw std::string ("RSA_generate_key () failed");
+        throw std::string ("BN_new () failed");
+      }
+    if (BN_set_word (bn.get (), RSA_F4) != 1)
+      {
+        throw std::string ("BN_set_word () failed");
+      }
+    if (RSA_generate_key_ex (m_rsa, size, bn.get (), nullptr) != 1)
+      {
+        throw std::string ("RSA_generate_key_ex () failed");
       }
   }
 

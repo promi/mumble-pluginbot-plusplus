@@ -92,19 +92,20 @@ namespace MumblePluginBot
       }
   }
 
-
   void Main::init_settings ()
   {
     m_run = false;
-    m_cli = std::make_unique<Mumble::Client> (m_settings["mumbleserver_host"],
-                                              std::stoi (m_settings["mumbleserver_port"]),
-                                              m_settings["mumbleserver_username"],
-                                              m_settings["mumbleserver_userpassword"], [&] (auto conf)
-                                              {
-                                                conf.bitrate = std::stoi (m_settings["quality_bitrate"]);
-                                                conf.vbr_rate = std::stoi (m_settings["use_vbr"]);
-                                                conf.ssl_cert_opts.cert_dir = m_settings["certdirectory"];
-                                              });
+    m_cli = std::make_unique<Mumble::Client>
+      (m_settings["mumbleserver_host"],
+       std::stoi (m_settings["mumbleserver_port"]),
+       m_settings["mumbleserver_username"],
+       m_settings["mumbleserver_userpassword"],
+       [&] (auto conf)
+       {
+         conf.bitrate = std::stoi (m_settings["quality_bitrate"]);
+         conf.vbr_rate = std::stoi (m_settings["use_vbr"]);
+         conf.ssl_cert_opts.cert_dir = m_settings["certdirectory"];
+       });
   }
 
   void Main::disconnect ()

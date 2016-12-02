@@ -24,14 +24,14 @@ namespace Aither
   {
   }
 
-  std::string get_date_string (std::chrono::system_clock::time_point t)
+  std::string internal_get_date_string (const std::string &fmt, std::chrono::system_clock::time_point t)
   {
     char some_buffer[100];
     auto as_time_t = std::chrono::system_clock::to_time_t (t);
     struct tm tm;
     if (::gmtime_r (&as_time_t, &tm))
       {
-        if (std::strftime (some_buffer, sizeof(some_buffer), "%F", &tm))
+        if (std::strftime (some_buffer, sizeof(some_buffer), fmt.c_str (), &tm))
           {
             return std::string {some_buffer};
           }
@@ -39,19 +39,14 @@ namespace Aither
     throw std::runtime_error ("Failed to get current date as string");
   }
 
+  std::string get_date_string (std::chrono::system_clock::time_point t)
+  {
+    return internal_get_date_string ("%F", t);
+  }
+
   std::string get_datetime_string (std::chrono::system_clock::time_point t)
   {
-    char some_buffer[100];
-    auto as_time_t = std::chrono::system_clock::to_time_t (t);
-    struct tm tm;
-    if (::gmtime_r (&as_time_t, &tm))
-      {
-        if (std::strftime (some_buffer, sizeof(some_buffer), "%F %T", &tm))
-          {
-            return std::string {some_buffer};
-          }
-      }
-    throw std::runtime_error ("Failed to get current date as string");
+    return internal_get_date_string ("%F %T", t);
   }
 }
 

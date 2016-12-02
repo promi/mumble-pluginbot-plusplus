@@ -43,9 +43,9 @@ public:
         for (size_t i = 0; i < bytes.size () / 2; i +=2)
           {
             v.push_back (
-                         ptr[i + 1] << 8 |
-                         ptr[i + 0] << 0
-                         );
+              ptr[i + 1] << 8 |
+              ptr[i + 0] << 0
+            );
           }
         return v;
       }

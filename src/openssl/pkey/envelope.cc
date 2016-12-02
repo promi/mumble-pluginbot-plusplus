@@ -61,5 +61,5 @@ namespace OpenSSL::PKey
     other.m_evp_pkey = nullptr;
     return *this;
   }
-  
+
 }

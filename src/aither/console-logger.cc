@@ -29,7 +29,7 @@ namespace Aither
     {
     }
   };
-  
+
   ConsoleLogger::ConsoleLogger (FILE *fp) : pimpl (new Impl (fp))
   {
   }

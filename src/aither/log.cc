@@ -35,38 +35,38 @@ namespace Aither
     {
       m_minimum_severity  = minimum_severity;
       switch (minimum_severity)
-	{
-	case LogSeverity::Debug:
-	  m_debug = std::make_unique<ConsoleLogger> (stdout);
-	  m_verbose = std::make_unique<ConsoleLogger> (stdout);
-	  m_warning = std::make_unique<ConsoleLogger> (stdout);
-	  m_error = std::make_unique<ConsoleLogger> (stderr);
-	  break;
+        {
+        case LogSeverity::Debug:
+          m_debug = std::make_unique<ConsoleLogger> (stdout);
+          m_verbose = std::make_unique<ConsoleLogger> (stdout);
+          m_warning = std::make_unique<ConsoleLogger> (stdout);
+          m_error = std::make_unique<ConsoleLogger> (stderr);
+          break;
 
-	case LogSeverity::Verbose:
-	  m_debug = std::make_unique<VoidLogger> ();
-	  m_verbose = std::make_unique<ConsoleLogger> (stdout);
-	  m_warning = std::make_unique<ConsoleLogger> (stdout);
-	  m_error = std::make_unique<ConsoleLogger> (stderr);
-	  break;
+        case LogSeverity::Verbose:
+          m_debug = std::make_unique<VoidLogger> ();
+          m_verbose = std::make_unique<ConsoleLogger> (stdout);
+          m_warning = std::make_unique<ConsoleLogger> (stdout);
+          m_error = std::make_unique<ConsoleLogger> (stderr);
+          break;
 
-	case LogSeverity::Warning:
-	  m_debug = std::make_unique<VoidLogger> ();
-	  m_verbose = std::make_unique<VoidLogger> ();
-	  m_warning = std::make_unique<ConsoleLogger> (stdout);
-	  m_error = std::make_unique<ConsoleLogger> (stderr);
-	  break;
+        case LogSeverity::Warning:
+          m_debug = std::make_unique<VoidLogger> ();
+          m_verbose = std::make_unique<VoidLogger> ();
+          m_warning = std::make_unique<ConsoleLogger> (stdout);
+          m_error = std::make_unique<ConsoleLogger> (stderr);
+          break;
 
-	case LogSeverity::Error:
-	  m_debug = std::make_unique<VoidLogger> ();
-	  m_verbose = std::make_unique<VoidLogger> ();
-	  m_warning = std::make_unique<VoidLogger> ();
-	  m_error = std::make_unique<ConsoleLogger> (stderr);
-	  break;
-	}
+        case LogSeverity::Error:
+          m_debug = std::make_unique<VoidLogger> ();
+          m_verbose = std::make_unique<VoidLogger> ();
+          m_warning = std::make_unique<VoidLogger> ();
+          m_error = std::make_unique<ConsoleLogger> (stderr);
+          break;
+        }
     }
   };
-  
+
   Log::Log (LogSeverity minimum_severity) : pimpl (new Impl (minimum_severity))
   {
   }
@@ -74,7 +74,7 @@ namespace Aither
   Log::~Log ()
   {
   }
-  
+
   Logger& Log::debug () const
   {
     return *pimpl->m_debug;

@@ -24,7 +24,8 @@ namespace Aither
   {
   }
 
-  std::string internal_get_date_string (const std::string &fmt, std::chrono::system_clock::time_point t)
+  std::string internal_get_date_string (const std::string &fmt,
+                                        std::chrono::system_clock::time_point t)
   {
     char some_buffer[100];
     auto as_time_t = std::chrono::system_clock::to_time_t (t);

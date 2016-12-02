@@ -96,16 +96,16 @@ namespace MumblePluginBot
   {
     m_run = false;
     m_cli = std::make_unique<Mumble::Client>
-      (m_settings["mumbleserver_host"],
-       std::stoi (m_settings["mumbleserver_port"]),
-       m_settings["mumbleserver_username"],
-       m_settings["mumbleserver_userpassword"],
-       [&] (auto conf)
-       {
-         conf.bitrate = std::stoi (m_settings["quality_bitrate"]);
-         conf.vbr_rate = std::stoi (m_settings["use_vbr"]);
-         conf.ssl_cert_opts.cert_dir = m_settings["certdirectory"];
-       });
+            (m_settings["mumbleserver_host"],
+             std::stoi (m_settings["mumbleserver_port"]),
+             m_settings["mumbleserver_username"],
+             m_settings["mumbleserver_userpassword"],
+             [&] (auto conf)
+    {
+      conf.bitrate = std::stoi (m_settings["quality_bitrate"]);
+      conf.vbr_rate = std::stoi (m_settings["use_vbr"]);
+      conf.ssl_cert_opts.cert_dir = m_settings["certdirectory"];
+    });
   }
 
   void Main::disconnect ()
@@ -146,144 +146,144 @@ namespace MumblePluginBot
     };
   }
 
-void Main::stop_duckthread ()
-{
-  try
-    {
-      m_duckthread_running = false;
-      m_duckthread.join ();
-    }
-  catch (...)
-    {
-      AITHER_DEBUG("[killduckthread] can't kill because #{$!}");
-    }
-}
-
-void Main::mumble_start ()
-{
-  using namespace std::chrono_literals;
-  m_cli->on<MumbleProto::ServerConfig> ([&] (auto serverconfig)
+  void Main::stop_duckthread ()
   {
-    m_settings["mumbleserver_imagelength"] = serverconfig.image_message_length ();
-    m_settings["mumbleserver_messagelength"] = serverconfig.message_length ();
-    m_settings["mumbleserver_allow_html"] = serverconfig.allow_html ();
-  });
-
-  m_cli->on<MumbleProto::SuggestConfig> ([&] (auto suggestconfig)
-  {
-    m_settings["mumbleserver_version"] = suggestconfig.version ();
-    m_settings["mumbleserver_positional"] = suggestconfig.positional ();
-    m_settings["mumbleserver_push_to_talk"] = suggestconfig.push_to_talk ();
-  });
-
-  m_cli->connect ();
-  //for (;;)
-  //  {
-  //    std::this_thread::sleep_for (0.5s);
-  //  }
-  for (int i = 0; i < 10; i++)
-    {
-      if (m_cli->connected ())
-        {
-          break;
-        }
-      AITHER_DEBUG("Connecting to the server is still ongoing.");
-      std::this_thread::sleep_for (0.5s);
-    }
-  if (!m_cli->connected ())
-    {
-      m_cli->disconnect ();
-      AITHER_DEBUG("Connection timed out");
-      return;
-    }
-  AITHER_VERBOSE("connected");
-  std::this_thread::sleep_for (0.1s);
-  for (int i = 0; i < 10; i++)
-    {
-      if (m_cli->synced ())
-        {
-          break;
-        }
-      AITHER_DEBUG("Server sync is still ongoing.");
-      std::this_thread::sleep_for (0.5s);
-    }
-  if (!m_cli->synced ())
-    {
-      AITHER_DEBUG("Server sync timed out");
-      m_cli->disconnect ();
-      return;
-    }
-  {
-    const std::string &targetchannel = m_settings["mumbleserver_targetchannel"];
     try
       {
-        m_cli->join_channel (targetchannel);
+        m_duckthread_running = false;
+        m_duckthread.join ();
       }
     catch (...)
       {
-        AITHER_DEBUG("[joincannel] Can't join " + targetchannel + "!");
+        AITHER_DEBUG("[killduckthread] can't kill because #{$!}");
       }
   }
-  m_cli->comment ("");
-  m_settings["set_comment_available"] = "true";
-  m_cli->on<MumbleProto::UserState> ([&] (const auto &msg)
+
+  void Main::mumble_start ()
   {
-    this->handle_user_state_changes (msg);
-  });
-  m_cli->on<MumbleProto::TextMessage> ([&] (const auto &msg)
-  {
-    this->handle_text_message (msg);
-  });
-  m_cli->on<MumbleProto::UDPTunnel> ([&] (const auto &_)
-  {
-    (void)_;
-    if (m_settings["ducking"] == "true")
-      {
-        m_cli->player ().volume ((std::stoi (m_settings["ducking_volume"]) |  0x1) - 1);
-        this->start_duckthread ();
-      }
-  });
-  m_run = true;
-  m_cli->player ().stream_named_pipe (m_settings["mpd_fifopath"]);
-  init_plugins ();
-  m_ticktimer_running = true;
-  m_ticktimer = std::thread
-  {
-    [&] (void)
+    using namespace std::chrono_literals;
+    m_cli->on<MumbleProto::ServerConfig> ([&] (auto serverconfig)
     {
-      timertick ();
+      m_settings["mumbleserver_imagelength"] = serverconfig.image_message_length ();
+      m_settings["mumbleserver_messagelength"] = serverconfig.message_length ();
+      m_settings["mumbleserver_allow_html"] = serverconfig.allow_html ();
+    });
+
+    m_cli->on<MumbleProto::SuggestConfig> ([&] (auto suggestconfig)
+    {
+      m_settings["mumbleserver_version"] = suggestconfig.version ();
+      m_settings["mumbleserver_positional"] = suggestconfig.positional ();
+      m_settings["mumbleserver_push_to_talk"] = suggestconfig.push_to_talk ();
+    });
+
+    m_cli->connect ();
+    //for (;;)
+    //  {
+    //    std::this_thread::sleep_for (0.5s);
+    //  }
+    for (int i = 0; i < 10; i++)
+      {
+        if (m_cli->connected ())
+          {
+            break;
+          }
+        AITHER_DEBUG("Connecting to the server is still ongoing.");
+        std::this_thread::sleep_for (0.5s);
+      }
+    if (!m_cli->connected ())
+      {
+        m_cli->disconnect ();
+        AITHER_DEBUG("Connection timed out");
+        return;
+      }
+    AITHER_VERBOSE("connected");
+    std::this_thread::sleep_for (0.1s);
+    for (int i = 0; i < 10; i++)
+      {
+        if (m_cli->synced ())
+          {
+            break;
+          }
+        AITHER_DEBUG("Server sync is still ongoing.");
+        std::this_thread::sleep_for (0.5s);
+      }
+    if (!m_cli->synced ())
+      {
+        AITHER_DEBUG("Server sync timed out");
+        m_cli->disconnect ();
+        return;
+      }
+    {
+      const std::string &targetchannel = m_settings["mumbleserver_targetchannel"];
+      try
+        {
+          m_cli->join_channel (targetchannel);
+        }
+      catch (...)
+        {
+          AITHER_DEBUG("[joincannel] Can't join " + targetchannel + "!");
+        }
     }
-  };
-}
+    m_cli->comment ("");
+    m_settings["set_comment_available"] = "true";
+    m_cli->on<MumbleProto::UserState> ([&] (const auto &msg)
+    {
+      this->handle_user_state_changes (msg);
+    });
+    m_cli->on<MumbleProto::TextMessage> ([&] (const auto &msg)
+    {
+      this->handle_text_message (msg);
+    });
+    m_cli->on<MumbleProto::UDPTunnel> ([&] (const auto &_)
+    {
+      (void)_;
+      if (m_settings["ducking"] == "true")
+        {
+          m_cli->player ().volume ((std::stoi (m_settings["ducking_volume"]) |  0x1) - 1);
+          this->start_duckthread ();
+        }
+    });
+    m_run = true;
+    m_cli->player ().stream_named_pipe (m_settings["mpd_fifopath"]);
+    init_plugins ();
+    m_ticktimer_running = true;
+    m_ticktimer = std::thread
+    {
+      [&] (void)
+      {
+        timertick ();
+      }
+    };
+  }
 
-void Main::init_plugins ()
-{
-  /*
-    #init all plugins
-    init = @settings.clone
-    init[:cli] = @cli
+  void Main::init_plugins ()
+  {
+    /*
+      #init all plugins
+      init = @settings.clone
+      init[:cli] = @cli
 
-    std::cout << "initplugins" << std::endl;
-    Plugin.plugins.each do |plugin_class|
-    @plugin << plugin_class.new
-    end
+      std::cout << "initplugins" << std::endl;
+      Plugin.plugins.each do |plugin_class|
+      @plugin << plugin_class.new
+      end
 
-    maxcount = @plugin.length
-    allok = 0
-    while allok != @plugin.length do
-    allok = 0
-    @plugin.each do |plugin|
-    init = plugin.init(init)
-    if plugin.name != "false"
-    allok += 1
-    end
-    end
-    maxcount -= 1
-    break if maxcount <= 0
-    end
-    std::cout << "maybe not all plugins functional!" << std::endl; if maxcount <= 0
-  */
-}
+      maxcount = @plugin.length
+      allok = 0
+      while allok != @plugin.length do
+      allok = 0
+      @plugin.each do |plugin|
+      init = plugin.init(init)
+      if plugin.name != "false"
+      allok += 1
+      end
+      end
+      maxcount -= 1
+      break if maxcount <= 0
+      end
+      std::cout << "maybe not all plugins functional!" << std::endl; if maxcount <= 0
+    */
+  }
 
   void Main::timertick ()
   {
@@ -377,9 +377,9 @@ void Main::init_plugins ()
         if (m_settings["debug"] == "true")
           {
             std::cout <<
-              "Debug: Not listening because "
-              "'listen_to_registered_users_only' is 'true' "
-              "and sender is unregistered or on a blacklist."
+                      "Debug: Not listening because "
+                      "'listen_to_registered_users_only' is 'true' "
+                      "and sender is unregistered or on a blacklist."
                       << std::endl;
           }
         return;
@@ -393,9 +393,9 @@ void Main::init_plugins ()
         if (m_settings["debug"] == "true")
           {
             std::cout <<
-              "Debug: Not listening because "
-              "'listen_to_private_message_only' is 'true' "
-              "and message was sent to channel."
+                      "Debug: Not listening because "
+                      "'listen_to_private_message_only' is 'true' "
+                      "and message was sent to channel."
                       << std::endl;
           }
         return;
@@ -498,253 +498,253 @@ void Main::init_plugins ()
     */
 
     std::function<void(const std::string&)> reply = [this, actor] (auto msg)
-      {
-        m_cli->text_user (actor, msg);
-      };
+    {
+      m_cli->text_user (actor, msg);
+    };
 
     std::map<std::string, Command> commands =
+    {
       {
-        {
-          "about", {
-            false, [] (auto ca)
-            {
-              about (ca);
-            }
+        "about", {
+          false, [] (auto ca)
+          {
+            about (ca);
           }
-        },
-        {
-          "settings", {
-            false, [] (auto ca)
-            {
-              settings (ca);
-            }
+        }
+      },
+      {
+        "settings", {
+          false, [] (auto ca)
+          {
+            settings (ca);
           }
-        },
-        {
-          "set", {
-            true, [] (auto ca)
-            {
-              set (ca);
-            }
+        }
+      },
+      {
+        "set", {
+          true, [] (auto ca)
+          {
+            set (ca);
           }
-        },
-        {
-          "bind", {
-            false, [] (auto ca)
-            {
-              bind (ca);
-            }
+        }
+      },
+      {
+        "bind", {
+          false, [] (auto ca)
+          {
+            bind (ca);
           }
-        },
-        {
-          "unbind", {
-            true, [] (auto ca)
-            {
-              ca.settings["boundto"] = "nobody";
-            }
+        }
+      },
+      {
+        "unbind", {
+          true, [] (auto ca)
+          {
+            ca.settings["boundto"] = "nobody";
           }
-        },
-        {
-          "reset", {
-            true, [this] (auto ca)
-            {
-              (void) ca;
-              m_settings = m_configured_settings;
-            }
+        }
+      },
+      {
+        "reset", {
+          true, [this] (auto ca)
+          {
+            (void) ca;
+            m_settings = m_configured_settings;
           }
-        },
-        {
-          "restart", {
-            true, [this] (auto ca)
-            {
-              m_run = false;
-              ca.cli.disconnect ();
-            }
+        }
+      },
+      {
+        "restart", {
+          true, [this] (auto ca)
+          {
+            m_run = false;
+            ca.cli.disconnect ();
           }
-        },
-        {
-          "register", {
-            true, [this] (auto ca)
-            {
-              ca.cli.register_self ();
-            }
+        }
+      },
+      {
+        "register", {
+          true, [this] (auto ca)
+          {
+            ca.cli.register_self ();
           }
-        },
-        {
-          "blacklist", {
-            true, [] (auto ca)
-            {
-              blacklist (ca);
-            }
+        }
+      },
+      {
+        "blacklist", {
+          true, [] (auto ca)
+          {
+            blacklist (ca);
           }
-        },
-        {
-          "ducking", {
-            false, [] (auto ca)
-            {
-              ducking (ca);
-            }
+        }
+      },
+      {
+        "ducking", {
+          false, [] (auto ca)
+          {
+            ducking (ca);
           }
-        },
-        {
-          "duckvol", {
-            false, [] (auto ca)
-            {
-              duckvol (ca);
-            }
+        }
+      },
+      {
+        "duckvol", {
+          false, [] (auto ca)
+          {
+            duckvol (ca);
           }
-        },
-        {
-          "bitrate", {
-            false, [] (auto ca)
-            {
-              bitrate (ca);
-            }
+        }
+      },
+      {
+        "bitrate", {
+          false, [] (auto ca)
+          {
+            bitrate (ca);
           }
-        },
-        {
-          "framesize", {
-        false, [] (auto ca)
-        {
-          framesize (ca);
+        }
+      },
+      {
+        "framesize", {
+          false, [] (auto ca)
+          {
+            framesize (ca);
+          }
+        }
+      },
+      {
+        "bandwidth", {
+          false, [] (auto ca)
+          {
+            bandwidth (ca);
+          }
+        }
+      },
+      {
+        "plugins", {
+          false, [] (auto ca)
+          {
+            plugins (ca);
+          }
+        }
+      },
+      {
+        "jobs", {
+          false, [] (auto ca)
+          {
+            jobs (ca);
+          }
+        }
+      },
+      {
+        "internals", {
+          false, [] (auto ca)
+          {
+            internals (ca);
+          }
+        }
+      },
+      {
+        "help", {
+          false, [] (auto ca)
+          {
+            help (ca);
+          }
         }
       }
-    },
-    {
-      "bandwidth", {
-        false, [] (auto ca)
-        {
-          bandwidth (ca);
-        }
+    };
+
+    CommandArgs ca = {msg, command, arguments, msg_userid, m_settings, reply,
+                      *m_cli, *this
+                     };
+    bool boundto_msg_user = m_settings["boundto"] == std::to_string (msg_userid);
+
+    const auto it = commands.find (command);
+    if (it != std::end (commands))
+      {
+        if (!it->second.needs_binding || boundto_msg_user)
+          {
+            it->second.func (ca);
+          }
       }
-    },
-    {
-      "plugins", {
-        false, [] (auto ca)
-        {
-          plugins (ca);
-        }
+  }
+
+  void Main::about (CommandArgs &ca)
+  {
+    std::stringstream header;
+    header << br_tag + "Hi, I am a mumble-pluginbot-plusplus bot." << br_tag;
+    std::stringstream out;
+    out << li_tag (a_tag (org_source_url, "Get my source code")) << std::endl;
+    out << li_tag (a_tag (org_doc_url, "Read my documentation")) << std::endl;
+    out << li_tag ("I am licensed under the " + a_tag (org_license_url,
+                   "MIT license")) << std::endl;
+    out << li_tag ("If you have any issues, bugs or ideas please tell us on " +
+                   a_tag (org_issues_url, org_issues_url)) << std::endl;
+    ca.reply (header.str () + ul_tag (out.str ()));
+  }
+
+  void Main::settings (CommandArgs &ca)
+  {
+    std::stringstream out;
+    for (const auto &it : ca.settings)
+      {
+        if (it.first != "logo")
+          {
+            out << tr_tag (td_tag (it.first) + td_tag (it.second)) << std::endl;
+          }
       }
-    },
-    {
-      "jobs", {
-        false, [] (auto ca)
-        {
-          jobs (ca);
-        }
+    ca.reply (table_tag (out.str ()));
+  }
+
+  void Main::set (CommandArgs &ca)
+  {
+    const std::string &arguments = ca.arguments;
+    auto equals_pos = arguments.find ('=');
+    if (equals_pos != std::string::npos)
+      {
+        const std::string key = arguments.substr (0, equals_pos);
+        const std::string val = arguments.substr (equals_pos + 1);
+        ca.settings[key] = val;
       }
-    },
-    {
-      "internals", {
-        false, [] (auto ca)
-        {
-          internals (ca);
-        }
+  }
+
+  void Main::bind (CommandArgs &ca)
+  {
+    if (ca.settings["boundto"] == "nobody")
+      {
+        ca.settings["boundto"] = std::to_string (ca.msg_userid);
       }
-    },
-    {
-      "help", {
-        false, [] (auto ca)
-        {
-          help (ca);
-        }
+  }
+
+  void Main::blacklist (CommandArgs &ca)
+  {
+    const std::string &username = ca.arguments;
+    Mumble::User* user = ca.cli.find_user (username);
+    if (user)
+      {
+        const std::string hash_text = user->hash ();
+        ca.settings[hash_text] = username;
+        ca.reply ("This ban is active until the bot restarts. "
+                  "To permaban add following line to your configuration:");
+        ca.reply (hash_text + "=" + username);
       }
-    }
-  };
+    else
+      {
+        ca.reply ("User not found: " + username);
+      }
+  }
 
-  CommandArgs ca = {msg, command, arguments, msg_userid, m_settings, reply,
-                    *m_cli, *this
-                   };
-  bool boundto_msg_user = m_settings["boundto"] == std::to_string (msg_userid);
-
-  const auto it = commands.find (command);
-  if (it != std::end (commands))
-    {
-      if (!it->second.needs_binding || boundto_msg_user)
-        {
-          it->second.func (ca);
-        }
-    }
-}
-
-void Main::about (CommandArgs &ca)
-{
-  std::stringstream header;
-  header << br_tag + "Hi, I am a mumble-pluginbot-plusplus bot." << br_tag;
-  std::stringstream out;
-  out << li_tag (a_tag (org_source_url, "Get my source code")) << std::endl;
-  out << li_tag (a_tag (org_doc_url, "Read my documentation")) << std::endl;
-  out << li_tag ("I am licensed under the " + a_tag (org_license_url,
-                 "MIT license")) << std::endl;
-  out << li_tag ("If you have any issues, bugs or ideas please tell us on " +
-                 a_tag (org_issues_url, org_issues_url)) << std::endl;
-  ca.reply (header.str () + ul_tag (out.str ()));
-}
-
-void Main::settings (CommandArgs &ca)
-{
-  std::stringstream out;
-  for (const auto &it : ca.settings)
-    {
-      if (it.first != "logo")
-        {
-          out << tr_tag (td_tag (it.first) + td_tag (it.second)) << std::endl;
-        }
-    }
-  ca.reply (table_tag (out.str ()));
-}
-
-void Main::set (CommandArgs &ca)
-{
-  const std::string &arguments = ca.arguments;
-  auto equals_pos = arguments.find ('=');
-  if (equals_pos != std::string::npos)
-    {
-      const std::string key = arguments.substr (0, equals_pos);
-      const std::string val = arguments.substr (equals_pos + 1);
-      ca.settings[key] = val;
-    }
-}
-
-void Main::bind (CommandArgs &ca)
-{
-  if (ca.settings["boundto"] == "nobody")
-    {
-      ca.settings["boundto"] = std::to_string (ca.msg_userid);
-    }
-}
-
-void Main::blacklist (CommandArgs &ca)
-{
-  const std::string &username = ca.arguments;
-  Mumble::User* user = ca.cli.find_user (username);
-  if (user)
-    {
-      const std::string hash_text = user->hash ();
-      ca.settings[hash_text] = username;
-      ca.reply ("This ban is active until the bot restarts. "
-                "To permaban add following line to your configuration:");
-      ca.reply (hash_text + "=" + username);
-    }
-  else
-    {
-      ca.reply ("User not found: " + username);
-    }
-}
-
-void Main::ducking (CommandArgs &ca)
-{
-  const std::string ducking = ca.settings["ducking"] == "true" ? "false" : "true";
-  ca.settings["ducking"] = ducking;
-  if (ducking == "true")
-    {
-      ca.reply ("Music ducking is on.");
-    }
-  else
-    {
-      ca.reply ("Music ducking is off.");
-    }
-}
+  void Main::ducking (CommandArgs &ca)
+  {
+    const std::string ducking = ca.settings["ducking"] == "true" ? "false" : "true";
+    ca.settings["ducking"] = ducking;
+    if (ducking == "true")
+      {
+        ca.reply ("Music ducking is on.");
+      }
+    else
+      {
+        ca.reply ("Music ducking is off.");
+      }
+  }
 
   void Main::duckvol (CommandArgs &ca)
   {
@@ -793,7 +793,7 @@ void Main::ducking (CommandArgs &ca)
             ca.cli.bitrate (bitrate);
             ca.reply ("Encoding is set now to " + std::to_string (bitrate) + " bit/s.");
             ca.reply ("The calculated overall bandwidth is " + std::to_string (
-                                                                               ca.main.overall_bandwidth ()) + " bit/s.");
+                        ca.main.overall_bandwidth ()) + " bit/s.");
           }
         catch (std::invalid_argument)
           {
@@ -819,7 +819,7 @@ void Main::ducking (CommandArgs &ca)
             ca.reply ("Sending now in " + std::to_string (frame_length.count ()) +
                       " ms frames.");
             ca.reply ("The calculated overall bandwidth is " + std::to_string (
-                                                                               ca.main.overall_bandwidth ()) + " bit/s.");
+                        ca.main.overall_bandwidth ()) + " bit/s.");
             ca.reply ("Server settings " + std::to_string (ca.cli.max_bandwidth ()) +
                       " bit/s.");
           }
@@ -834,7 +834,7 @@ void Main::ducking (CommandArgs &ca)
   {
     ca.reply (br_tag + u_tag ("Current bandwidth related settings:") + br_tag +
               "The calculated overall bandwidth (audio + overhead): " + std::to_string (
-                                                                                        ca.main.overall_bandwidth ()) + " bit/s" + br_tag +
+                ca.main.overall_bandwidth ()) + " bit/s" + br_tag +
               " Audio encoding bandwidth: " + std::to_string (ca.cli.bitrate ()) + " bit/s" +
               br_tag +
               " Framesize: " + std::to_string (ca.cli.frame_length ().count ()) + " ms");
@@ -849,13 +849,13 @@ void Main::ducking (CommandArgs &ca)
       end
     */
     std::string help = br_tag + red_span ("Loaded plugins:" + br_tag + b_tag (
-                                                                              ss.str ()));
+                                            ss.str ()));
     const std::string cs = ca.settings["controlstring"];
     help += br_tag + b_tag (cs + "help " + i_tag ("pluginname")) +
-      " Get the help text for the specific plugin." + br_tag + br_tag +
-      "For example send the following text to " +
-      "get some basic control commands of the bot:" + br_tag + b_tag (
-                                                                      cs + "help mpd") + br_tag;
+            " Get the help text for the specific plugin." + br_tag + br_tag +
+            "For example send the following text to " +
+            "get some basic control commands of the bot:" + br_tag + b_tag (
+              cs + "help mpd") + br_tag;
     ca.reply (help);
   }
 
@@ -872,96 +872,96 @@ void Main::ducking (CommandArgs &ca)
     std::string help {br_tag + red_span (b_tag ("Internal commands")) + br_tag};
     help += b_tag ("superpassword+restart") + " will restart the bot." + br_tag;
     help += b_tag ("superpassword+reset") + " will reset variables to start values."
-      + br_tag;
+            + br_tag;
     help += b_tag (cs + "about") + " Get information about this bot." + br_tag;
     help += b_tag (cs + "settings") + " display current settings." + br_tag;
     help += b_tag (cs + "set " + i_tag ("variable=value")) +
-      " Set variable to value." + br_tag;
+            " Set variable to value." + br_tag;
     help += b_tag (cs + "bind") +
-      " Bind bot to a user. " + "(some functions will only work if bot is bound)." +
-      br_tag;
+            " Bind bot to a user. " + "(some functions will only work if bot is bound)." +
+            br_tag;
     help += b_tag (cs + "unbind") + " Unbind bot." + br_tag;
     help += b_tag (cs + "reset") +
-      " Reset variables to default value. Needs binding!" + br_tag;
+            " Reset variables to default value. Needs binding!" + br_tag;
     help += b_tag (cs + "restart") + " Restart Bot. Needs binding." + br_tag;
     help += b_tag (cs + "blacklist " + i_tag ("username")) +
-      " Add user to blacklist. Needs binding." + br_tag;
+            " Add user to blacklist. Needs binding." + br_tag;
     help += b_tag (cs + "register") +
-      " Let the bot register itself on the current server. " +
-      "Works only if server allows it. " +
-      "If it doesn't work ask an administrator of your Mumble server. " +
-      "Be aware that after registration only " +
-      "an administrator can change the name of the bot."
-      + br_tag;
+            " Let the bot register itself on the current server. " +
+            "Works only if server allows it. " +
+            "If it doesn't work ask an administrator of your Mumble server. " +
+            "Be aware that after registration only " +
+            "an administrator can change the name of the bot."
+            + br_tag;
     help += b_tag (cs + "ducking") + " Toggle voice ducking on/off." + br_tag;
     help += b_tag (cs + "duckvol " + i_tag ("volume")) +
-          " Set the ducking volume (% of normal volume)." + br_tag;
+            " Set the ducking volume (% of normal volume)." + br_tag;
     help += b_tag (cs + "duckvol") + " Show current ducking volume." + br_tag;
     help += b_tag (cs + "bitrate " + i_tag ("rate in kbit/s")) +
-          " Set audio encoding rate. " +
-          "Note that the bot needs additional bandwidth for overhead "+
-          "so the overall bandwidth is higher than this bitrate."
-          + br_tag;
+            " Set audio encoding rate. " +
+            "Note that the bot needs additional bandwidth for overhead "+
+            "so the overall bandwidth is higher than this bitrate."
+            + br_tag;
     help += b_tag (cs + "bandwidth") +
-          " Show information about the overall bandwidth, " +
-          "audio bandwidth (bitrate) and framesize."
-          + br_tag;
+            " Show information about the overall bandwidth, " +
+            "audio bandwidth (bitrate) and framesize."
+            + br_tag;
 
     ca.reply (help);
   }
 
-void Main::help (CommandArgs &ca)
-{
-  if (ca.arguments == "all")
-    {
-      // Send help texts of all plugins.
-      /*
-      std::string help;
-      @plugin.each do |plugin|
-        help = plugin.help(help.to_s)
+  void Main::help (CommandArgs &ca)
+  {
+    if (ca.arguments == "all")
+      {
+        // Send help texts of all plugins.
+        /*
+        std::string help;
+        @plugin.each do |plugin|
+          help = plugin.help(help.to_s)
+          ca.reply (help);
+        end
+        */
+      }
+    else if (ca.arguments != "")
+      {
+        // Send help for a specific plugin.
+        /*
+        std::string help;
+        @plugin.each do |plugin|
+                           help = plugin.help('') if plugin.name.upcase == message.split[1].upcase
+                                                              end
+                                                              ca.reply (help);
+        */
+      }
+    else
+      {
+        // Send default help text.
+        const std::string cs = ca.settings["controlstring"];
+        std::string help = br_tag;
+        help += "Hi, I am a " + a_tag (org_wiki_url, "Mumble-Ruby-Pluginbot") +
+                " and YOU can control me through text commands." + br_tag;
+        help += br_tag;
+        help += "I will give you a good start with the basic commands you "
+                "need to control the music I have to offer :) - if you "
+                "send me the following command:" + br_tag;
+        help += b_tag (cs + "help mpd") + br_tag;
+        help += br_tag;
+        help += "If you are more interested in who/what I am, send to me:" + br_tag;
+        help += b_tag (cs + "about") + br_tag;
+        help += br_tag;
+        help += b_tag (u_tag ("Commands for advanced users:")) + br_tag;
+        help += b_tag (cs + "plugins") + " - Get a list of available plugins." + br_tag;
+        help += br_tag;
+        help += "Note: Every plugin has its own help text; to get it send the command: "
+                + br_tag;
+        help += b_tag (cs + "help name_of_the_plugin") + br_tag;
+        help += "For example: " + br_tag;
+        help += b_tag (cs + "help mpd") + br_tag;
+        help += br_tag;
+        help += b_tag (u_tag ("Commands for experts only:")) + br_tag;
+        help += b_tag (cs + "internals") + " - See my internal commands." + br_tag;
         ca.reply (help);
-      end
-      */
-    }
-  else if (ca.arguments != "")
-    {
-      // Send help for a specific plugin.
-      /*
-      std::string help;
-      @plugin.each do |plugin|
-                         help = plugin.help('') if plugin.name.upcase == message.split[1].upcase
-                                                            end
-                                                            ca.reply (help);
-      */
-    }
-  else
-    {
-      // Send default help text.
-      const std::string cs = ca.settings["controlstring"];
-      std::string help = br_tag;
-      help += "Hi, I am a " + a_tag (org_wiki_url, "Mumble-Ruby-Pluginbot") +
-        " and YOU can control me through text commands." + br_tag;
-      help += br_tag;
-      help += "I will give you a good start with the basic commands you "
-        "need to control the music I have to offer :) - if you "
-        "send me the following command:" + br_tag;
-      help += b_tag (cs + "help mpd") + br_tag;
-      help += br_tag;
-      help += "If you are more interested in who/what I am, send to me:" + br_tag;
-      help += b_tag (cs + "about") + br_tag;
-      help += br_tag;
-      help += b_tag (u_tag ("Commands for advanced users:")) + br_tag;
-      help += b_tag (cs + "plugins") + " - Get a list of available plugins." + br_tag;
-      help += br_tag;
-      help += "Note: Every plugin has its own help text; to get it send the command: "
-        + br_tag;
-      help += b_tag (cs + "help name_of_the_plugin") + br_tag;
-      help += "For example: " + br_tag;
-      help += b_tag (cs + "help mpd") + br_tag;
-      help += br_tag;
-      help += b_tag (u_tag ("Commands for experts only:")) + br_tag;
-      help += b_tag (cs + "internals") + " - See my internal commands." + br_tag;
-      ca.reply (help);
-    }
-}
+      }
+  }
 }

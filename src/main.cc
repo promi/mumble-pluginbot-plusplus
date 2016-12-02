@@ -31,26 +31,27 @@
 #include "pluginbot/conf.hh"
 
 std::string
-parse_cmd_options (int argc, char *argv[], std::map <std::string, std::string> &settings)
+parse_cmd_options (int argc, char *argv[],
+                   std::map <std::string, std::string> &settings)
 {
   std::string config_filename;
   static struct option long_options[] =
-    {
-      {"help", no_argument, nullptr, 1},
-      {"config", required_argument, nullptr, 2},
-      {"mumblehost", required_argument, nullptr, 3},
-      {"mumbleport", required_argument, nullptr, 4},
-      {"name", required_argument, nullptr, 5},
-      {"userpass", required_argument, nullptr, 6},
-      {"targetchannel", required_argument, nullptr, 7},
-      {"bitrate", required_argument, nullptr, 8},
-      {"fifo", required_argument, nullptr, 9},
-      {"mpdhost", required_argument, nullptr, 10},
-      {"mpdport", required_argument, nullptr, 11},
-      {"controllable", required_argument, nullptr, 12},
-      {"certdir", required_argument, nullptr, 13},
-      {nullptr, 0, nullptr, 0}
-    };
+  {
+    {"help", no_argument, nullptr, 1},
+    {"config", required_argument, nullptr, 2},
+    {"mumblehost", required_argument, nullptr, 3},
+    {"mumbleport", required_argument, nullptr, 4},
+    {"name", required_argument, nullptr, 5},
+    {"userpass", required_argument, nullptr, 6},
+    {"targetchannel", required_argument, nullptr, 7},
+    {"bitrate", required_argument, nullptr, 8},
+    {"fifo", required_argument, nullptr, 9},
+    {"mpdhost", required_argument, nullptr, 10},
+    {"mpdport", required_argument, nullptr, 11},
+    {"controllable", required_argument, nullptr, 12},
+    {"certdir", required_argument, nullptr, 13},
+    {nullptr, 0, nullptr, 0}
+  };
   int c;
   int option_index = 0;
   while ((c = getopt_long (argc, argv, "c:h:p:n:u:t:b:f:H:P:C:d:",
@@ -71,7 +72,8 @@ parse_cmd_options (int argc, char *argv[], std::map <std::string, std::string> &
           std::cout << "  -f --fifo <arg>          Path to FIFO file\n";
           std::cout << "  -H --mpdhost <arg>       MPD hostname\n";
           std::cout << "  -P --mpdport <arg>       MPD port\n";
-          std::cout << "  -C --controllable <arg>  true if bot should be controllable from chat commands\n";
+          std::cout <<
+                    "  -C --controllable <arg>  true if bot should be controllable from chat commands\n";
           std::cout << "  -d --certdir <directory> Path to cert\n";
           exit (0);
           break;
@@ -137,7 +139,10 @@ real_main (int argc, char *argv[])
   std::map <std::string, std::string> settings;
   auto &&c = MumblePluginBot::std_config ();
   settings.insert (std::begin (c), std::end (c));
-  const std::string config_filename {parse_cmd_options (argc, argv, settings)};
+  const std::string config_filename
+  {
+    parse_cmd_options (argc, argv, settings)
+  };
   Aither::Log m_log {settings["debug"] == "true" ? Aither::LogSeverity::Debug : Aither::LogSeverity::Verbose};
   AITHER_VERBOSE("Config loaded!");
   int i = 0;

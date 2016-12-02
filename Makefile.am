@@ -74,13 +74,19 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/src \
 	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
 
+libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
+	libmumble-pluginbot-plusplus-io.la \
+	libmumble-pluginbot-plusplus-network.la
+
+libmumble_pluginbot_plusplus_mumble_la_LIBADD = \
+	libmumble-pluginbot-plusplus-io.la \
+	libaither.la \
+	libmumble-pluginbot-plusplus-network.la \
+	libmumble-pluginbot-plusplus-openssl.la \
+	libmumble-pluginbot-plusplus-opus.la
+
 mumble_pluginbot_plusplus_LDADD = \
 	$(MUMBLE_PLUGINBOT_PLUSPLUS_LIBS) \
 	-lm \
-	libaither.la \
-	libmumble-pluginbot-plusplus-io.la \
-	libmumble-pluginbot-plusplus-network.la \
-	libmumble-pluginbot-plusplus-openssl.la \
-	libmumble-pluginbot-plusplus-opus.la \
 	libmumble-pluginbot-plusplus-mumble.la \
 	-lstdc++fs

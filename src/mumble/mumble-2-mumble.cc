@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
-    MRPB++ - An extensible Mumble bot
+    mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2014 Meister der Bots
     Copyright (c) 2014 dafoxia
     Copyright (c) 2014 niko20010

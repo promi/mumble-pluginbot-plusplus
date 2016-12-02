@@ -1,6 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
-    MRPB++ - An extensible Mumble bot
+    mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2015 dafoxia
     Copyright (c) 2015 netinetwalker
     Copyright (c) 2015 Natenom
@@ -669,7 +669,7 @@ void Main::init_plugins ()
 void Main::about (CommandArgs &ca)
 {
   std::stringstream header;
-  header << br_tag + "Hi, I am a MRPB++ bot." << br_tag;
+  header << br_tag + "Hi, I am a mumble-pluginbot-plusplus bot." << br_tag;
   std::stringstream out;
   out << li_tag (a_tag (org_source_url, "Get my source code")) << std::endl;
   out << li_tag (a_tag (org_doc_url, "Read my documentation")) << std::endl;

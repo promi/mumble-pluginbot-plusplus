@@ -1,0 +1,12 @@
+AC_INIT([mrpbpp], 1.0)
+AM_INIT_AUTOMAKE([foreign])
+AM_SILENT_RULES([yes])
+
+AC_PROG_CXX
+AC_PROG_LIBTOOL
+
+PKG_CHECK_MODULES(MRPBPP, [opus >= 1.1 openssl protobuf])
+
+AC_CONFIG_FILES([Makefile])
+
+AC_OUTPUT

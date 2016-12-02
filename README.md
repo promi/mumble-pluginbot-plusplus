@@ -8,7 +8,7 @@ It is a C++ rewrite of several libraries and the original mumble-ruby-pluginbot 
 
 - [opus-ruby] (https://github.com/dafoxia/opus-ruby)
 - [mumble-ruby] (https://github.com/dafoxia/mumble-ruby)
-- [mumble-ruby-plugin-bot] (https://github.com/dafoxia/mumble-ruby-pluginbot)
+- [mumble-ruby-pluginbot] (https://github.com/dafoxia/mumble-ruby-pluginbot)
 
 Thanks to all the original authors! See the source code for copyright information.
 

@@ -26,7 +26,7 @@ namespace Aither
 
   std::string get_date_string (std::chrono::system_clock::time_point t)
   {
-    static char some_buffer[100];
+    char some_buffer[100];
     auto as_time_t = std::chrono::system_clock::to_time_t (t);
     struct tm tm;
     if (::gmtime_r (&as_time_t, &tm))
@@ -41,7 +41,7 @@ namespace Aither
 
   std::string get_datetime_string (std::chrono::system_clock::time_point t)
   {
-    static char some_buffer[100];
+    char some_buffer[100];
     auto as_time_t = std::chrono::system_clock::to_time_t (t);
     struct tm tm;
     if (::gmtime_r (&as_time_t, &tm))

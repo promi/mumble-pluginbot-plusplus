@@ -53,6 +53,7 @@ namespace Mumble
 
   void AudioRecorder::start (const std::string &file)
   {
+    (void) file;
     if (m_recording)
       {
         return;

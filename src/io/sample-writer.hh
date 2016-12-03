@@ -24,7 +24,7 @@
 class SampleWriter
 {
 private:
-  bool m_closed = false;
+  //bool m_closed = false;
 protected:
   //virtual std::vector<int16_t> internal_read (size_t count) = 0;
   //virtual void internal_each_buffer (size_t count, std::function<bool(const std::vector<int16_t>&)> f) = 0;

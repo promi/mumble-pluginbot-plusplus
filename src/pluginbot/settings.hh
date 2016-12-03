@@ -46,7 +46,8 @@ namespace MumblePluginBot
     bool stop_on_unregistered_users = true;
     bool use_comment_for_status_display = true;
     bool set_comment_available = false;
-    std::list<std::string> blacklist;
+    // Blacklist entry: user_hash=username
+    std::map<std::string, std::string> blacklist;
     struct
     {
       std::string host = "127.0.0.1";

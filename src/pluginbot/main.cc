@@ -329,8 +329,7 @@ namespace MumblePluginBot
         sender_is_registered = true;
       }
     // user on a blacklist?
-    if (std::find (std::begin (m_settings.blacklist), std::end (m_settings.blacklist),
-                   user.hash ()) != std::end (m_settings.blacklist))
+    if (m_settings.blacklist.find (user.hash ()) != std::end (m_settings.blacklist))
       {
         // virtually unregister
         sender_is_registered = false;
@@ -695,7 +694,7 @@ namespace MumblePluginBot
     if (user)
       {
         const std::string hash_text = user->hash ();
-        ca.settings.hash_text = username;
+        ca.settings.blacklist[hash_text] = username;
         ca.reply ("This ban is active until the bot restarts. "
                   "To permaban add following line to your configuration:");
         ca.reply (hash_text + "=" + username);
@@ -706,28 +705,30 @@ namespace MumblePluginBot
       }
   }
 
+  std::string bonoff (bool b)
+  {
+    return b ? "on" : "off";
+  }
+                      
+  std::string btruefalse (bool b)
+  {
+    return b ? "true" : "false";
+  }
+                      
   void Main::ducking (CommandArgs &ca)
   {
-    const std::string ducking = ca.settings["ducking"] == "true" ? "false" : "true";
-    ca.settings["ducking"] = ducking;
-    if (ducking == "true")
-      {
-        ca.reply ("Music ducking is on.");
-      }
-    else
-      {
-        ca.reply ("Music ducking is off.");
-      }
+    bool ducking = ca.settings.ducking = !ca.settings.ducking;
+    ca.reply (std::string {"Music ducking is "} + bonoff (ducking)  + ".");
   }
 
   void Main::duckvol (CommandArgs &ca)
   {
     if (ca.arguments == "")
       {
-        const std::string &volume = ca.settings["ducking_volume"];
-        const std::string &ducking = ca.settings["ducking"];
-        ca.reply ("Ducking volume is set to " + volume +
-                  "% of normal volume. Ducking itself it set to: " + ducking + ".");
+        std::stringstream ss;
+        ss << "Ducking volume is set to " << ca.settings.ducking_vol <<
+          "% of normal volume. Ducking itself it set to: " << btruefalse (ca.settings.ducking) << ".";
+        ca.reply (ss.str ());
       }
     else
       {
@@ -736,7 +737,7 @@ namespace MumblePluginBot
             int volume = std::stoi (ca.arguments);
             if (volume >= 0 && volume <= 100)
               {
-                ca.settings["ducking_volume"] = volume;
+                ca.settings.ducking_vol = volume;
                 ca.reply ("ducking is set to " + std::to_string (volume) +
                           "% of normal volume.");
               }
@@ -824,7 +825,7 @@ namespace MumblePluginBot
     */
     std::string help = br_tag + red_span ("Loaded plugins:" + br_tag + b_tag (
                                             ss.str ()));
-    const std::string cs = ca.settings["controlstring"];
+    auto cs = ca.settings.controlstring;
     help += br_tag + b_tag (cs + "help " + i_tag ("pluginname")) +
             " Get the help text for the specific plugin." + br_tag + br_tag +
             "For example send the following text to " +
@@ -841,7 +842,7 @@ namespace MumblePluginBot
 
   void Main::internals (CommandArgs &ca)
   {
-    const std::string cs = ca.settings["controlstring"];
+    const auto &cs = ca.settings.controlstring;
 
     std::string help {br_tag + red_span (b_tag ("Internal commands")) + br_tag};
     help += b_tag ("superpassword+restart") + " will restart the bot." + br_tag;
@@ -911,7 +912,7 @@ namespace MumblePluginBot
     else
       {
         // Send default help text.
-        const std::string cs = ca.settings["controlstring"];
+        const auto &cs = ca.settings.controlstring;
         std::string help = br_tag;
         help += "Hi, I am a " + a_tag (org_wiki_url, "Mumble-Ruby-Pluginbot") +
                 " and YOU can control me through text commands." + br_tag;

@@ -37,7 +37,6 @@ namespace Mumble
     std::string username_lower;
     std::transform (std::begin (username), std::end (username),
                     std::back_inserter (username_lower), ::tolower);
-    m_cert_dir /= "cert";
     m_cert_dir /= username_lower;
     fs::create_directories (m_cert_dir);
     m_private_key_path = m_cert_dir / "private_key.pem";

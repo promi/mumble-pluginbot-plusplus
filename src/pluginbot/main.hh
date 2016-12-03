@@ -27,6 +27,7 @@
 #include "aither/log.hh"
 #include "mumble/Mumble.pb.h"
 #include "mumble/client.hh"
+#include "pluginbot/settings.hh"
 
 namespace MumblePluginBot
 {
@@ -39,7 +40,7 @@ namespace MumblePluginBot
     const std::string &command;
     const std::string &arguments;
     uint32_t msg_userid;
-    std::map<std::string, std::string> settings;
+    Settings &settings;
     std::function<void(const std::string&)> reply;
     Mumble::Client &cli;
     const Main &main;
@@ -54,7 +55,7 @@ namespace MumblePluginBot
   class Main
   {
   public:
-    Main (const std::map <std::string, std::string> &settings,
+    Main (const Settings &settings,
           const std::string &config_filename, const Aither::Log &log);
     ~Main ();
     inline bool run () const
@@ -73,8 +74,8 @@ namespace MumblePluginBot
     std::thread m_duckthread;
     std::thread m_ticktimer;
     std::unique_ptr<Mumble::Client> m_cli;
-    std::map <std::string, std::string> m_settings;
-    std::map <std::string, std::string> m_configured_settings;
+    Settings m_settings;
+    Settings m_configured_settings;
     const Aither::Log &m_log;
     std::string parse_cmd_options (int argc, char *argv[]);
     void timertick ();

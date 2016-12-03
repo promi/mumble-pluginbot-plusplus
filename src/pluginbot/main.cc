@@ -23,11 +23,12 @@
 #include <memory>
 #include <thread>
 #include <functional>
+#include <algorithm>
 
 #include "mumble/configuration.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"
-#include "pluginbot/conf.hh"
+#include "pluginbot/settings.hh"
 
 namespace MumblePluginBot
 {
@@ -42,7 +43,7 @@ namespace MumblePluginBot
   const std::string org_wiki_url =
     "https://wiki.natenom.com/w/Mumble-Ruby-Pluginbot/";
 
-  Main::Main (const std::map <std::string, std::string> &settings,
+  Main::Main (const Settings &settings,
               const std::string &config_filename,
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
@@ -71,10 +72,6 @@ namespace MumblePluginBot
           end
         */
       }
-    if (m_settings.find ("ducking_volume") == std::end (m_settings))
-      {
-        m_settings["ducking_volume"] = 20;
-      }
     m_configured_settings = m_settings;
   }
 
@@ -96,15 +93,13 @@ namespace MumblePluginBot
   {
     m_run = false;
     m_cli = std::make_unique<Mumble::Client>
-            (m_settings["mumbleserver_host"],
-             std::stoi (m_settings["mumbleserver_port"]),
-             m_settings["mumbleserver_username"],
-             m_settings["mumbleserver_userpassword"],
-             [&] (auto conf)
+      (m_settings.connection.host, m_settings.connection.port,
+       m_settings.connection.username, m_settings.connection.userpassword,
+       [&] (auto conf)
     {
-      conf.bitrate = std::stoi (m_settings["quality_bitrate"]);
-      conf.vbr_rate = std::stoi (m_settings["use_vbr"]);
-      conf.ssl_cert_opts.cert_dir = m_settings["certdirectory"];
+      conf.bitrate = m_settings.quality_bitrate;
+      conf.vbr_rate = m_settings.use_vbr;
+      conf.ssl_cert_opts.cert_dir = m_settings.certdir;
     });
   }
 
@@ -164,16 +159,16 @@ namespace MumblePluginBot
     using namespace std::chrono_literals;
     m_cli->on<MumbleProto::ServerConfig> ([&] (auto serverconfig)
     {
-      m_settings["mumbleserver_imagelength"] = serverconfig.image_message_length ();
-      m_settings["mumbleserver_messagelength"] = serverconfig.message_length ();
-      m_settings["mumbleserver_allow_html"] = serverconfig.allow_html ();
+      m_settings.server_config.image_message_length = serverconfig.image_message_length ();
+      m_settings.server_config.message_length = serverconfig.message_length ();
+      m_settings.server_config.allow_html = serverconfig.allow_html ();
     });
 
     m_cli->on<MumbleProto::SuggestConfig> ([&] (auto suggestconfig)
     {
-      m_settings["mumbleserver_version"] = suggestconfig.version ();
-      m_settings["mumbleserver_positional"] = suggestconfig.positional ();
-      m_settings["mumbleserver_push_to_talk"] = suggestconfig.push_to_talk ();
+      m_settings.suggest_config.version = suggestconfig.version ();
+      m_settings.suggest_config.positional = suggestconfig.positional ();
+      m_settings.suggest_config.push_to_talk = suggestconfig.push_to_talk ();
     });
 
     m_cli->connect ();
@@ -214,7 +209,7 @@ namespace MumblePluginBot
         return;
       }
     {
-      const std::string &targetchannel = m_settings["mumbleserver_targetchannel"];
+      const std::string &targetchannel = m_settings.connection.targetchannel;
       try
         {
           m_cli->join_channel (targetchannel);
@@ -225,7 +220,7 @@ namespace MumblePluginBot
         }
     }
     m_cli->comment ("");
-    m_settings["set_comment_available"] = "true";
+    m_settings.set_comment_available = true;
     m_cli->on<MumbleProto::UserState> ([&] (const auto &msg)
     {
       this->handle_user_state_changes (msg);
@@ -237,14 +232,14 @@ namespace MumblePluginBot
     m_cli->on<MumbleProto::UDPTunnel> ([&] (const auto &_)
     {
       (void)_;
-      if (m_settings["ducking"] == "true")
+      if (m_settings.ducking)
         {
-          m_cli->player ().volume ((std::stoi (m_settings["ducking_volume"]) |  0x1) - 1);
+          m_cli->player ().volume (m_settings.ducking_vol);
           this->start_duckthread ();
         }
     });
     m_run = true;
-    m_cli->player ().stream_named_pipe (m_settings["mpd_fifopath"]);
+    m_cli->player ().stream_named_pipe (m_settings.mpd.fifopath);
     init_plugins ();
     m_ticktimer_running = true;
     m_ticktimer = std::thread
@@ -288,14 +283,7 @@ namespace MumblePluginBot
   void Main::timertick ()
   {
     using namespace std::chrono_literals;
-    int ticks_per_hour = 3600;
-    try
-      {
-        ticks_per_hour = std::stoi (m_settings["ticks_per_hour"]);
-      }
-    catch(std::invalid_argument)
-      {
-      }
+    int ticks_per_hour = m_settings.ticks_per_hour;
     while (m_ticktimer_running)
       {
         // TODO: The commented out part is WRONG.
@@ -341,72 +329,56 @@ namespace MumblePluginBot
         sender_is_registered = true;
       }
     // user on a blacklist?
-    if (m_settings.find (user.hash ()) != std::end (m_settings))
+    if (std::find (std::begin (m_settings.blacklist), std::end (m_settings.blacklist),
+                   user.hash ()) != std::end (m_settings.blacklist))
       {
         // virtually unregister
         sender_is_registered = false;
-        if (m_settings["debug"] == "true")
-          {
-            std::cout << "user in blacklist!" << std::endl;
-          }
+        AITHER_DEBUG("user in blacklist!");
       }
     // FIXME: strip html tags.
     // BEFORE doing this we need to ensure that no plugin needs the html
     // source code. For example youtube plugin needs them...
     //msg.message.gsub!(/(<[^<^>]*>)/, "")
 
-    if (msg.message () == m_settings["superpassword"] + "restart")
+    if (msg.message () == m_settings.superpassword + "restart")
       {
         m_settings = m_configured_settings;
-        m_cli->text_channel (m_cli->me ().channel_id (),
-                             m_settings["superanswer"]);
+        m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
         m_run = false;
         m_cli->disconnect ();
       }
 
-    if (msg.message () == m_settings["superpassword"] + "reset")
+    if (msg.message () == m_settings.superpassword + "reset")
       {
         m_settings = m_configured_settings;
-        m_cli->text_channel (m_cli->me ().channel_id (),
-                             m_settings["superanswer"]);
+        m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
       }
 
-    if (!sender_is_registered
-        && m_settings["listen_to_registered_users_only"] == "true")
+    if (!sender_is_registered && m_settings.listen_to_registered_users_only)
       {
-        if (m_settings["debug"] == "true")
-          {
-            std::cout <<
-                      "Debug: Not listening because "
-                      "'listen_to_registered_users_only' is 'true' "
-                      "and sender is unregistered or on a blacklist."
-                      << std::endl;
-          }
+        AITHER_DEBUG("Debug: Not listening because "
+                     "'listen_to_registered_users_only' is 'true' "
+                     "and sender is unregistered or on a blacklist.");
         return;
       }
 
     // Check whether message is a private one or was sent to the channel.
     // Channel messages don't have a session, so skip them
-    if (!msg.session_size ()
-        && m_settings["listen_to_private_message_only"] == "true")
+    if (!msg.session_size () && m_settings.listen_to_private_message_only)
       {
-        if (m_settings["debug"] == "true")
-          {
-            std::cout <<
-                      "Debug: Not listening because "
-                      "'listen_to_private_message_only' is 'true' "
-                      "and message was sent to channel."
-                      << std::endl;
-          }
+        AITHER_DEBUG("Debug: Not listening because "
+                     "'listen_to_private_message_only' is 'true' "
+                     "and message was sent to channel.");
         return;
       }
-    if (m_settings["controllable"] != "true")
+    if (m_settings.controllable)
       {
         return;
       }
     // message consists of: control_string + command [+ space + arguments]
     std::string message = msg.message ();
-    const std::string &cs = m_settings["controlstring"];
+    const std::string &cs = m_settings.controlstring;
     auto cs_size = cs.size ();
     // Check whether we have a command after the controlstring.
     if (message.size () <= cs_size || message.compare (0, cs_size, cs))
@@ -540,7 +512,7 @@ namespace MumblePluginBot
         "unbind", {
           true, [] (auto ca)
           {
-            ca.settings["boundto"] = "nobody";
+            ca.settings.boundto = "";
           }
         }
       },
@@ -655,7 +627,7 @@ namespace MumblePluginBot
     CommandArgs ca = {msg, command, arguments, msg_userid, m_settings, reply,
                       *m_cli, *this
                      };
-    bool boundto_msg_user = m_settings["boundto"] == std::to_string (msg_userid);
+    bool boundto_msg_user = m_settings.boundto == std::to_string (msg_userid);
 
     const auto it = commands.find (command);
     if (it != std::end (commands))
@@ -684,6 +656,7 @@ namespace MumblePluginBot
   void Main::settings (CommandArgs &ca)
   {
     std::stringstream out;
+    /*
     for (const auto &it : ca.settings)
       {
         if (it.first != "logo")
@@ -691,6 +664,7 @@ namespace MumblePluginBot
             out << tr_tag (td_tag (it.first) + td_tag (it.second)) << std::endl;
           }
       }
+    */
     ca.reply (table_tag (out.str ()));
   }
 
@@ -702,15 +676,15 @@ namespace MumblePluginBot
       {
         const std::string key = arguments.substr (0, equals_pos);
         const std::string val = arguments.substr (equals_pos + 1);
-        ca.settings[key] = val;
+        // ca.settings[key] = val;
       }
   }
 
   void Main::bind (CommandArgs &ca)
   {
-    if (ca.settings["boundto"] == "nobody")
+    if (ca.settings.boundto == "")
       {
-        ca.settings["boundto"] = std::to_string (ca.msg_userid);
+        ca.settings.boundto = std::to_string (ca.msg_userid);
       }
   }
 
@@ -721,7 +695,7 @@ namespace MumblePluginBot
     if (user)
       {
         const std::string hash_text = user->hash ();
-        ca.settings[hash_text] = username;
+        ca.settings.hash_text = username;
         ca.reply ("This ban is active until the bot restarts. "
                   "To permaban add following line to your configuration:");
         ca.reply (hash_text + "=" + username);

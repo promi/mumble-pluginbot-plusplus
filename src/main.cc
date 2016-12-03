@@ -24,15 +24,17 @@
 #include <thread>
 #include <chrono>
 #include <getopt.h>
+#include <experimental/filesystem>
 
 #include "aither/log.hh"
 #include "openssl/openssl.hh"
 #include "pluginbot/main.hh"
-#include "pluginbot/conf.hh"
+#include "pluginbot/settings.hh"
+
+namespace fs = std::experimental::filesystem;
 
 std::string
-parse_cmd_options (int argc, char *argv[],
-                   std::map <std::string, std::string> &settings)
+parse_cmd_options (int argc, char *argv[], MumblePluginBot::Settings &settings)
 {
   std::string config_filename;
   static struct option long_options[] =
@@ -83,51 +85,83 @@ parse_cmd_options (int argc, char *argv[],
           break;
         case 3:
         case 'h':
-          settings["mumbleserver_host"] = optarg;
+          settings.connection.host = optarg;
           break;
         case 4:
         case 'p':
-          settings["mumbleserver_port"] = optarg;
+          settings.connection.port = std::stoi (optarg);
           break;
         case 5:
         case 'n':
-          settings["mumbleserver_username"] = optarg;
+          settings.connection.username = optarg;
           break;
         case 6:
         case 'u':
-          settings["mumbleserver_userpassword"] = optarg;
+          settings.connection.userpassword = optarg;
           break;
         case 7:
         case 't':
-          settings["mumbleserver_targetchannel"] = optarg;
+          settings.connection.targetchannel = optarg;
           break;
         case 8:
         case 'b':
-          settings["quality_bitrate"] = optarg;
+          settings.quality_bitrate = std::stoi (optarg);
           break;
         case 9:
         case 'f':
-          settings["mpd_fifopath"] = optarg;
+          settings.mpd.fifopath = optarg;
           break;
         case 10:
         case 'H':
-          settings["mpd_host"] = optarg;
+          settings.mpd.host = optarg;
           break;
         case 11:
         case 'P':
-          settings["mpd_port"] = optarg;
+          settings.mpd.port = std::stoi (optarg);
           break;
         case 12:
         case 'C':
-          settings["controllable"] = optarg;
+          settings.controllable = optarg;
           break;
         case 13:
         case 'd':
-          settings["certdirectory"] = optarg;
+          settings.certdir = optarg;
           break;
         }
     }
   return config_filename;
+}
+
+void
+set_dirs (MumblePluginBot::Settings settings)
+{
+  // https://standards.freedesktop.org/basedir-spec/basedir-spec-0.8.html
+  fs::path home = getenv("HOME");
+  assert (home != "");
+  fs::path xdg_data_home = getenv ("XDG_DATA_HOME");
+  if (xdg_data_home == "" || !xdg_data_home.is_absolute ())
+    {
+      xdg_data_home = home / ".local" / "share";
+    }
+  assert (xdg_data_home != "");
+  fs::path xdg_runtime_dir = getenv ("XDG_RUNTIME_DIR");
+  if (xdg_runtime_dir == "" || !xdg_runtime_dir.is_absolute ())
+    {
+      std::cerr << "warning: XDG_RUNTIME_DIR is not set" << std::endl;
+      xdg_runtime_dir = home / ".config";
+    }
+  assert (xdg_runtime_dir != "");
+  fs::path xdg_config_home = getenv ("XDG_CONFIG_HOME");
+  if (xdg_config_home == "" || !xdg_config_home.is_absolute ())
+    {
+      xdg_config_home = home / ".config";
+    }
+  assert (xdg_config_home != "");
+  
+  const std::string &subdir = "mumble-pluginbot-plusplus";
+  settings.main_tempdir = xdg_data_home / subdir / "temp";
+  settings.mpd.fifopath = xdg_runtime_dir / subdir / "mpd.fifo";
+  settings.certdir = xdg_config_home / subdir / "cert";
 }
 
 int
@@ -136,14 +170,23 @@ real_main (int argc, char *argv[])
   using namespace std::chrono_literals;
   setlocale (LC_ALL, "");
   OpenSSL::library_init ();
-  std::map <std::string, std::string> settings;
-  auto &&c = MumblePluginBot::std_config ();
-  settings.insert (std::begin (c), std::end (c));
+  MumblePluginBot::Settings settings;
+  set_dirs (settings);
   const std::string config_filename
   {
     parse_cmd_options (argc, argv, settings)
   };
-  Aither::Log m_log {settings["debug"] == "true" ? Aither::LogSeverity::Debug : Aither::LogSeverity::Verbose};
+  // TODO: Implement config file parsing and loading here
+  auto severity = Aither::LogSeverity::Warning;
+  if (settings.verbose)
+    {
+      severity = Aither::LogSeverity::Verbose;
+    }
+  if (settings.debug)
+    {
+      severity = Aither::LogSeverity::Debug;
+    }
+  Aither::Log m_log {severity};
   AITHER_VERBOSE("Config loaded!");
   int i = 0;
   for (;;)

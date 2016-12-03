@@ -64,7 +64,7 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \
 	src/pluginbot/main.cc \
-	src/pluginbot/conf.cc
+	src/pluginbot/settings.cc
 
 AM_CPPFLAGS = \
 	-std=c++1z \

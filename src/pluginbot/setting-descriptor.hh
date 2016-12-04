@@ -22,25 +22,15 @@
 #pragma once
 
 #include <string>
-#include <map>
-#include <list>
-#include <memory>
-
-#include "pluginbot/setting-descriptor.hh"
+#include <functional>
 
 namespace MumblePluginBot
 {
-  class Settings
+  struct SettingDescriptor
   {
-  public:
-    Settings ();
-    Settings (const Settings &other);
-    Settings (Settings &&other);
-    Settings& operator= (const Settings &other);
-    Settings&& operator= (Settings &&other);
-    const std::list<SettingDescriptor>& descriptors () const;
-  private:
-    struct Impl;
-    std::unique_ptr<Impl> pimpl;
+    std::string section;
+    std::string name;
+    std::function<std::string ()> to_string;
+    std::function<void (const std::string &)> from_string;
   };
 }

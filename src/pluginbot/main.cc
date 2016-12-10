@@ -179,6 +179,7 @@ namespace MumblePluginBot
     //  {
     //    std::this_thread::sleep_for (0.5s);
     //  }
+    // TODO: There should be some setting for this
     for (int i = 0; i < 10; i++)
       {
         if (m_cli->connected ())
@@ -195,7 +196,9 @@ namespace MumblePluginBot
         return;
       }
     AITHER_VERBOSE("connected");
-    std::this_thread::sleep_for (0.1s);
+    // Allow some time for server sync
+    // TODO: There should be some setting for this
+    std::this_thread::sleep_for (0.5s);
     for (int i = 0; i < 10; i++)
       {
         if (m_cli->synced ())
@@ -588,7 +591,7 @@ namespace MumblePluginBot
           }
         else
           {
-            reply ("This command can only be issued by the bound user");
+            reply ("This command can only be issued by the bound user!");
           }
       }
   }
@@ -628,7 +631,7 @@ namespace MumblePluginBot
     auto equals_pos = arguments.find ('=');
     if (equals_pos == std::string::npos)
       {
-        ca.reply ("Invalid arguments");
+        ca.reply ("Invalid arguments for this command!");
         return;
       }
     const std::string key = arguments.substr (0, equals_pos);
@@ -641,17 +644,17 @@ namespace MumblePluginBot
                             });
     if (it == std::end (descriptors))
       {
-        ca.reply ("Setting '" + key + "' not found");
+        ca.reply ("Setting '" + key + "' not found!");
         return;
       }
     try
       {
         it->from_string (val);
-        ca.reply ("Setting '" + key + "' updated");
+        ca.reply ("Setting '" + key + "' updated.");
       }
     catch (std::invalid_argument)
       {
-        ca.reply ("Invalid value for setting '" + key + "'");
+        ca.reply ("Invalid value for setting '" + key + "'!");
       }
   }
 

@@ -39,16 +39,16 @@ Aither::Logger& operator<< (Aither::Logger& l, const char *s);
 
 #define AITHER_DEBUG(s) \
   m_log.debug () << Aither::get_datetime_string (std::chrono::system_clock::now ()) \
-  << " - " s << "\n"
+  << " - " << s << "\n"
 
 #define AITHER_ERROR(s) \
   m_log.error () << Aither::get_datetime_string (std::chrono::system_clock::now ()) \
-  << " - " s << "\n"
+  << " - " << s << "\n"
 
 #define AITHER_VERBOSE(s) \
   m_log.verbose () << Aither::get_datetime_string (std::chrono::system_clock::now ()) \
-  << " - " s << "\n"
+  << " - " << s << "\n"
 
 #define AITHER_WARNING(s) \
   m_log.warning () << Aither::get_datetime_string (std::chrono::system_clock::now ()) \
-  << " - " s << "\n"
+  << " - " << s << "\n"

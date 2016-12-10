@@ -24,14 +24,16 @@ namespace MumblePluginBot
   {
     std::list<SettingDescriptor> l;
 
-    l.push_back ({"", "version", [&] ()
-    {
-      return settings.version;
-    },[&] (const std::string& value)
-    {
-      settings.version = value;
-    }
-                 });
+    l.push_back ({"", "version",
+          [&] ()
+            {
+              return settings.version;
+            },
+          [&] (const std::string& value)
+            {
+              settings.version = value;
+            }
+      });
 
     return l;
   }

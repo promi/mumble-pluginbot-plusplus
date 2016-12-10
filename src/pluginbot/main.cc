@@ -29,6 +29,7 @@
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"
 #include "pluginbot/settings.hh"
+#include "pluginbot/html.hh"
 
 namespace MumblePluginBot
 {
@@ -397,66 +398,6 @@ namespace MumblePluginBot
         arguments = message.substr (space_pos + 1);
       }
     handle_text_message2 (msg, command, arguments, msg_userid);
-  }
-
-  std::string a_tag (const std::string &url, const std::string &label)
-  {
-    return "<a href='" + url + "'>" + label + "</a>";
-  }
-
-  const std::string br_tag = "<br />\n";
-
-  std::string li_tag (const std::string &inner_html)
-  {
-    return "<li>" + inner_html + "</li>\n";
-  }
-
-  std::string tr_tag (const std::string &inner_html)
-  {
-    return "<tr>" + inner_html + "</tr>\n";
-  }
-
-  std::string td_tag (const std::string &inner_html)
-  {
-    return "<td>" + inner_html + "</td>";
-  }
-
-  std::string u_tag (const std::string &inner_html)
-  {
-    return "<u>" + inner_html + "</u>";
-  }
-
-  std::string i_tag (const std::string &inner_html)
-  {
-    return "<i>" + inner_html + "</i>";
-  }
-
-  std::string b_tag (const std::string &inner_html)
-  {
-    return "<b>" + inner_html + "</b>";
-  }
-
-  std::string red_span (const std::string &inner_html)
-  {
-    return "<span style=\"color: red\">" + inner_html + "</span>";
-  }
-
-  std::string ul_tag (const std::string &inner_html)
-  {
-    std::stringstream ss;
-    ss << "<ul>" << std::endl;
-    ss << inner_html;
-    ss << "</ul>" << std::endl;
-    return ss.str ();
-  }
-
-  std::string table_tag (const std::string &inner_html)
-  {
-    std::stringstream ss;
-    ss << "<table>" << std::endl;
-    ss << inner_html;
-    ss << "</table>" << std::endl;
-    return ss.str ();
   }
 
   void Main::handle_text_message2 (const MumbleProto::TextMessage &msg,

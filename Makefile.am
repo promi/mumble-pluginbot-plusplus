@@ -63,6 +63,7 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \
+	src/pluginbot/html.cc \
 	src/pluginbot/main.cc \
 	src/pluginbot/settings.cc
 

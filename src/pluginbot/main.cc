@@ -586,6 +586,10 @@ namespace MumblePluginBot
           {
             it->second.func (ca);
           }
+        else
+          {
+            reply ("This command can only be issued by the bound user");
+          }
       }
   }
 
@@ -622,11 +626,32 @@ namespace MumblePluginBot
   {
     const std::string &arguments = ca.arguments;
     auto equals_pos = arguments.find ('=');
-    if (equals_pos != std::string::npos)
+    if (equals_pos == std::string::npos)
       {
-        const std::string key = arguments.substr (0, equals_pos);
-        const std::string val = arguments.substr (equals_pos + 1);
-        // ca.settings[key] = val;
+        ca.reply ("Invalid arguments");
+        return;
+      }
+    const std::string key = arguments.substr (0, equals_pos);
+    const std::string val = arguments.substr (equals_pos + 1);
+    auto descriptors = SettingDescriptors::create (ca.settings);
+    auto it = std::find_if (std::begin (descriptors), std::end (descriptors),
+                            [&] (auto descriptor)
+                            {
+                              return descriptor.name == key;
+                            });
+    if (it == std::end (descriptors))
+      {
+        ca.reply ("Setting '" + key + "' not found");
+        return;
+      }
+    try
+      {
+        it->from_string (val);
+        ca.reply ("Setting '" + key + "' updated");
+      }
+    catch (std::invalid_argument)
+      {
+        ca.reply ("Invalid value for setting '" + key + "'");
       }
   }
 

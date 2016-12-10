@@ -379,7 +379,7 @@ namespace MumblePluginBot
                      "and message was sent to channel.");
         return;
       }
-    if (m_settings.controllable)
+    if (!m_settings.controllable)
       {
         AITHER_DEBUG("not listening because controllable is 'false'");
         return;

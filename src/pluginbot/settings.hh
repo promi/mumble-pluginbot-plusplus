@@ -128,6 +128,6 @@ namespace MumblePluginBot
         "<b>Write %shelp to me, to get a list of my commands!</b>"
       }
     };
-*/
+    */
   };
 }

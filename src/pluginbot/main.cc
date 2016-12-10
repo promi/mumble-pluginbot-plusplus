@@ -95,9 +95,9 @@ namespace MumblePluginBot
   {
     m_run = false;
     m_cli = std::make_unique<Mumble::Client>
-      (m_settings.connection.host, m_settings.connection.port,
-       m_settings.connection.username, m_settings.connection.userpassword,
-       [&] (auto conf)
+            (m_settings.connection.host, m_settings.connection.port,
+             m_settings.connection.username, m_settings.connection.userpassword,
+             [&] (auto conf)
     {
       conf.bitrate = m_settings.quality_bitrate;
       conf.vbr_rate = m_settings.use_vbr;
@@ -161,7 +161,8 @@ namespace MumblePluginBot
     using namespace std::chrono_literals;
     m_cli->on<MumbleProto::ServerConfig> ([&] (auto serverconfig)
     {
-      m_settings.server_config.image_message_length = serverconfig.image_message_length ();
+      m_settings.server_config.image_message_length =
+        serverconfig.image_message_length ();
       m_settings.server_config.message_length = serverconfig.message_length ();
       m_settings.server_config.allow_html = serverconfig.allow_html ();
     });
@@ -654,12 +655,12 @@ namespace MumblePluginBot
   {
     return b ? "on" : "off";
   }
-                      
+
   std::string btruefalse (bool b)
   {
     return b ? "true" : "false";
   }
-                      
+
   void Main::ducking (CommandArgs &ca)
   {
     bool ducking = ca.settings.ducking = !ca.settings.ducking;
@@ -672,7 +673,8 @@ namespace MumblePluginBot
       {
         std::stringstream ss;
         ss << "Ducking volume is set to " << ca.settings.ducking_vol <<
-          "% of normal volume. Ducking itself it set to: " << btruefalse (ca.settings.ducking) << ".";
+           "% of normal volume. Ducking itself it set to: " << btruefalse (
+             ca.settings.ducking) << ".";
         ca.reply (ss.str ());
       }
     else

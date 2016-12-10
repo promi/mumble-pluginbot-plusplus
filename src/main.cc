@@ -171,7 +171,7 @@ set_dirs (MumblePluginBot::Settings settings)
       xdg_config_home = home / ".config";
     }
   assert (xdg_config_home != "");
-  
+
   const std::string &subdir = "mumble-pluginbot-plusplus";
   settings.main_tempdir = xdg_data_home / subdir / "temp";
   settings.mpd.fifopath = xdg_runtime_dir / subdir / "mpd.fifo";

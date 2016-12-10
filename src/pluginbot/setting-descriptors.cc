@@ -18,9 +18,33 @@
 */
 #include "pluginbot/setting-descriptors.hh"
 
+#include <stdexcept>
+
+#define BOOL_GETTER(setting) [&] () { return setting ? "true" : "false"; }
+#define BOOL_SETTER(setting)                                          \
+  [&] (const std::string& value)                                      \
+  {                                                                   \
+    if (value == "true")                                              \
+      {                                                               \
+        setting = true;                                               \
+      }                                                               \
+    else if (value == "false")                                        \
+      {                                                               \
+        setting = false;                                              \
+      }                                                               \
+    else                                                              \
+      {                                                               \
+        throw std::invalid_argument ("'" + value + "' is neither " +  \
+                                     "'true' nor 'false'");           \
+      }                                                               \
+  }                                                                   \
+
 #define STRING_GETTER(setting) [&] () { return setting; }
 #define STRING_SETTER(setting) [&] (const std::string& value) { setting = value; }
+
+#define BOOL(setting) BOOL_GETTER(setting), BOOL_SETTER(setting)
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
+#define PATH(setting) STRING(setting)
 
 namespace MumblePluginBot
 {
@@ -29,6 +53,8 @@ namespace MumblePluginBot
     std::list<SettingDescriptor> l;
 
     l.push_back ({"", "version", STRING(settings.version)});
+    l.push_back ({"", "main_tempdir", PATH(settings.main_tempdir)});
+    l.push_back ({"", "ducking", BOOL(settings.ducking)});
     return l;
   }
 }

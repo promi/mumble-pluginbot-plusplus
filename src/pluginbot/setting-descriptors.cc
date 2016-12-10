@@ -18,23 +18,17 @@
 */
 #include "pluginbot/setting-descriptors.hh"
 
+#define STRING_GETTER(setting) [&] () { return setting; }
+#define STRING_SETTER(setting) [&] (const std::string& value) { setting = value; }
+#define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
+
 namespace MumblePluginBot
 {
   std::list<SettingDescriptor> SettingDescriptors::create (Settings &settings)
   {
     std::list<SettingDescriptor> l;
 
-    l.push_back ({"", "version",
-                  [&] ()
-    {
-      return settings.version;
-    },
-    [&] (const std::string& value)
-    {
-      settings.version = value;
-    }
-                 });
-
+    l.push_back ({"", "version", STRING(settings.version)});
     return l;
   }
 }

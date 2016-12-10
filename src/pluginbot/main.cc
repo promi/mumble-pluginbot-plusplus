@@ -95,9 +95,9 @@ namespace MumblePluginBot
   {
     m_run = false;
     m_cli = std::make_unique<Mumble::Client>
-            (m_settings.connection.host, m_settings.connection.port,
+            (m_log, m_settings.connection.host, m_settings.connection.port,
              m_settings.connection.username, m_settings.connection.userpassword,
-             [&] (auto conf)
+             [&] (auto &conf)
     {
       conf.bitrate = m_settings.quality_bitrate;
       conf.vbr_rate = m_settings.use_vbr;
@@ -639,9 +639,9 @@ namespace MumblePluginBot
     auto descriptors = SettingDescriptors::create (ca.settings);
     auto it = std::find_if (std::begin (descriptors), std::end (descriptors),
                             [&] (auto descriptor)
-                            {
-                              return descriptor.name == key;
-                            });
+    {
+      return descriptor.name == key;
+    });
     if (it == std::end (descriptors))
       {
         ca.reply ("Setting '" + key + "' not found!");

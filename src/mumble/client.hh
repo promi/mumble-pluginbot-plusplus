@@ -40,6 +40,7 @@
 #include <thread>
 #include <google/protobuf/message.h>
 
+#include "aither/log.hh"
 #include "Mumble.pb.h"
 #include "mumble/cert-manager.hh"
 #include "mumble/mumble-2-mumble.hh"
@@ -57,6 +58,7 @@ namespace Mumble
   class Client
   {
   private:
+    const Aither::Log &m_log;
     std::map<uint32_t, User> m_users;
     std::map<uint32_t, Channel> m_channels;
     bool m_ready = false;
@@ -83,9 +85,8 @@ namespace Mumble
     bool m_ping_thread_running;
     uint32_t m_session;
   public:
-    Client (const std::string &host, int port = 64738,
-            const std::string &username = "RubyClient",
-            const std::string password = "",
+    Client (const Aither::Log &log, const std::string &host, int port = 64738,
+            const std::string &username = "RubyClient", const std::string password = "",
             std::function <void(Mumble::Configuration&)> conf_func = nullptr);
     inline ~Client ()
     {

@@ -37,9 +37,10 @@
 
 namespace Mumble
 {
-  Client::Client (const std::string &host, int port, const std::string &username,
-                  const std::string password,
+  Client::Client (const Aither::Log &log, const std::string &host, int port,
+                  const std::string &username, const std::string password,
                   std::function <void(Mumble::Configuration&)> conf_func)
+    : m_log (log)
   {
     m_config = Mumble::configuration;
     m_config.host = host;

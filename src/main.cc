@@ -147,7 +147,7 @@ getenv_nullsafe (const std::string &name)
 }
 
 void
-set_dirs (MumblePluginBot::Settings settings)
+set_dirs (MumblePluginBot::Settings &settings)
 {
   // https://standards.freedesktop.org/basedir-spec/basedir-spec-0.8.html
   fs::path home = getenv_nullsafe ("HOME");

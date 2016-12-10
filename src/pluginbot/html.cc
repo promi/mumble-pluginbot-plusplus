@@ -66,19 +66,11 @@ namespace MumblePluginBot
 
   std::string ul_tag (const std::string &inner_html)
   {
-    std::stringstream ss;
-    ss << "<ul>" << std::endl;
-    ss << inner_html;
-    ss << "</ul>" << std::endl;
-    return ss.str ();
+    return "<ul>\n" + inner_html + "\n</ul>\n";
   }
 
   std::string table_tag (const std::string &inner_html)
   {
-    std::stringstream ss;
-    ss << "<table>" << std::endl;
-    ss << inner_html;
-    ss << "</table>" << std::endl;
-    return ss.str ();
+    return "<table>\n" + inner_html + "\n</table>\n";
   }
 }

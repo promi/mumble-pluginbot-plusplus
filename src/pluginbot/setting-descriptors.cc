@@ -16,18 +16,16 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
-
-#include <string>
-#include <functional>
+#include "pluginbot/setting-descriptors.hh"
 
 namespace MumblePluginBot
 {
-  struct SettingDescriptor
+  std::list<SettingDescriptor> SettingDescriptors::create (Settings &settings)
   {
-    std::string section;
-    std::string name;
-    std::function<std::string ()> to_string;
-    std::function<void (const std::string &)> from_string;
-  };
+    std::list<SettingDescriptor> l;
+
+    l.push_back ({"", "version", [&] () { return settings.version; },[&] (const std::string& value) { settings.version = value; }});
+    
+    return l;
+  }
 }

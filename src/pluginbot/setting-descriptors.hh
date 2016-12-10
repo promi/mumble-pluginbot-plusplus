@@ -18,16 +18,16 @@
 */
 #pragma once
 
-#include <string>
-#include <functional>
+#include <list>
+
+#include "pluginbot/settings.hh"
+#include "pluginbot/setting-descriptor.hh"
 
 namespace MumblePluginBot
 {
-  struct SettingDescriptor
+  class SettingDescriptors
   {
-    std::string section;
-    std::string name;
-    std::function<std::string ()> to_string;
-    std::function<void (const std::string &)> from_string;
+  public:
+    static std::list<SettingDescriptor> create (Settings &settings);
   };
 }

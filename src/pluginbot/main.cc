@@ -30,6 +30,7 @@
 #include "pluginbot/plugin.hh"
 #include "pluginbot/settings.hh"
 #include "pluginbot/html.hh"
+#include "pluginbot/setting-descriptors.hh"
 
 namespace MumblePluginBot
 {
@@ -598,16 +599,16 @@ namespace MumblePluginBot
 
   void Main::settings (CommandArgs &ca)
   {
+    auto descriptors = SettingDescriptors::create (ca.settings);
     std::stringstream out;
-    /*
-    for (const auto &it : ca.settings)
+    for (const auto &it : descriptors)
       {
-        if (it.first != "logo")
+        if (it.name != "logo" && it.name != "superanswer")
           {
-            out << tr_tag (td_tag (it.first) + td_tag (it.second)) << std::endl;
+            out << tr_tag (td_tag (it.section + '.' + it.name) +
+                           td_tag (it.to_string ())) << "\n";
           }
       }
-    */
     ca.reply (table_tag (out.str ()));
   }
 

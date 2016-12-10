@@ -21,6 +21,7 @@
 #include <stdexcept>
 
 #define BOOL_GETTER(setting) [&] () { return setting ? "true" : "false"; }
+
 #define BOOL_SETTER(setting)                                          \
   [&] (const std::string& value)                                      \
   {                                                                   \
@@ -37,14 +38,33 @@
         throw std::invalid_argument ("'" + value + "' is neither " +  \
                                      "'true' nor 'false'");           \
       }                                                               \
-  }                                                                   \
+  }
+
+#define TO_STRING_GETTER(setting) [&] () { return std::to_string (setting); }
+
+#define UINT_RANGE_SETTER(setting,min,max)                          \
+  [&] (const std::string& value)                                    \
+  {                                                                 \
+    uint i = (uint) std::stoi (value);                              \
+    if (i < min || i > max)                                         \
+      {                                                             \
+        throw std::out_of_range ("'" + value + "' not in range '" + \
+                                 std::to_string (min) + ".." +      \
+                                 std::to_string (max) + "'");       \
+      }                                                             \
+    setting = i;                                                    \
+  }
 
 #define STRING_GETTER(setting) [&] () { return setting; }
+
 #define STRING_SETTER(setting) [&] (const std::string& value) { setting = value; }
 
 #define BOOL(setting) BOOL_GETTER(setting), BOOL_SETTER(setting)
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
 #define PATH(setting) STRING(setting)
+#define UINT_PERCENTAGE(setting) TO_STRING_GETTER(setting),  \
+    UINT_RANGE_SETTER(setting,0,100)
+#define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,65535)
 
 namespace MumblePluginBot
 {
@@ -55,6 +75,102 @@ namespace MumblePluginBot
     l.push_back ({"", "version", STRING(settings.version)});
     l.push_back ({"", "main_tempdir", PATH(settings.main_tempdir)});
     l.push_back ({"", "ducking", BOOL(settings.ducking)});
+    l.push_back ({"", "ducking_vol", UINT_PERCENTAGE(settings.ducking_vol)});
+    l.push_back ({"", "control_automute", BOOL(settings.control_automute)});
+    l.push_back ({"", "chan_notify", UINT16(settings.chan_notify)});
+    l.push_back ({"", "controlstring", STRING(settings.controlstring)});
+    l.push_back ({"", "debug", BOOL(settings.debug)});
+    // TODO: Add all the additional settings
+    /*
+    bool verbose = true;
+    uint ticks_per_hour = 3600;
+    bool listen_to_private_message_only = false;
+    bool listen_to_registered_users_only = true;
+    bool use_vbr = true;
+    bool stop_on_unregistered_users = true;
+    bool use_comment_for_status_display = true;
+    bool set_comment_available = false;
+    // Blacklist entry: user_hash=username
+    std::map<std::string, std::string> blacklist;
+    struct
+    {
+      std::string host {"127.0.0.1"};
+      uint16_t port = 64738;
+      std::string username {"MumblePluginbotPlusPlus"};
+      std::string userpassword {""};
+      std::string targetchannel {""};
+    } connection;
+    // TODO: This really belongs to libmumble-pluginbot-plusplus-mumble!
+    struct
+    {
+      bool allow_html = false;
+      uint32_t message_length = 0;
+      uint32_t image_message_length = 0;
+    } server_config;
+    // TODO: This really belongs to libmumble-pluginbot-plusplus-mumble!
+    struct
+    {
+      std::string version;
+      bool positional = false;
+      bool push_to_talk = false;
+    } suggest_config;
+    std::string logo;
+    std::string superanswer;
+    struct
+    {
+      std::experimental::filesystem::path fifopath {"mpd.fifo"};
+      std::string host {"localhost"};
+      uint16_t port = 7701;
+    } mpd;
+    std::experimental::filesystem::path certdir {"certs"};
+    uint quality_bitrate = 72000;
+    uint initial_volume = 65;
+    bool controllable = true;
+    bool need_binding = false;
+    std::string boundto;
+    // TODO: Generate random password on startup?
+    std::string superpassword;
+    youtube_downloadsubdir", "downloadedfromyt"},
+    youtube_tempsubdir", "youtubeplugin"},
+    youtube_stream", "nil"},
+    youtube_youtubedl", "youtube-dl"},
+    youtube_to_mp3", "nil"},
+    youtube_youtubedl_options", ""},
+    youtube_commandlineprefixes", ""},
+    youtube_maxresults", "200"},
+    soundcloud_downloadsubdir", "downloadedfromsc"},
+    soundcloud_tempsubdir", "soundcloudplugin"},
+    soundcloud_youtubedl", "youtube-dl"},
+    soundcloud_to_mp3", "nil"},
+    soundcloud_youtubedl_options", ""},
+    soundcloud_commandlineprefixes", ""},
+    bandcamp_downloadsubdir", "downloadedfrombc"},
+    bandcamp_tempsubdir", "bandcampplugin"},
+    bandcamp_youtubedl", "youtube-dl"},
+    bandcamp_to_mp3", "nil"},
+    bandcamp_youtubedl_options", ""},
+    bandcamp_commandlineprefixes", ""},
+    ektoplazm_downloadsubdir", "ektoplazm"},
+    ektoplazm_tempsubdir", "ektoplazmplugin"},
+    mpd_musicfolder", "music"},
+    control_historysize", "20"},
+      {
+        "mpd_template_comment_disabled",
+        "<b>Artist: </b>DISABLED<br />"
+        "<b>Title: </b>DISABLED<br />"
+        "<b>Album: </b>DISABLED<br /><br />"
+        "<b>Write %shelp to me, to get a list of my commands!"
+      },
+      {
+        "mpd_template_comment_enabled",
+        "<b>Artist: </b>%s<br />"
+        "<b>Title: </b>%s<br />" \
+        "<b>Album: </b>%s<br /><br />" \
+        "<b>Write %shelp to me, to get a list of my commands!</b>"
+      }
+    };
+    */
+
     return l;
   }
 }

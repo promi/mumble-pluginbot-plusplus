@@ -614,16 +614,16 @@ namespace MumblePluginBot
   {
     auto descriptors = SettingDescriptors::create (ca.settings);
     descriptors.sort ([] (auto &a, auto &b)
-                      {
-                        if (a.section == b.section)
-                          {
-                            return a.name < b.name;
-                          }
-                        else
-                          {
-                            return a.section < b.section;
-                          }
-                      });
+    {
+      if (a.section == b.section)
+        {
+          return a.name < b.name;
+        }
+      else
+        {
+          return a.section < b.section;
+        }
+    });
     std::stringstream out;
     for (const auto &it : descriptors)
       {
@@ -666,6 +666,15 @@ namespace MumblePluginBot
     catch (std::invalid_argument &e)
       {
         ca.reply ("Invalid value for setting '" + key + "': " + e.what () + "!");
+      }
+    catch (std::out_of_range &e)
+      {
+        ca.reply ("The value was out of range for setting '" + key + "': " +
+                  e.what () + "!");
+      }
+    catch (...)
+      {
+        ca.reply ("Unknown error");
       }
   }
 

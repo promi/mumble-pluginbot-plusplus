@@ -315,8 +315,10 @@ namespace MumblePluginBot
 
   void Main::handle_text_message (const MumbleProto::TextMessage &msg)
   {
+    AITHER_DEBUG("text message: " << msg.message ());
     if (!msg.has_actor ())
       {
+        AITHER_DEBUG("no actor");
         // ignore text messages from the server
         return;
       }
@@ -379,6 +381,7 @@ namespace MumblePluginBot
       }
     if (m_settings.controllable)
       {
+        AITHER_DEBUG("not listening because controllable is 'false'");
         return;
       }
     // message consists of: control_string + command [+ space + arguments]
@@ -388,6 +391,7 @@ namespace MumblePluginBot
     // Check whether we have a command after the controlstring.
     if (message.size () <= cs_size || message.compare (0, cs_size, cs))
       {
+        AITHER_DEBUG("no control string in text message");
         return;
       }
     // remove control string
@@ -407,6 +411,7 @@ namespace MumblePluginBot
                                    const std::string &arguments,
                                    uint32_t msg_userid)
   {
+    AITHER_DEBUG("text message was parsed, searching for function to call");
     const auto &actor = msg.actor ();
     /*
       @plugin.each do |plugin|

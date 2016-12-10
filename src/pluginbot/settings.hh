@@ -23,8 +23,7 @@
 
 #include <string>
 #include <map>
-#include <list>
-#include <memory>
+#include <experimental/filesystem>
 
 namespace MumblePluginBot
 {
@@ -33,13 +32,13 @@ namespace MumblePluginBot
   public:
     Settings ();
 
-    std::string version = "0.1";
-    std::string main_tempdir = "temp";
+    std::string version {"0.1"};
+    std::experimental::filesystem::path main_tempdir {"temp"};
     bool ducking = false;
     uint ducking_vol = 20;
     bool control_automute = true;
     uint16_t chan_notify = 0x0000;
-    std::string controlstring = ".";
+    std::string controlstring = {"."};
     bool debug = true;
     bool verbose = true;
     uint ticks_per_hour = 3600;
@@ -53,11 +52,11 @@ namespace MumblePluginBot
     std::map<std::string, std::string> blacklist;
     struct
     {
-      std::string host = "127.0.0.1";
+      std::string host {"127.0.0.1"};
       uint16_t port = 64738;
-      std::string username = "MumblePluginbotPlusPlus";
-      std::string userpassword = "";
-      std::string targetchannel = "";
+      std::string username {"MumblePluginbotPlusPlus"};
+      std::string userpassword {""};
+      std::string targetchannel {""};
     } connection;
     // TODO: This really belongs to libmumble-pluginbot-plusplus-mumble!
     struct
@@ -77,17 +76,17 @@ namespace MumblePluginBot
     std::string superanswer;
     struct
     {
-      std::string fifopath = "mpd.fifo";
-      std::string host = "localhost";
+      std::experimental::filesystem::path fifopath {"mpd.fifo"};
+      std::string host {"localhost"};
       uint16_t port = 7701;
     } mpd;
-    std::string certdir = "certs";
+    std::experimental::filesystem::path certdir {"certs"};
     uint quality_bitrate = 72000;
     uint initial_volume = 65;
     bool controllable = true;
     bool need_binding = false;
-    std::string boundto = "";
-    std::string superpassword = "kaguBe gave me all the power from kaguBe and I wish to ";
+    std::string boundto;
+    std::string superpassword {"kaguBe gave me all the power from kaguBe and I wish to "};
     /*
     youtube_downloadsubdir", "downloadedfromyt"},
     youtube_tempsubdir", "youtubeplugin"},

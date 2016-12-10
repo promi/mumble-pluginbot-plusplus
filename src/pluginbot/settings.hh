@@ -69,8 +69,8 @@ namespace MumblePluginBot
     struct
     {
       std::string version;
-      bool positional;
-      bool push_to_talk;
+      bool positional = false;
+      bool push_to_talk = false;
     } suggest_config;
     std::string logo;
     std::string superanswer;

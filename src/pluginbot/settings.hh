@@ -86,7 +86,8 @@ namespace MumblePluginBot
     bool controllable = true;
     bool need_binding = false;
     std::string boundto;
-    std::string superpassword {"kaguBe gave me all the power from kaguBe and I wish to "};
+    // TODO: Generate random password on startup?
+    std::string superpassword;
     /*
     youtube_downloadsubdir", "downloadedfromyt"},
     youtube_tempsubdir", "youtubeplugin"},

@@ -340,18 +340,21 @@ namespace MumblePluginBot
     // source code. For example youtube plugin needs them...
     //msg.message.gsub!(/(<[^<^>]*>)/, "")
 
-    if (msg.message () == m_settings.superpassword + "restart")
+    if (m_settings.superpassword != "")
       {
-        m_settings = m_configured_settings;
-        m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
-        m_run = false;
-        m_cli->disconnect ();
-      }
+        if (msg.message () == m_settings.superpassword + "restart")
+          {
+            m_settings = m_configured_settings;
+            m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
+            m_run = false;
+            m_cli->disconnect ();
+          }
 
-    if (msg.message () == m_settings.superpassword + "reset")
-      {
-        m_settings = m_configured_settings;
-        m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
+        if (msg.message () == m_settings.superpassword + "reset")
+          {
+            m_settings = m_configured_settings;
+            m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
+          }
       }
 
     if (!sender_is_registered && m_settings.listen_to_registered_users_only)

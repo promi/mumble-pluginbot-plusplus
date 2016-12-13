@@ -21,14 +21,17 @@
 #pragma once
 
 #include <chrono>
+#include <string>
 
 namespace MumblePluginBot
 {
   class Plugin
   {
   public:
+    virtual std::string name () = 0;
     virtual void ticks (std::chrono::time_point<std::chrono::system_clock>
                         time_point);
+    virtual std::string help ();
   };
 }
 
@@ -56,14 +59,6 @@ class Plugin
 
   def handle_response
     #
-  end
-
-  def handle_help(text)
-    text << "#{self.class.name} does'nt implement a help"
-  end
-
-  def ticks(time)
-    #enable periodic timer for plugins
   end
 
   def init(init)

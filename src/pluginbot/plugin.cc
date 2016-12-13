@@ -27,4 +27,9 @@ namespace MumblePluginBot
   {
     (void) time_point;
   }
+
+  std::string Plugin::help ()
+  {
+    return "no help text available for plugin: " + name ();
+  }
 }

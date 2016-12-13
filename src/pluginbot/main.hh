@@ -40,6 +40,7 @@ namespace MumblePluginBot
     const std::string &command;
     const std::string &arguments;
     uint32_t msg_userid;
+    std::list<std::unique_ptr<Plugin>> &plugins;
     Settings &settings;
     std::function<void(const std::string&)> reply;
     Mumble::Client &cli;
@@ -77,7 +78,7 @@ namespace MumblePluginBot
     Settings m_settings;
     Settings m_configured_settings;
     const Aither::Log &m_log;
-    std::list<Plugin> m_plugins;
+    std::list<std::unique_ptr<Plugin>> m_plugins;
     std::string parse_cmd_options (int argc, char *argv[]);
     void timertick ();
     void handle_user_state_changes (const MumbleProto::UserState &msg);

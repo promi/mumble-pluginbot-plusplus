@@ -297,7 +297,7 @@ namespace MumblePluginBot
         // AITHER_DEBUG ("tick");
         for (auto& plugin : m_plugins)
           {
-            plugin.ticks (time);
+            plugin->ticks (time);
           }
       }
   }
@@ -571,7 +571,7 @@ namespace MumblePluginBot
       }
     };
 
-    CommandArgs ca = {msg, command, arguments, msg_userid, m_settings, reply,
+    CommandArgs ca = {msg, command, arguments, msg_userid, m_plugins, m_settings, reply,
                       *m_cli, *this
                      };
     bool boundto_msg_user = m_settings.boundto == std::to_string (msg_userid);
@@ -884,13 +884,11 @@ namespace MumblePluginBot
     if (ca.arguments == "all")
       {
         // Send help texts of all plugins.
-        /*
         std::string help;
-        @plugin.each do |plugin|
-          help = plugin.help(help.to_s)
-          ca.reply (help);
-        end
-        */
+        for (auto& plugin : ca.plugins)
+          {
+            ca.reply (plugin->help ());
+          }
       }
     else if (ca.arguments != "")
       {

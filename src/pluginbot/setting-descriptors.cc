@@ -95,13 +95,12 @@ namespace MumblePluginBot
     l.push_back ({"", "debug", BOOL(settings.debug)});
     l.push_back ({"", "verbose", BOOL(settings.verbose)});
     l.push_back ({"", "tick_duration", DOUBLE_DURATION(settings.tick_duration)});
+    l.push_back ({"", "listen_to_private_message_only", BOOL(settings.listen_to_private_message_only)});
+    l.push_back ({"", "listen_to_registered_users_only", BOOL(settings.listen_to_registered_users_only)});
+    l.push_back ({"", "use_vbr", BOOL(settings.use_vbr)});
+    l.push_back ({"", "stop_on_unregistered_users", BOOL(settings.stop_on_unregistered_users)});
     // TODO: Add all the additional settings
     /*
-    uint ticks_per_hour = 3600;
-    bool listen_to_private_message_only = false;
-    bool listen_to_registered_users_only = true;
-    bool use_vbr = true;
-    bool stop_on_unregistered_users = true;
     bool use_comment_for_status_display = true;
     bool set_comment_available = false;
     // Blacklist entry: user_hash=username

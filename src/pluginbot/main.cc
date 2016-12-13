@@ -289,17 +289,13 @@ namespace MumblePluginBot
   void Main::timertick ()
   {
     using namespace std::chrono_literals;
-    int ticks_per_hour = m_settings.ticks_per_hour;
+    auto tick_sleep_duration = m_settings.tick_sleep_duration;
     while (m_ticktimer_running)
       {
-        // TODO: The commented out part is WRONG.
-        // It sleeps for a very short amount of time and makes the process use 100% CPU
-        // So find out how to do proper math with std::chrono here!
-        // OTOH: Keeping it at 1s should be fine for now.
-        (void) ticks_per_hour;
-        std::this_thread::sleep_for (1s); // (1h / ticks_per_hour);
+        std::this_thread::sleep_for (tick_sleep_duration);
         auto time = std::chrono::system_clock::now ();
         (void) time;
+        AITHER_DEBUG ("tick");
         /*
           @plugin.each do |plugin|
           plugin.ticks(time)

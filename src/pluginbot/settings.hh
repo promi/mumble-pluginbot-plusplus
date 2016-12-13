@@ -41,7 +41,7 @@ namespace MumblePluginBot
     std::string controlstring = {"."};
     bool debug = true;
     bool verbose = true;
-    uint ticks_per_hour = 3600;
+    std::chrono::duration<double, std::ratio<1>> tick_sleep_duration { 0.5 };
     bool listen_to_private_message_only = false;
     bool listen_to_registered_users_only = true;
     bool use_vbr = true;

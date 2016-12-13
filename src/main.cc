@@ -182,7 +182,12 @@ int
 real_main (int argc, char *argv[])
 {
   using namespace std::chrono_literals;
+  // Use the users locale, but ...
   setlocale (LC_ALL, "");
+  // Don't use the numeric part.
+  // The decimal separator should always be a dot '.'!
+  // That fact is used for string to setting and setting to string conversion
+  setlocale (LC_NUMERIC, "C");
   OpenSSL::library_init ();
   MumblePluginBot::Settings settings;
   set_dirs (settings);

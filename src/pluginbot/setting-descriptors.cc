@@ -42,6 +42,9 @@
 
 #define TO_STRING_GETTER(setting) [&] () { return std::to_string (setting); }
 
+#define TO_STRING_SUFFIX_GETTER(setting,suffix) [&] () \
+  { return std::to_string (setting) + suffix; }
+
 #define UINT_RANGE_SETTER(setting,min,max)                          \
   [&] (const std::string& value)                                    \
   {                                                                 \
@@ -55,6 +58,14 @@
     setting = i;                                                    \
   }
 
+#define DOUBLE_DURATION_GETTER(setting) [&] () \
+  { return std::to_string (setting.count ()) + "s"; }
+
+#define DOUBLE_DURATION_SETTER(setting) [&] (const std::string& value)  \
+  {                                                                     \
+    setting = std::chrono::duration<double, std::ratio<1>> { std::stod (value) }; \
+  }
+
 #define STRING_GETTER(setting) [&] () { return setting; }
 
 #define STRING_SETTER(setting) [&] (const std::string& value) { setting = value; }
@@ -62,9 +73,11 @@
 #define BOOL(setting) BOOL_GETTER(setting), BOOL_SETTER(setting)
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
 #define PATH(setting) STRING(setting)
-#define UINT_PERCENTAGE(setting) TO_STRING_GETTER(setting),  \
+#define UINT_PERCENTAGE(setting) TO_STRING_SUFFIX_GETTER(setting,"%"), \
     UINT_RANGE_SETTER(setting,0,100)
 #define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,65535)
+#define DOUBLE_DURATION(setting) DOUBLE_DURATION_GETTER(setting), \
+    DOUBLE_DURATION_SETTER(setting)
 
 namespace MumblePluginBot
 {
@@ -80,9 +93,10 @@ namespace MumblePluginBot
     l.push_back ({"", "chan_notify", UINT16(settings.chan_notify)});
     l.push_back ({"", "controlstring", STRING(settings.controlstring)});
     l.push_back ({"", "debug", BOOL(settings.debug)});
+    l.push_back ({"", "verbose", BOOL(settings.verbose)});
+    l.push_back ({"", "tick_duration", DOUBLE_DURATION(settings.tick_duration)});
     // TODO: Add all the additional settings
     /*
-    bool verbose = true;
     uint ticks_per_hour = 3600;
     bool listen_to_private_message_only = false;
     bool listen_to_registered_users_only = true;

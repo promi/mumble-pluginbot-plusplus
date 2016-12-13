@@ -294,13 +294,11 @@ namespace MumblePluginBot
       {
         std::this_thread::sleep_for (tick_sleep_duration);
         auto time = std::chrono::system_clock::now ();
-        (void) time;
-        AITHER_DEBUG ("tick");
-        /*
-          @plugin.each do |plugin|
-          plugin.ticks(time)
-          end
-        */
+        // AITHER_DEBUG ("tick");
+        for (auto& plugin : m_plugins)
+          {
+            plugin.ticks (time);
+          }
       }
   }
 

@@ -20,9 +20,17 @@
 */
 #pragma once
 
-class Plugin
+#include <chrono>
+
+namespace MumblePluginBot
 {
-};
+  class Plugin
+  {
+  public:
+    virtual void ticks (std::chrono::time_point<std::chrono::system_clock>
+                        time_point);
+  };
+}
 
 /*
 class Plugin

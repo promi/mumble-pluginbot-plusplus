@@ -28,10 +28,10 @@
 #include "mumble/Mumble.pb.h"
 #include "mumble/client.hh"
 #include "pluginbot/settings.hh"
+#include "pluginbot/plugin.hh"
 
 namespace MumblePluginBot
 {
-
   class Main;
 
   struct CommandArgs
@@ -77,6 +77,7 @@ namespace MumblePluginBot
     Settings m_settings;
     Settings m_configured_settings;
     const Aither::Log &m_log;
+    std::list<Plugin> m_plugins;
     std::string parse_cmd_options (int argc, char *argv[]);
     void timertick ();
     void handle_user_state_changes (const MumbleProto::UserState &msg);

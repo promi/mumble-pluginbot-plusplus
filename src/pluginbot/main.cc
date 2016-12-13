@@ -893,13 +893,15 @@ namespace MumblePluginBot
     else if (ca.arguments != "")
       {
         // Send help for a specific plugin.
-        /*
-        std::string help;
-        @plugin.each do |plugin|
-                           help = plugin.help('') if plugin.name.upcase == message.split[1].upcase
-                                                              end
-                                                              ca.reply (help);
-        */
+        auto it = std::find_if (std::begin (ca.plugins),
+                                std::end (ca.plugins), [&] (auto& plugin)
+        {
+          return plugin->name () == ca.arguments;
+        });
+        if (it != std::end (ca.plugins))
+          {
+            ca.reply ((*it)->help ());
+          }
       }
     else
       {

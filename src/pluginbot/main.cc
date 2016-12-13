@@ -289,10 +289,10 @@ namespace MumblePluginBot
   void Main::timertick ()
   {
     using namespace std::chrono_literals;
-    auto tick_sleep_duration = m_settings.tick_sleep_duration;
+    auto tick_duration = m_settings.tick_duration;
     while (m_ticktimer_running)
       {
-        std::this_thread::sleep_for (tick_sleep_duration);
+        std::this_thread::sleep_for (tick_duration);
         auto time = std::chrono::system_clock::now ();
         // AITHER_DEBUG ("tick");
         for (auto& plugin : m_plugins)

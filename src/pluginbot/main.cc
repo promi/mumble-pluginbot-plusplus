@@ -812,11 +812,10 @@ namespace MumblePluginBot
   void Main::plugins (CommandArgs &ca)
   {
     std::stringstream ss;
-    /*
-      @plugin.each do |plugin|
-      help << plugin.name + "<br />"
-      end
-    */
+    for (auto& plugin : ca.plugins)
+      {
+        ss << plugin->name () << br_tag;
+      }
     std::string help = br_tag + red_span ("Loaded plugins:" + br_tag + b_tag (
                                             ss.str ()));
     auto cs = ca.settings.controlstring;

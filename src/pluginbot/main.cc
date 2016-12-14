@@ -225,8 +225,6 @@ namespace MumblePluginBot
           AITHER_DEBUG("[joincannel] Can't join " + targetchannel + "!");
         }
     }
-    m_cli->comment ("");
-    m_settings.set_comment_available = true;
     m_cli->on<MumbleProto::UserState> ([&] (const auto &msg)
     {
       this->handle_user_state_changes (msg);

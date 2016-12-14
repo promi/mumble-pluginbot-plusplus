@@ -47,7 +47,6 @@ namespace MumblePluginBot
     bool use_vbr = true;
     bool stop_on_unregistered_users = true;
     bool use_comment_for_status_display = true;
-    bool set_comment_available = false;
     // Blacklist entry: user_hash=username
     std::map<std::string, std::string> blacklist;
     struct

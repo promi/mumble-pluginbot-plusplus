@@ -75,7 +75,8 @@
 #define PATH(setting) STRING(setting)
 #define UINT_PERCENTAGE(setting) TO_STRING_SUFFIX_GETTER(setting,"%"), \
     UINT_RANGE_SETTER(setting,0,100)
-#define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,65535)
+#define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,UINT16_MAX)
+#define UINT32(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,UINT32_MAX)
 #define DOUBLE_DURATION(setting) DOUBLE_DURATION_GETTER(setting), \
     DOUBLE_DURATION_SETTER(setting)
 
@@ -99,34 +100,23 @@ namespace MumblePluginBot
     l.push_back ({"", "listen_to_registered_users_only", BOOL(settings.listen_to_registered_users_only)});
     l.push_back ({"", "use_vbr", BOOL(settings.use_vbr)});
     l.push_back ({"", "stop_on_unregistered_users", BOOL(settings.stop_on_unregistered_users)});
+    l.push_back ({"", "use_comment_for_status_display", BOOL(settings.use_comment_for_status_display)});
+    // TODO: Blacklist entries: user_hash=username
+    //std::map<std::string, std::string> blacklist;
+    l.push_back ({"connection", "host", STRING(settings.connection.host)});
+    l.push_back ({"connection", "port", UINT16(settings.connection.port)});
+    l.push_back ({"connection", "username", STRING(settings.connection.username)});
+    l.push_back ({"connection", "userpassword", STRING(settings.connection.userpassword)});
+    l.push_back ({"connection", "targetchannel", STRING(settings.connection.targetchannel)});
+    l.push_back ({"server_config", "allow_html", BOOL(settings.server_config.allow_html)});
+    l.push_back ({"server_config", "message_length", UINT32(settings.server_config.message_length)});
+    l.push_back ({"server_config", "image_message_length", UINT32(settings.server_config.image_message_length)});
+    l.push_back ({"suggest_config", "version", STRING(settings.suggest_config.version)});
+    l.push_back ({"suggest_config", "positional", BOOL(settings.suggest_config.positional)});
+    l.push_back ({"suggest_config", "push_to_talk", BOOL(settings.suggest_config.push_to_talk)});
+
     // TODO: Add all the additional settings
     /*
-    bool use_comment_for_status_display = true;
-    bool set_comment_available = false;
-    // Blacklist entry: user_hash=username
-    std::map<std::string, std::string> blacklist;
-    struct
-    {
-      std::string host {"127.0.0.1"};
-      uint16_t port = 64738;
-      std::string username {"MumblePluginbotPlusPlus"};
-      std::string userpassword {""};
-      std::string targetchannel {""};
-    } connection;
-    // TODO: This really belongs to libmumble-pluginbot-plusplus-mumble!
-    struct
-    {
-      bool allow_html = false;
-      uint32_t message_length = 0;
-      uint32_t image_message_length = 0;
-    } server_config;
-    // TODO: This really belongs to libmumble-pluginbot-plusplus-mumble!
-    struct
-    {
-      std::string version;
-      bool positional = false;
-      bool push_to_talk = false;
-    } suggest_config;
     std::string logo;
     std::string superanswer;
     struct

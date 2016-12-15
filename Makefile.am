@@ -9,10 +9,6 @@ AM_CPPFLAGS = \
 	-I$(srcdir)/src \
 	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
 
-# Static linking is out of the question, since we want to have plugins as shared libs
-AM_LDFLAGS = \
-	-shared
-
 lib_LTLIBRARIES = \
 	libaither.la \
 	libmumble-pluginbot-plusplus-io.la \

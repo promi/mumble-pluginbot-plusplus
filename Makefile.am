@@ -1,6 +1,18 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
+AM_CPPFLAGS = \
+	-std=c++1z \
+	-Wall \
+	-Wextra \
+	-pedantic \
+	-I$(srcdir)/src \
+	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
+
+# Static linking is out of the question, since we want to have plugins as shared libs
+AM_LDFLAGS = \
+	-shared
+
 lib_LTLIBRARIES = \
 	libaither.la \
 	libmumble-pluginbot-plusplus-io.la \
@@ -68,14 +80,6 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/pluginbot/plugin.cc \
 	src/pluginbot/settings.cc \
 	src/pluginbot/setting-descriptors.cc
-
-AM_CPPFLAGS = \
-	-std=c++1z \
-	-Wall \
-	-Wextra \
-	-pedantic \
-	-I$(srcdir)/src \
-	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
 	libmumble-pluginbot-plusplus-io.la \

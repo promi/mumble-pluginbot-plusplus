@@ -45,14 +45,14 @@
 #define TO_STRING_SUFFIX_GETTER(setting,suffix) [&] () \
   { return std::to_string (setting) + suffix; }
 
-#define UINT_RANGE_SETTER(setting,min,max)                          \
+#define UINT_RANGE_SETTER(setting,max)                              \
   [&] (const std::string& value)                                    \
   {                                                                 \
     uint i = (uint) std::stoi (value);                              \
-    if (i < min || i > max)                                         \
+    if (i > max)                                                    \
       {                                                             \
         throw std::out_of_range ("'" + value + "' not in range '" + \
-                                 std::to_string (min) + ".." +      \
+                                 std::to_string (0) + ".." +        \
                                  std::to_string (max) + "'");       \
       }                                                             \
     setting = i;                                                    \
@@ -74,9 +74,9 @@
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
 #define PATH(setting) STRING(setting)
 #define UINT_PERCENTAGE(setting) TO_STRING_SUFFIX_GETTER(setting,"%"), \
-    UINT_RANGE_SETTER(setting,0,100)
-#define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,UINT16_MAX)
-#define UINT32(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,0,UINT32_MAX)
+    UINT_RANGE_SETTER(setting,100)
+#define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,UINT16_MAX)
+#define UINT32(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,UINT32_MAX)
 #define DOUBLE_DURATION(setting) DOUBLE_DURATION_GETTER(setting), \
     DOUBLE_DURATION_SETTER(setting)
 

@@ -335,11 +335,6 @@ namespace MumblePluginBot
         sender_is_registered = false;
         AITHER_DEBUG("user in blacklist!");
       }
-    // FIXME: strip html tags.
-    // BEFORE doing this we need to ensure that no plugin needs the html
-    // source code. For example youtube plugin needs them...
-    //msg.message.gsub!(/(<[^<^>]*>)/, "")
-
     if (m_settings.superpassword != "")
       {
         if (msg.message () == m_settings.superpassword + "restart")

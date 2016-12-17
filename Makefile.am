@@ -1,6 +1,10 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
+BUILT_SOURCES = src/git-info.hh
+EXTRA_DIST = tools/echo-git-info.sh
+#GIT_VERSION = $(shell git describe --dirty --always --tags)
+
 AM_CPPFLAGS = \
 	-std=c++1z \
 	-Wall \
@@ -93,3 +97,6 @@ mumble_pluginbot_plusplus_LDADD = \
 	-lm \
 	libmumble-pluginbot-plusplus-mumble.la \
 	-lstdc++fs
+
+src/git-info.hh: $(HEADERS) $(SOURCES)
+	$(srcdir)/tools/echo-git-info.sh > $(srcdir)/src/git-info.hh

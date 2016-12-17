@@ -26,6 +26,7 @@
 #include <getopt.h>
 #include <experimental/filesystem>
 
+#include "git-info.hh"
 #include "aither/log.hh"
 #include "openssl/openssl.hh"
 #include "pluginbot/main.hh"
@@ -211,7 +212,7 @@ real_main (int argc, char *argv[])
   for (;;)
     {
       MumblePluginBot::Main client (settings, config_filename, m_log);
-      AITHER_VERBOSE("pluginbot is starting...");
+      AITHER_VERBOSE("pluginbot (" << GIT_DESCRIBE << ") is starting...");
       client.init_settings ();
       AITHER_VERBOSE("start");
       client.mumble_start ();

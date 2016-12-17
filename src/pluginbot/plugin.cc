@@ -46,7 +46,7 @@ namespace MumblePluginBot
   {
     pimpl = std::make_unique<Impl> (settings, cli, 0);
   }
-  
+
   void Plugin::ticks (std::chrono::time_point<std::chrono::system_clock>
                       time_point)
   {
@@ -61,7 +61,7 @@ namespace MumblePluginBot
     (void) command;
     (void) arguments;
   }
-  
+
   /*
     def handle_command(command)
     #raise "#{self.class.name} doesn't implement `handle_command`!"

@@ -88,4 +88,9 @@ namespace MumblePluginBot
   {
     pimpl->cli.text_channel (pimpl->cli.me ().channel_id (), message);
   }
+
+  Settings& Plugin::settings ()
+  {
+    return pimpl->settings;
+  }
 }

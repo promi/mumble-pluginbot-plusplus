@@ -1,6 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -20,18 +22,17 @@
 
 #include <string>
 
+#include "pluginbot/plugin.hh"
+
 namespace MumblePluginBot
 {
-  std::string a_tag (const std::string &url, const std::string &label);
-  extern const std::string br_tag;
-  extern const std::string hr_tag;
-  std::string li_tag (const std::string &inner_html);
-  std::string tr_tag (const std::string &inner_html);
-  std::string td_tag (const std::string &inner_html);
-  std::string u_tag (const std::string &inner_html);
-  std::string i_tag (const std::string &inner_html);
-  std::string b_tag (const std::string &inner_html);
-  std::string red_span (const std::string &inner_html);
-  std::string ul_tag (const std::string &inner_html);
-  std::string table_tag (const std::string &inner_html);
+  class VersionPlugin : public Plugin
+  {
+  public:
+    virtual std::string name ();
+    virtual std::string help ();
+    virtual void handle_chat (const MumbleProto::TextMessage &msg,
+                              const std::string &command,
+                              const std::string &arguments);
+  };
 }

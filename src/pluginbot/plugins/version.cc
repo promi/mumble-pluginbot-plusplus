@@ -1,6 +1,8 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -16,22 +18,37 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "pluginbot/plugins/version.hh"
 
-#include <string>
+#include <sstream>
+
+#include "git-info.hh"
+#include "pluginbot/html.hh"
 
 namespace MumblePluginBot
 {
-  std::string a_tag (const std::string &url, const std::string &label);
-  extern const std::string br_tag;
-  extern const std::string hr_tag;
-  std::string li_tag (const std::string &inner_html);
-  std::string tr_tag (const std::string &inner_html);
-  std::string td_tag (const std::string &inner_html);
-  std::string u_tag (const std::string &inner_html);
-  std::string i_tag (const std::string &inner_html);
-  std::string b_tag (const std::string &inner_html);
-  std::string red_span (const std::string &inner_html);
-  std::string ul_tag (const std::string &inner_html);
-  std::string table_tag (const std::string &inner_html);
+  std::string VersionPlugin::name ()
+  {
+    return "version";
+  }
+
+  std::string VersionPlugin::help ()
+  {
+    std::stringstream h;
+    h << hr_tag;
+    h << red_span ("Plugin " + name ()) << br_tag;
+    h << b_tag (settings ().controlstring + "version") << br_tag;
+    return h.str ();
+  }
+
+  void VersionPlugin::handle_chat (const MumbleProto::TextMessage &msg,
+				   const std::string &command,
+				   const std::string &arguments)
+  {
+    Plugin::handle_chat (msg, command, arguments);
+    if (command == "version")
+      {
+	private_message (std::string ("Version: ") + GIT_DESCRIBE);
+      }
+  }
 }

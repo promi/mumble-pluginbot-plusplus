@@ -29,6 +29,8 @@ namespace MumblePluginBot
 
   const std::string br_tag = "<br />\n";
 
+  const std::string hr_tag = "<hr />\n";
+
   std::string li_tag (const std::string &inner_html)
   {
     return "<li>" + inner_html + "</li>\n";

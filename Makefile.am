@@ -79,7 +79,8 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/pluginbot/main.cc \
 	src/pluginbot/plugin.cc \
 	src/pluginbot/settings.cc \
-	src/pluginbot/setting-descriptors.cc
+	src/pluginbot/setting-descriptors.cc \
+	src/pluginbot/plugins/version.cc
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
 	libmumble-pluginbot-plusplus-io.la \

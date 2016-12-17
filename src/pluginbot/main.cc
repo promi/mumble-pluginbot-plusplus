@@ -32,6 +32,8 @@
 #include "pluginbot/html.hh"
 #include "pluginbot/setting-descriptors.hh"
 
+#include "pluginbot/plugins/version.hh"
+
 namespace MumblePluginBot
 {
   const std::string org_source_url =
@@ -49,8 +51,8 @@ namespace MumblePluginBot
               const std::string &config_filename,
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
-    // m_plugins.push_back (std::make_unique ());
     // load all plugins
+    m_plugins.push_back (std::make_unique<VersionPlugin> ());
     /*
       Dir["./plugins/ *.rb"].each do |f|
       require f

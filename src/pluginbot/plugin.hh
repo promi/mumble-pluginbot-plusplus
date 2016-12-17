@@ -38,6 +38,7 @@ namespace MumblePluginBot
     void message_to (uint32_t user_id, const std::string &message);
     void channel_message (const std::string &message);
     void private_message (const std::string &message);
+    Settings& settings ();
   public:
     Plugin ();
     virtual ~Plugin ();

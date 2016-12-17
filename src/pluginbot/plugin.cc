@@ -22,77 +22,70 @@
 
 namespace MumblePluginBot
 {
+  struct Plugin::Impl
+  {
+    Settings &settings;
+    Mumble::Client &cli;
+    uint32_t user_id;
+
+    inline Impl (Settings &settings, Mumble::Client &cli, uint32_t user_id)
+      : settings (settings), cli (cli), user_id (user_id)
+    {
+    }
+  };
+
+  Plugin::Plugin ()
+  {
+  }
+
+  Plugin::~Plugin ()
+  {
+  }
+
+  void Plugin::init (Settings &settings, Mumble::Client &cli)
+  {
+    pimpl = std::make_unique<Impl> (settings, cli, 0);
+  }
+  
   void Plugin::ticks (std::chrono::time_point<std::chrono::system_clock>
                       time_point)
   {
     (void) time_point;
   }
 
+  void Plugin::handle_chat (const MumbleProto::TextMessage &msg,
+                            const std::string &command,
+                            const std::string &arguments)
+  {
+    pimpl->user_id = msg.actor ();
+    (void) command;
+    (void) arguments;
+  }
+  
+  /*
+    def handle_command(command)
+    #raise "#{self.class.name} doesn't implement `handle_command`!"
+    end
+  */
+
   std::string Plugin::help ()
   {
     return "no help text available for plugin: " + name ();
   }
-/*
-class Plugin
-  def self.plugins
-    @plugins ||= []
-  end
 
-  def self.inherited(klass)
-    @plugins ||= []
+  void Plugin::message_to (uint32_t user_id, const std::string &message)
+  {
+    // TODO: When can this fail and with what exception?
+    pimpl->cli.text_user (user_id, message);
+  }
 
-    @plugins << klass
-  end
+  void Plugin::private_message (const std::string &message)
+  {
+    message_to (pimpl->user_id, message);
+  }
 
-  # Usually a good idea for debugging if you have lots of methods
-  def handle_chat(msg, message)
-    @user = msg.actor
-    #raise "#{self.class.name} doesn't implement `handle_chat`!"
-  end
-
-  def handle_command(command)
-    #raise "#{self.class.name} doesn't implement `handle_command`!"
-  end
-
-  def handle_response
-    #
-  end
-
-  def init(init)
-    @@bot = init
-  end
-
-  private
-  def prozessmessage(message)
-    # count lines
-    # for future use (send long messages in smaller parts)
-    lines = message.count("<br>") + message.count("<tr>")
-    puts lines
-    return message
-  end
-  def privatemessage(message)
-    begin
-      @@bot[:cli].text_user(@user, message)
-    rescue
-      puts "Sending message to user #{@user} failed. Maybe left server before we try to send."
-    end
-  end
-  def messageto(actor, message)
-    begin
-      @@bot[:cli].text_user(actor, message)
-    rescue
-      puts "Sending message to user #{actor} failed. Maybe left server before we try to send."
-    end
-  end
-  def channelmessage(message)
-    begin
-      @@bot[:cli].text_channel(@@bot[:cli].me.current_channel, message)
-    rescue
-      puts "Sending message to channel #{@@bot[:cli].me.current_channel} failed. ->should never happen<-"
-    end
-  end
-
-end
-
-*/
+  void Plugin::channel_message (const std::string &message)
+  {
+    pimpl->cli.text_channel (pimpl->cli.me ().channel_id (), message);
+  }
 }

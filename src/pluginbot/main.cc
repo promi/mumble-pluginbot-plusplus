@@ -49,6 +49,7 @@ namespace MumblePluginBot
               const std::string &config_filename,
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
+    // m_plugins.push_back (std::make_unique ());
     // load all plugins
     /*
       Dir["./plugins/ *.rb"].each do |f|
@@ -257,31 +258,10 @@ namespace MumblePluginBot
 
   void Main::init_plugins ()
   {
-    /*
-      #init all plugins
-      init = @settings.clone
-      init[:cli] = @cli
-
-      std::cout << "initplugins" << std::endl;
-      Plugin.plugins.each do |plugin_class|
-      @plugin << plugin_class.new
-      end
-
-      maxcount = @plugin.length
-      allok = 0
-      while allok != @plugin.length do
-      allok = 0
-      @plugin.each do |plugin|
-      init = plugin.init(init)
-      if plugin.name != "false"
-      allok += 1
-      end
-      end
-      maxcount -= 1
-      break if maxcount <= 0
-      end
-      std::cout << "maybe not all plugins functional!" << std::endl; if maxcount <= 0
-    */
+    for (auto &plugin : m_plugins)
+      {
+        plugin->init (m_settings, *m_cli);
+      }
   }
 
   void Main::timertick ()
@@ -403,11 +383,10 @@ namespace MumblePluginBot
   {
     AITHER_DEBUG("text message was parsed, searching for function to call");
     const auto &actor = msg.actor ();
-    /*
-      @plugin.each do |plugin|
-      plugin.handle_chat(msg, message)
-      end
-    */
+    for (auto &plugin : m_plugins)
+      {
+        plugin->handle_chat (msg, command, arguments);
+      }
 
     std::function<void(const std::string&)> reply = [this, actor] (auto msg)
     {

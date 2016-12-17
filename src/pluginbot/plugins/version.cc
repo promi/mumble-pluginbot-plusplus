@@ -42,13 +42,13 @@ namespace MumblePluginBot
   }
 
   void VersionPlugin::handle_chat (const MumbleProto::TextMessage &msg,
-				   const std::string &command,
-				   const std::string &arguments)
+                                   const std::string &command,
+                                   const std::string &arguments)
   {
     Plugin::handle_chat (msg, command, arguments);
     if (command == "version")
       {
-	private_message (std::string ("Version: ") + GIT_DESCRIBE);
+        private_message (std::string ("Version: ") + GIT_DESCRIBE);
       }
   }
 }

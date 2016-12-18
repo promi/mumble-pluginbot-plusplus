@@ -6,7 +6,7 @@ AM_SILENT_RULES([yes])
 AC_PROG_CXX
 LT_INIT
 
-PKG_CHECK_MODULES(MUMBLE_PLUGINBOT_PLUSPLUS, [opus >= 1.1 openssl protobuf])
+PKG_CHECK_MODULES(MUMBLE_PLUGINBOT_PLUSPLUS, [opus >= 1.1 openssl protobuf libmpdclient])
 
 AC_CONFIG_FILES([Makefile])
 

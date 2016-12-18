@@ -32,6 +32,7 @@
 #include "pluginbot/html.hh"
 #include "pluginbot/setting-descriptors.hh"
 
+#include "pluginbot/plugins/mpd.hh"
 #include "pluginbot/plugins/version.hh"
 
 namespace MumblePluginBot
@@ -55,6 +56,7 @@ namespace MumblePluginBot
     // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
     // Dir["./plugins/ *.rb"].each do |f|
     m_plugins.push_back (std::make_unique<VersionPlugin> ());
+    m_plugins.push_back (std::make_unique<MpdPlugin> ());
     // Sort by name, so all plugin related user command output is in alphabetical order
     m_plugins.sort ([] (auto &a, auto &b)
     {
@@ -62,7 +64,7 @@ namespace MumblePluginBot
     });
     for (auto &plugin : m_plugins)
       {
-        std::cout << "Plugin '" << plugin->name () << "' loaded.\n";
+        AITHER_VERBOSE("Plugin '" << plugin->name () << "' loaded.");
       }
     if (config_filename != "")
       {

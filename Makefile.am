@@ -19,7 +19,8 @@ lib_LTLIBRARIES = \
 	libmumble-pluginbot-plusplus-network.la \
 	libmumble-pluginbot-plusplus-openssl.la \
 	libmumble-pluginbot-plusplus-opus.la \
-	libmumble-pluginbot-plusplus-mumble.la
+	libmumble-pluginbot-plusplus-mumble.la \
+	libmumble-pluginbot-plusplus-mpd.la
 
 bin_PROGRAMS = mumble-pluginbot-plusplus
 
@@ -73,6 +74,9 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/udp-packet.cc \
 	src/mumble/user.cc
 
+libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
+	src/mpd/connection.cc
+
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \
 	src/pluginbot/html.cc \
@@ -80,6 +84,7 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/pluginbot/plugin.cc \
 	src/pluginbot/settings.cc \
 	src/pluginbot/setting-descriptors.cc \
+	src/pluginbot/plugins/mpd.cc \
 	src/pluginbot/plugins/version.cc
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
@@ -96,6 +101,7 @@ libmumble_pluginbot_plusplus_mumble_la_LIBADD = \
 mumble_pluginbot_plusplus_LDADD = \
 	$(MUMBLE_PLUGINBOT_PLUSPLUS_LIBS) \
 	-lm \
+	libmumble-pluginbot-plusplus-mpd.la \
 	libmumble-pluginbot-plusplus-mumble.la \
 	-lstdc++fs
 

@@ -35,6 +35,7 @@ namespace MumblePluginBot
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   protected:
+    virtual void internal_init ();
     void message_to (uint32_t user_id, const std::string &message);
     void channel_message (const std::string &message);
     void private_message (const std::string &message);
@@ -43,7 +44,7 @@ namespace MumblePluginBot
     Plugin ();
     virtual ~Plugin ();
     virtual std::string name () = 0;
-    virtual void init (Settings &settings, Mumble::Client &cli);
+    void init (Settings &settings, Mumble::Client &cli);
     virtual void ticks (std::chrono::time_point<std::chrono::system_clock>
                         time_point);
     virtual void handle_chat (const MumbleProto::TextMessage &msg,

@@ -42,9 +42,14 @@ namespace MumblePluginBot
   {
   }
 
+  void Plugin::internal_init ()
+  {
+  }
+
   void Plugin::init (Settings &settings, Mumble::Client &cli)
   {
     pimpl = std::make_unique<Impl> (settings, cli, 0);
+    internal_init ();
   }
 
   void Plugin::ticks (std::chrono::time_point<std::chrono::system_clock>

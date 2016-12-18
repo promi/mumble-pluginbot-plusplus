@@ -29,10 +29,10 @@ namespace MumblePluginBot
   class VersionPlugin : public Plugin
   {
   public:
-    virtual std::string name ();
-    virtual std::string help ();
-    virtual void handle_chat (const MumbleProto::TextMessage &msg,
-                              const std::string &command,
-                              const std::string &arguments);
+    std::string name () override;
+    std::string help () override;
+    void handle_chat (const MumbleProto::TextMessage &msg,
+                      const std::string &command,
+                      const std::string &arguments) override;
   };
 }

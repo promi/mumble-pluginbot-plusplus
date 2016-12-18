@@ -28,6 +28,6 @@ namespace Aither
   {
   public:
     VoidLogger ();
-    virtual int printf (const char *format, ...);
+    int printf (const char *format, ...) override;
   };
 }

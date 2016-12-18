@@ -28,10 +28,10 @@ class RawFileReader : public SampleReader
 private:
   std::ifstream m_stream;
 protected:
-  virtual std::vector<int16_t> internal_read (size_t count);
-  virtual void internal_each_buffer (size_t count,
-                                     std::function<bool(const std::vector<int16_t>&)> f);
-  virtual void internal_close ();
+  std::vector<int16_t> internal_read (size_t count) override;
+  void internal_each_buffer (size_t count,
+                             std::function<bool(const std::vector<int16_t>&)> f) override;
+  void internal_close () override;
 public:
   RawFileReader (const std::string &file);
 };

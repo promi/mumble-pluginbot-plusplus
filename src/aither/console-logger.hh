@@ -29,7 +29,7 @@ namespace Aither
   public:
     ConsoleLogger (FILE* fp);
     ~ConsoleLogger ();
-    virtual int printf (const char *format, ...);
+    int printf (const char *format, ...) override;
   private:
     struct Impl;
     const std::unique_ptr<Impl> pimpl;

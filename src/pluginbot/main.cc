@@ -51,14 +51,19 @@ namespace MumblePluginBot
               const std::string &config_filename,
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
-    // load all plugins
+    // Load all plugins
+    // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
+    // Dir["./plugins/ *.rb"].each do |f|
     m_plugins.push_back (std::make_unique<VersionPlugin> ());
-    /*
-      Dir["./plugins/ *.rb"].each do |f|
-      require f
-      std::cout << "Plugin //{f} loaded."
-      end
-    */
+    // Sort by name, so all plugin related user command output is in alphabetical order
+    m_plugins.sort ([] (auto &a, auto &b)
+    {
+      return a->name () < b->name ();
+    });
+    for (auto &plugin : m_plugins)
+      {
+        std::cout << "Plugin '" << plugin->name () << "' loaded.\n";
+      }
     if (config_filename != "")
       {
         AITHER_VERBOSE("parse extra config");

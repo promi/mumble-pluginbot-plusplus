@@ -30,10 +30,18 @@ namespace Mpd
 
   Connection::Connection (const std::string& host, uint16_t port, uint timeout_ms)
   {
-    pimpl->connection = mpd_connection_new (host.c_str (), port, timeout_ms);
+    pimpl = std::make_unique<Impl> ();
+    pimpl->connection = mpd_connection_new (host.size () == 0 ? nullptr :
+                                            host.c_str (),
+                                            port, timeout_ms);
     if (pimpl->connection == nullptr)
       {
-        throw std::runtime_error ("MPD connection failed");
+        throw std::runtime_error ("mpd_connection_new () failed");
+      }
+    if (mpd_connection_get_error (pimpl->connection) != MPD_ERROR_SUCCESS)
+      {
+        throw std::runtime_error (std::string ("Could not connect to MPD: ") +
+                                  mpd_connection_get_error_message (pimpl->connection));
       }
   }
 

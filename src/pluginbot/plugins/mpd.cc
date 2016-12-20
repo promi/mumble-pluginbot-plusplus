@@ -24,7 +24,7 @@
 
 #include <sstream>
 
-#include "mpd/connection.hh"
+#include "mpd/client.hh"
 #include "pluginbot/html.hh"
 
 namespace MumblePluginBot
@@ -35,7 +35,7 @@ namespace MumblePluginBot
     {
     }
     std::string info_template;
-    std::unique_ptr<Mpd::Connection> mpd;
+    std::unique_ptr<Mpd::Client> mpd_client;
     inline void init_info_template (const std::string &controlstring)
     {
       std::stringstream ss;
@@ -59,8 +59,8 @@ namespace MumblePluginBot
     auto &settings = Plugin::settings ();
     pimpl = std::make_unique<Impl> ();
     pimpl->init_info_template (settings.controlstring);
-    pimpl->mpd = std::make_unique<Mpd::Connection> (settings.mpd.host,
-                 settings.mpd.port);
+    pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
+                        settings.mpd.port);
     /*
     @@bot[:mpd].on :volume do |volume|
       @@bot[:messages].sendmessage("Volume was set to: #{volume}%." , 0x01)

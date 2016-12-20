@@ -27,15 +27,15 @@
 
 namespace Mpd
 {
-  class Connection
+  class Client
   {
   private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   public:
-    Connection (const std::string& host = "", uint16_t port = 0,
-                uint timeout_ms = 0);
-    ~Connection ();
+    Client (const std::string& host = "", uint16_t port = 0,
+            uint timeout_ms = 0);
+    ~Client ();
     // Connection
     /*
       mpd_malloc struct mpd_connection*	mpd_connection_new_async (struct mpd_async *async, const char *welcome)

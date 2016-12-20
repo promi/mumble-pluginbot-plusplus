@@ -16,19 +16,19 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "mpd/client.hh"
+
 #include <stdexcept>
 #include <mpd/client.h>
 
-#include "mpd/client.hh"
-
 namespace Mpd
 {
-  struct Connection::Impl
+  struct Client::Impl
   {
     mpd_connection *connection;
   };
 
-  Connection::Connection (const std::string& host, uint16_t port, uint timeout_ms)
+  Client::Client (const std::string& host, uint16_t port, uint timeout_ms)
   {
     pimpl = std::make_unique<Impl> ();
     pimpl->connection = mpd_connection_new (host.size () == 0 ? nullptr :
@@ -45,7 +45,7 @@ namespace Mpd
       }
   }
 
-  Connection::~Connection ()
+  Client::~Client ()
   {
     mpd_connection_free (pimpl->connection);
   }

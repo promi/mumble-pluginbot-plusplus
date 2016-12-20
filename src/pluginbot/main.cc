@@ -56,7 +56,10 @@ namespace MumblePluginBot
     // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
     // Dir["./plugins/ *.rb"].each do |f|
     m_plugins.push_back (std::make_unique<VersionPlugin> ());
-    m_plugins.push_back (std::make_unique<MpdPlugin> ());
+    auto messages_ptr = std::make_unique<MessagesPlugin> ();
+    MessagesPlugin &messages = *messages_ptr;
+    m_plugins.push_back (std::move (messages_ptr));
+    m_plugins.push_back (std::make_unique<MpdPlugin> (messages));
     // Sort by name, so all plugin related user command output is in alphabetical order
     m_plugins.sort ([] (auto &a, auto &b)
     {

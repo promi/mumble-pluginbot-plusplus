@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "pluginbot/plugin.hh"
+#include "pluginbot/plugins/messages.hh"
 
 namespace MumblePluginBot
 {
@@ -37,7 +38,7 @@ namespace MumblePluginBot
   protected:
     void internal_init () override;
   public:
-    MpdPlugin ();
+    MpdPlugin (MessagesPlugin &messages);
     ~MpdPlugin () override;
     std::string name () override;
   };

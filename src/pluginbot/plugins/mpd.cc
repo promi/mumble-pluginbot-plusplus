@@ -23,6 +23,7 @@
 #include "pluginbot/plugins/mpd.hh"
 
 #include <sstream>
+#include <thread>
 
 #include "mpd/client.hh"
 #include "pluginbot/html.hh"
@@ -31,11 +32,16 @@ namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
-    inline Impl ()
+    inline Impl (Settings &settings, MessagesPlugin &messages)
+      : settings (settings), messages (messages)
     {
     }
+    Settings &settings;
+    MessagesPlugin &messages;
     std::string info_template;
     std::unique_ptr<Mpd::Client> mpd_client;
+    std::thread idle_thread;
+    bool idle_thread_running;
     inline void init_info_template (const std::string &controlstring)
     {
       std::stringstream ss;
@@ -44,23 +50,28 @@ namespace MumblePluginBot
       ss << " for more information about me.";
       info_template = ss.str ();
     }
+    void status_update (const FlagSet<Mpd::Idle> &idle_flags,
+                        const Mpd::Status &status);
+    void idle_thread_proc ();
   };
 
-  MpdPlugin::MpdPlugin ()
+  MpdPlugin::MpdPlugin (MessagesPlugin &messages)
   {
+    pimpl = std::make_unique<Impl> (settings(), messages);
   }
 
   MpdPlugin::~MpdPlugin ()
   {
   }
 
-  void MpdPlugin::internal_init ()
+  void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags,
+                                       const Mpd::Status &status)
   {
-    auto &settings = Plugin::settings ();
-    pimpl = std::make_unique<Impl> ();
-    pimpl->init_info_template (settings.controlstring);
-    pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
-                        settings.mpd.port);
+    if (idle_flags.test (Mpd::Idle::Mixer))
+      {
+        messages.send_message ("Volume was set to " +
+                               std::to_string (status.volume ()), MessageType::Volume);
+      }
     /*
     @@bot[:mpd].on :volume do |volume|
       @@bot[:messages].sendmessage("Volume was set to: #{volume}%." , 0x01)
@@ -130,56 +141,83 @@ namespace MumblePluginBot
 
     @@bot[:mpd].on :song do |current|
     end
+    */
+  }
 
+  void MpdPlugin::Impl::idle_thread_proc ()
+  {
+    Mpd::Client client {settings.mpd.host, settings.mpd.port};
+    while (idle_thread_running)
+      {
+        client.send_idle ();
+        auto idle_flags = client.recv_idle (false);
+        if (idle_flags.any ())
+          {
+            auto status = client.run_status ();
+            status_update (idle_flags, status);
+          }
+      }
+  }
+
+  void MpdPlugin::internal_init ()
+  {
+    auto &settings = Plugin::settings ();
+    pimpl->init_info_template (settings.controlstring);
+    pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
+                        settings.mpd.port);
+
+    pimpl->idle_thread_running = true;
+    pimpl->idle_thread = std::thread([&] { pimpl->idle_thread_proc (); });
+    /*
     @@bot[:cli].player.stream_named_pipe(@@bot[:mpd_fifopath])
     @@bot[:mpd].connect true #without true bot does not @@bot[:cli].text_channel messages other than for !status
 
     Thread.new do
-      mpd =@@bot[:mpd]
-      lastcurrent = nil
-      init = true
-      while (true == true)
-        sleep 1
-        current = mpd.current_song if mpd.connected?
-        if not current.nil? #Would crash if playlist was empty.
-          lastcurrent = current if lastcurrent.nil?
-          if ( lastcurrent.title != current.title ) || ( init == true )
-            init = false
-            if @@bot[:use_comment_for_status_display] == true && @@bot[:set_comment_available] == true
-              begin
-                if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
-                  if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
-                    image = @@bot[:cli].get_imgmsg(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
-                  else
-                    image = @@bot[:logo]
-                  end
+    mpd =@@bot[:mpd]
+    lastcurrent = nil
+    init = true
+    while (true == true)
+      sleep 1
+      current = mpd.current_song if mpd.connected?
+      if not current.nil? #Would crash if playlist was empty.
+        lastcurrent = current if lastcurrent.nil?
+        if ( lastcurrent.title != current.title ) || ( init == true )
+          init = false
+          if @@bot[:use_comment_for_status_display] == true && @@bot[:set_comment_available] == true
+            begin
+              if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
+                if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
+                  image = @@bot[:cli].get_imgmsg(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
                 else
                   image = @@bot[:logo]
                 end
-                output = "<br><table>"
-                output << "<tr><td>Artist:</td><td>#{current.artist}</td></tr>" if !current.artist.nil?
-                output << "<tr><td>Title:</td><td>#{current.title}</td></tr>" if !current.title.nil?
-                output << "<tr><td>Album:</td><td>#{current.album}</td></tr>" if !current.album.nil?
-                output << "<tr><td>Source:</td><td>#{current.file}</td></tr>" if ( !current.file.nil? ) && ( current.album.nil? ) && ( current.artist.nil? )
-                output << "</table><br>" + @infotemplate
-                @@bot[:cli].set_comment(image+output)
-              rescue NoMethodError
-                if @@bot[:debug]
-                  puts "#{$!}"
-                end
-              end
-            else
-              if current.artist.nil? && current.title.nil? && current.album.nil?
-                channelmessage( "#{current.file}") if ( @@bot[:chan_notify] && 0x80 ) == true
               else
-                channelmessage( "#{current.artist} - #{current.title} (#{current.album})") if (@@bot[:chan_notify] && 0x80) != 0
+                image = @@bot[:logo]
+              end
+              output = "<br><table>"
+              output << "<tr><td>Artist:</td><td>#{current.artist}</td></tr>" if !current.artist.nil?
+              output << "<tr><td>Title:</td><td>#{current.title}</td></tr>" if !current.title.nil?
+              output << "<tr><td>Album:</td><td>#{current.album}</td></tr>" if !current.album.nil?
+              output << "<tr><td>Source:</td><td>#{current.file}</td></tr>" if ( !current.file.nil? ) && ( current.album.nil? ) && ( current.artist.nil? )
+              output << "</table><br>" + @infotemplate
+              @@bot[:cli].set_comment(image+output)
+            rescue NoMethodError
+              if @@bot[:debug]
+                puts "#{$!}"
               end
             end
-          lastcurrent = current
-          puts "[displayinfo] update" if @@bot[:debug]
+          else
+            if current.artist.nil? && current.title.nil? && current.album.nil?
+              channelmessage( "#{current.file}") if ( @@bot[:chan_notify] && 0x80 ) == true
+            else
+              channelmessage( "#{current.artist} - #{current.title} (#{current.album})") if (@@bot[:chan_notify] && 0x80) != 0
+            end
           end
+        lastcurrent = current
+        puts "[displayinfo] update" if @@bot[:debug]
         end
       end
+    end
     end
 
     @@bot[:cli].on_user_state do |msg|

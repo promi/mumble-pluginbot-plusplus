@@ -16,10 +16,10 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "mpd/connection.hh"
-
 #include <stdexcept>
 #include <mpd/client.h>
+
+#include "mpd/client.hh"
 
 namespace Mpd
 {

@@ -24,6 +24,7 @@
 
 #include "mpd/idle.hh"
 #include "mpd/flag-set.hh"
+#include "mpd/status.hh"
 
 namespace Mpd
 {
@@ -62,5 +63,9 @@ namespace Mpd
     FlagSet<Idle> run_idle ();
     FlagSet<Idle> run_idle_mask (FlagSet<Idle> mask);
     FlagSet<Idle> run_noidle ();
+    // Status
+    void send_status ();
+    Status recv_status ();
+    Status run_status ();
   };
 }

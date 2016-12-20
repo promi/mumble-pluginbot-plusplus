@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2015 Omair
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -19,56 +18,33 @@
 */
 #pragma once
 
-// This code is based on Omairs SO answer here:
-// https://stackoverflow.com/a/31906371/426242
-
-#include <type_traits>
-#include <limits>
-#include <bitset>
-
-template <typename TENUM>
-class FlagSet
+namespace Mpd
 {
-private:
-  using TUNDER = typename std::underlying_type<TENUM>::type;
-  std::bitset<std::numeric_limits<TUNDER>::max()> m_flags;
-public:
-  FlagSet() = default;
-
-  template <typename... ARGS>
-  FlagSet(TENUM f, ARGS... args) : FlagSet(args...)
+  class Status
   {
-    set(f);
-  }
-
-  FlagSet& set(TENUM f)
-  {
-    m_flags.set(static_cast<TUNDER>(f));
-    return *this;
-  }
-
-  bool all () const
-  {
-    return m_flags.all ();
-  }
-
-  bool any () const
-  {
-    return m_flags.any ();
-  }
-
-  bool none () const
-  {
-    return m_flags.none ();
-  }
-
-  bool test(TENUM f) const
-  {
-    return m_flags.test(static_cast<TUNDER>(f));
-  }
-
-  FlagSet& operator |= (TENUM f)
-  {
-    return set(f);
-  }
-};
+  public:
+    void status_feed (const std::pair<std::string, std::string> &pair);
+    int volume () const;
+    bool repeat () const;
+    bool random () const;
+    bool single () const;
+    bool consume () const;
+    uint queue_length () const;
+    uint queue_version () const;
+    // State state () const;
+    uint crossfade () const;
+    float mixrampdb () const;
+    float mixrampdelay () const;
+    int song_pos () const;
+    int song_id () const;
+    int next_song_pos () const;
+    int next_song_id () const;
+    uint elapsed_time ();
+    uint elapsed_ms ();
+    uint total_time ();
+    uint kbit_rate ();
+    // AudioFormat audio_format ();
+    uint update_id ();
+    // std::string error ();
+  };
+}

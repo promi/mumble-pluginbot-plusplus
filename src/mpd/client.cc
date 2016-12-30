@@ -49,4 +49,112 @@ namespace Mpd
   {
     mpd_connection_free (pimpl->connection);
   }
+
+  std::string Client::idle_name (Idle idle)
+  {
+    auto name = mpd_idle_name (static_cast<mpd_idle> (idle));
+    if (name == nullptr)
+      {
+        throw std::runtime_error ("mpd_idle_name () failed");
+      }
+    return name;
+  }
+  
+  Idle Client::idle_name_parse (const std::string &name)
+  {
+     auto idle = mpd_idle_name_parse (name.c_str ());
+     if (idle == 0)
+       {
+         throw std::runtime_error ("mpd_idle_name_parse () failed");
+       }
+     return static_cast<Idle> (idle);
+  }
+  
+  void Client::send_idle ()
+  {
+    if (!mpd_send_idle (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_idle () failed");
+      }
+  }
+  
+  void Client::send_idle_mask (FlagSet<Idle> mask)
+  {
+    if (!mpd_send_idle_mask (pimpl->connection, static_cast<mpd_idle> (mask.to_enum ())))
+      {
+        throw std::runtime_error ("mpd_send_idle_mask () failed");
+      }
+  }
+  
+  void Client::send_noidle ()
+  {
+    if(!mpd_send_noidle (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_noidle () failed");
+      }
+  }
+  
+  Idle Client::idle_parse_pair (std::pair<std::string, std::string>
+                                       &pair)
+  {
+    mpd_pair p;
+    p.name = pair.first.c_str ();
+    p.value = pair.second.c_str ();
+    auto idle = mpd_idle_parse_pair (&p);
+    if (idle == 0)
+      {
+        throw std::runtime_error ("mpd_idle_parse_pair () failed");
+      }
+    return static_cast<Idle> (idle);
+  }
+  
+  FlagSet<Idle> Client::recv_idle (bool disable_timeout)
+  {
+    return FlagSet<Idle> (static_cast<Idle> (mpd_recv_idle (pimpl->connection, disable_timeout)));
+  }
+  
+  FlagSet<Idle> Client::run_idle ()
+  {
+    return FlagSet<Idle> (static_cast<Idle> (mpd_run_idle (pimpl->connection)));
+  }
+  
+  FlagSet<Idle> Client::run_idle_mask (FlagSet<Idle> mask)
+  {
+    return FlagSet<Idle> (static_cast<Idle> (mpd_run_idle_mask (pimpl->connection, static_cast<mpd_idle> (mask.to_enum ()))));
+  }
+  
+  FlagSet<Idle> Client::run_noidle ()
+  {
+    return FlagSet<Idle> (static_cast<Idle> (mpd_run_noidle (pimpl->connection)));
+  }
+  
+  void Client::send_status ()
+  {
+    if (!mpd_send_status (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_status () failed");
+      }
+  }
+  
+  Status Client::recv_status ()
+  {
+    mpd_status *status = mpd_recv_status (pimpl->connection);
+    if (status == nullptr)
+      {
+        throw std::runtime_error ("mpd_recv_status () failed");
+      }
+    Status s {status};
+    return s;
+  }
+  
+  Status Client::run_status ()
+  {
+    mpd_status *status = mpd_run_status (pimpl->connection);
+    if (status == nullptr)
+      {
+        throw std::runtime_error ("mpd_run_status () failed");
+      }
+    Status s {status};
+    return s;
+  }
 }

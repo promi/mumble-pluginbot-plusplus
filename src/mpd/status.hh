@@ -18,11 +18,22 @@
 */
 #pragma once
 
+#include <mpd/client.h>
+
+#include <cassert>
+#include <memory>
+
 namespace Mpd
 {
   class Status
   {
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
   public:
+    Status (mpd_status *status);
+    Status (Status &&other);
+    ~Status ();
     void status_feed (const std::pair<std::string, std::string> &pair);
     int volume () const;
     bool repeat () const;

@@ -62,9 +62,14 @@ public:
     return m_flags.none ();
   }
 
-  bool test(TENUM f) const
+  bool test (TENUM f) const
   {
     return m_flags.test(static_cast<TUNDER>(f));
+  }
+
+  TENUM to_enum () const
+  {
+    return static_cast<TENUM> (m_flags.to_ulong ());
   }
 
   FlagSet& operator |= (TENUM f)

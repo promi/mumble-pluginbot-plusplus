@@ -75,7 +75,8 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/user.cc
 
 libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
-	src/mpd/client.cc
+	src/mpd/client.cc \
+	src/mpd/status.cc
 
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \

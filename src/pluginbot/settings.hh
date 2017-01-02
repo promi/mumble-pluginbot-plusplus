@@ -5,6 +5,7 @@
     Copyright (c) 2015 Stunner1984
     Copyright (c) 2015 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -25,8 +26,23 @@
 #include <map>
 #include <experimental/filesystem>
 
+#include "mpd/flag-set.hh"
+
 namespace MumblePluginBot
 {
+  // Send Message when ...
+  enum class MessageType
+  {
+    Volume = 0x01,
+    UpdatingDB = 0x02,
+    Random = 0x04,
+    Single = 0x08,
+    XFade = 0x10,
+    Consume = 0x20,
+    Repeat = 0x40,
+    State = 0x80
+  };
+
   class Settings
   {
   public:
@@ -37,7 +53,7 @@ namespace MumblePluginBot
     bool ducking = false;
     uint ducking_vol = 20;
     bool control_automute = true;
-    uint16_t chan_notify = 0x0000;
+    FlagSet<MessageType> chan_notify;
     std::string controlstring = {"."};
     bool debug = true;
     bool verbose = true;

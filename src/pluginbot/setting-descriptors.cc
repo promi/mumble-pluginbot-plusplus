@@ -2,6 +2,7 @@
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -70,6 +71,9 @@
 
 #define STRING_SETTER(setting) [&] (const std::string& value) { setting = value; }
 
+#define FLAG_SET_MESSAGE_TYPE_GETTER(setting) [&] () { return std::to_string (static_cast<uint16_t> (setting.to_enum ())); }
+#define FLAG_SET_MESSAGE_TYPE_SETTER(setting) [&] (const std::string& value) { setting = FlagSet<MessageType> {static_cast<MessageType> (std::stoi (value))}; }
+
 #define BOOL(setting) BOOL_GETTER(setting), BOOL_SETTER(setting)
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
 #define PATH(setting) STRING(setting)
@@ -79,6 +83,8 @@
 #define UINT32(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,UINT32_MAX)
 #define DOUBLE_DURATION(setting) DOUBLE_DURATION_GETTER(setting), \
     DOUBLE_DURATION_SETTER(setting)
+#define FLAG_SET_MESSAGE_TYPE(setting) FLAG_SET_MESSAGE_TYPE_GETTER(setting), \
+    FLAG_SET_MESSAGE_TYPE_SETTER(setting)
 
 namespace MumblePluginBot
 {
@@ -91,7 +97,7 @@ namespace MumblePluginBot
     l.push_back ({"", "ducking", BOOL(settings.ducking)});
     l.push_back ({"", "ducking_vol", UINT_PERCENTAGE(settings.ducking_vol)});
     l.push_back ({"", "control_automute", BOOL(settings.control_automute)});
-    l.push_back ({"", "chan_notify", UINT16(settings.chan_notify)});
+    l.push_back ({"", "chan_notify", FLAG_SET_MESSAGE_TYPE(settings.chan_notify)});
     l.push_back ({"", "controlstring", STRING(settings.controlstring)});
     l.push_back ({"", "debug", BOOL(settings.debug)});
     l.push_back ({"", "verbose", BOOL(settings.verbose)});

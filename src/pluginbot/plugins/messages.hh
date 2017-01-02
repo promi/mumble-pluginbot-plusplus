@@ -4,6 +4,7 @@
     Copyright (c) 2015 dafoxia
     Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -27,18 +28,6 @@
 
 namespace MumblePluginBot
 {
-  enum class MessageType
-  {
-    Volume = 0x01,
-    UpdatingDB = 0x02,
-    Random = 0x04,
-    Single = 0x08,
-    XFade = 0x10,
-    Consume = 0x20,
-    Repeat = 0x40,
-    State = 0x80
-  };
-
   class MessagesPlugin : public Plugin
   {
   private:
@@ -50,6 +39,10 @@ namespace MumblePluginBot
     MessagesPlugin ();
     ~MessagesPlugin () override;
     std::string name () override;
+    void handle_chat (const MumbleProto::TextMessage &msg,
+                      const std::string &command,
+                      const std::string &arguments) override;
+    std::string help () override;
     void send_message (const std::string message, MessageType type);
   };
 }

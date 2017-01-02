@@ -30,13 +30,13 @@ namespace Mpd
     assert(status != nullptr);
     pimpl->status = status;
   }
-  
+
   Status::Status (Status &&other)
   {
     pimpl->status = other.pimpl->status;
     other.pimpl->status = nullptr;
   }
-  
+
   Status::~Status ()
   {
     mpd_status_free (pimpl->status);

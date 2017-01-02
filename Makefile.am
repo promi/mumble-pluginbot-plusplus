@@ -85,7 +85,7 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/pluginbot/plugin.cc \
 	src/pluginbot/settings.cc \
 	src/pluginbot/setting-descriptors.cc \
-	src/pluginbot/plugins/messsages.cc \
+	src/pluginbot/plugins/messages.cc \
 	src/pluginbot/plugins/mpd.cc \
 	src/pluginbot/plugins/version.cc
 

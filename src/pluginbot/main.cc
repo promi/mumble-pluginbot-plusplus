@@ -5,6 +5,7 @@
     Copyright (c) 2015 netinetwalker
     Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -229,13 +230,16 @@ namespace MumblePluginBot
       }
     {
       const std::string &targetchannel = m_settings.connection.targetchannel;
-      try
+      if (targetchannel != "")
         {
-          m_cli->join_channel (targetchannel);
-        }
-      catch (...)
-        {
-          AITHER_DEBUG("[joincannel] Can't join " + targetchannel + "!");
+          try
+            {
+              m_cli->join_channel (targetchannel);
+            }
+          catch (...)
+            {
+              AITHER_DEBUG("[joincannel] Can't join " + targetchannel + "!");
+            }
         }
     }
     m_cli->on<MumbleProto::UserState> ([&] (const auto &msg)

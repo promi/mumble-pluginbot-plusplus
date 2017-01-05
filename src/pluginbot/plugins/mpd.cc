@@ -6,6 +6,7 @@
     Copyright (c) 2016 while-loop
     Copyright (c) 2016 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -32,11 +33,10 @@ namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
-    inline Impl (Settings &settings, MessagesPlugin &messages)
-      : settings (settings), messages (messages)
+    inline Impl (MessagesPlugin &messages) : messages (messages)
     {
     }
-    Settings &settings;
+    Settings *settings;
     MessagesPlugin &messages;
     std::string info_template;
     std::unique_ptr<Mpd::Client> mpd_client;
@@ -57,7 +57,7 @@ namespace MumblePluginBot
 
   MpdPlugin::MpdPlugin (MessagesPlugin &messages)
   {
-    pimpl = std::make_unique<Impl> (settings(), messages);
+    pimpl = std::make_unique<Impl> (messages);
   }
 
   MpdPlugin::~MpdPlugin ()
@@ -146,15 +146,26 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::idle_thread_proc ()
   {
-    Mpd::Client client {settings.mpd.host, settings.mpd.port};
+    Mpd::Client client {settings->mpd.host, settings->mpd.port};
     while (idle_thread_running)
       {
         client.send_idle ();
         auto idle_flags = client.recv_idle (false);
-        if (idle_flags.any ())
+        if (client.error () == Mpd::Error::Timeout)
           {
-            auto status = client.run_status ();
-            status_update (idle_flags, status);
+            client.clear_error ();
+          }
+        else if (client.error () == Mpd::Error::Success)
+          {
+            if (idle_flags.any ())
+              {
+                auto status = client.run_status ();
+                status_update (idle_flags, status);
+              }
+          }
+        else
+          {
+            throw std::runtime_error ("MPD recv_idle () failed");
           }
       }
   }
@@ -162,6 +173,7 @@ namespace MumblePluginBot
   void MpdPlugin::internal_init ()
   {
     auto &settings = Plugin::settings ();
+    pimpl->settings = &settings;
     pimpl->init_info_template (settings.controlstring);
     pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
                         settings.mpd.port);

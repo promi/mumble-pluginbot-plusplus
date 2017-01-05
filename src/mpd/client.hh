@@ -2,6 +2,7 @@
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +23,7 @@
 #include <string>
 #include <cstdint>
 
+#include "mpd/error.hh"
 #include "mpd/idle.hh"
 #include "mpd/flag-set.hh"
 #include "mpd/status.hh"
@@ -39,16 +41,30 @@ namespace Mpd
     ~Client ();
     // Connection
     /*
-      mpd_malloc struct mpd_connection*	mpd_connection_new_async (struct mpd_async *async, const char *welcome)
-      const struct mpd_settings* mpd_connection_get_settings (const struct mpd_connection *connection)
-      void 	mpd_connection_set_keepalive (struct mpd_connection *connection, bool keepalive)
-      void 	mpd_connection_set_timeout (struct mpd_connection *connection, unsigned timeout_ms)
+      mpd_malloc struct mpd_connection*	mpd_connection_new_async (
+      struct mpd_async *async, const char *welcome)
+      const struct mpd_settings* mpd_connection_get_settings (
+      const struct mpd_connection *connection)
+      void 	mpd_connection_set_keepalive (
+      struct mpd_connection *connection, bool keepalive)
+      void 	mpd_connection_set_timeout (
+      struct mpd_connection *connection, unsigned timeout_ms)
       mpd_pure int 	mpd_connection_get_fd (const struct mpd_connection *connection)
-      mpd_pure struct mpd_async * 	mpd_connection_get_async (struct mpd_connection *connection)
-      mpd_pure enum mpd_server_error 	mpd_connection_get_server_error (const struct mpd_connection *connection)
-      mpd_pure unsigned 	mpd_connection_get_server_error_location (const struct mpd_connection *connection)
-      mpd_pure int 	mpd_connection_get_system_error (const struct mpd_connection *connection)
-      bool 	mpd_connection_clear_error (struct mpd_connection *connection)
+      mpd_pure struct mpd_async * 	mpd_connection_get_async (
+      struct mpd_connection *connection)
+    */
+    Error	error ();
+    std::string	error_message ();
+    /*
+      mpd_pure enum mpd_server_error 	mpd_connection_get_server_error (
+      const struct mpd_connection *connection)
+      mpd_pure unsigned 	mpd_connection_get_server_error_location (
+      const struct mpd_connection *connection)
+      mpd_pure int 	mpd_connection_get_system_error (
+      const struct mpd_connection *connection)
+    */
+    void clear_error ();
+    /*
       mpd_pure const unsigned * 	mpd_connection_get_server_version (const struct mpd_connection *connection)
       mpd_pure int 	mpd_connection_cmp_server_version (const struct mpd_connection *connection, unsigned major, unsigned minor, unsigned patch)
     */

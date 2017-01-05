@@ -31,7 +31,7 @@
 namespace MumblePluginBot
 {
   // Send Message when ...
-  enum class MessageType
+  enum class MessageType : uint8_t
   {
     Volume = 0x01,
     UpdatingDB = 0x02,

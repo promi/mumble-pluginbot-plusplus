@@ -22,7 +22,7 @@
 
 namespace Mpd
 {
-  enum class Idle
+  enum class Idle : uint16_t
   {
     // song database has been updated
     Database = MPD_IDLE_DATABASE,

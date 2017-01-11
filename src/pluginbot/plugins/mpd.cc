@@ -27,6 +27,7 @@
 #include <thread>
 
 #include "mpd/client.hh"
+#include "mpd/status-listener.hh"
 #include "pluginbot/html.hh"
 
 namespace MumblePluginBot
@@ -40,8 +41,9 @@ namespace MumblePluginBot
     MessagesPlugin &messages;
     std::string info_template;
     std::unique_ptr<Mpd::Client> mpd_client;
+    std::mutex mpd_client_mutex;
     std::thread idle_thread;
-    bool idle_thread_running;
+    std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
     inline void init_info_template (const std::string &controlstring)
     {
       std::stringstream ss;
@@ -50,8 +52,7 @@ namespace MumblePluginBot
       ss << " for more information about me.";
       info_template = ss.str ();
     }
-    void status_update (const FlagSet<Mpd::Idle> &idle_flags,
-                        const Mpd::Status &status);
+    void status_update (const FlagSet<Mpd::Idle> &idle_flags);
     void idle_thread_proc ();
   };
 
@@ -62,11 +63,17 @@ namespace MumblePluginBot
 
   MpdPlugin::~MpdPlugin ()
   {
+    if (pimpl->mpd_status_listener != nullptr)
+      {
+        pimpl->mpd_status_listener->stop ();
+        pimpl->idle_thread.join ();
+      }
   }
 
-  void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags,
-                                       const Mpd::Status &status)
+  void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags)
   {
+    std::lock_guard <std::mutex> lock (mpd_client_mutex);
+    Mpd::Status status = mpd_client->run_status ();
     if (idle_flags.test (Mpd::Idle::Mixer))
       {
         messages.send_message ("Volume was set to " +
@@ -144,32 +151,6 @@ namespace MumblePluginBot
     */
   }
 
-  void MpdPlugin::Impl::idle_thread_proc ()
-  {
-    Mpd::Client client {settings->mpd.host, settings->mpd.port};
-    while (idle_thread_running)
-      {
-        client.send_idle ();
-        auto idle_flags = client.recv_idle (false);
-        if (client.error () == Mpd::Error::Timeout)
-          {
-            client.clear_error ();
-          }
-        else if (client.error () == Mpd::Error::Success)
-          {
-            if (idle_flags.any ())
-              {
-                auto status = client.run_status ();
-                status_update (idle_flags, status);
-              }
-          }
-        else
-          {
-            throw std::runtime_error ("MPD recv_idle () failed");
-          }
-      }
-  }
-
   void MpdPlugin::internal_init ()
   {
     auto &settings = Plugin::settings ();
@@ -178,8 +159,29 @@ namespace MumblePluginBot
     pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
                         settings.mpd.port);
 
-    pimpl->idle_thread_running = true;
-    pimpl->idle_thread = std::thread([&] { pimpl->idle_thread_proc (); });
+    pimpl->mpd_status_listener = std::make_unique<Mpd::StatusListener>
+                                 (settings.mpd.host, settings.mpd.port, [this] (auto idle_flags)
+    {
+      pimpl->status_update (idle_flags);
+    });
+    pimpl->idle_thread = std::thread([&]
+    {
+      pimpl->mpd_status_listener->run ();
+      switch (pimpl->mpd_status_listener->state ())
+        {
+        case Mpd::StatusListener::State::Stopped:
+          break;
+        case Mpd::StatusListener::State::UnableToConnect:
+          throw std::runtime_error ("Could not connect to mpd");
+          break;
+        case Mpd::StatusListener::State::Disconnected:
+          throw std::runtime_error ("mpd connection lost");
+          break;
+        default:
+          throw std::runtime_error ("Unknown state after running mpd status listener");
+          break;
+        }
+    });
     /*
     @@bot[:cli].player.stream_named_pipe(@@bot[:mpd_fifopath])
     @@bot[:mpd].connect true #without true bot does not @@bot[:cli].text_channel messages other than for !status

@@ -26,13 +26,13 @@ namespace Mpd
   {
     std::string ip;
     uint16_t port;
-    std::function<void (FlagSet<Idle>)> &status_cb;
+    std::function<void (const FlagSet<Idle> &)> status_cb;
     std::shared_ptr <uvw::Loop> loop;
     std::shared_ptr <uvw::AsyncHandle> stop;
     StatusListener::State state = StatusListener::State::NotStarted;
 
     inline Impl (const std::string &ip, uint16_t port,
-                 std::function<void (FlagSet<Idle>)> &status_cb)
+                 std::function<void (const FlagSet<Idle> &)> status_cb)
       : ip (ip), port (port), status_cb (status_cb)
     {
     }
@@ -42,7 +42,7 @@ namespace Mpd
   };
 
   StatusListener::StatusListener (const std::string &ip, uint16_t port,
-                                  std::function<void (FlagSet<Idle>)> &status_cb)
+                                  std::function<void (const FlagSet<Idle> &)> status_cb)
     : pimpl (new Impl (ip, port, status_cb))
   {
     pimpl->loop = uvw::Loop::getDefault ();
@@ -55,6 +55,11 @@ namespace Mpd
       {
         throw std::runtime_error ("stop init failed");
       }
+  }
+
+  StatusListener::~StatusListener ()
+  {
+
   }
 
   void StatusListener::stop ()

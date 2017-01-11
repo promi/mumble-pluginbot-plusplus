@@ -41,7 +41,8 @@ namespace Mpd
     };
 
     StatusListener (const std::string &ip, uint16_t port,
-                    std::function<void (FlagSet<Idle>)> &status_cb);
+                    std::function<void (const FlagSet<Idle> &)> status_cb);
+    ~StatusListener ();
     void stop ();
     void run ();
     State state ();

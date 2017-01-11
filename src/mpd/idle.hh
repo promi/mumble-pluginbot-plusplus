@@ -46,6 +46,7 @@ namespace Mpd
     // a client has subscribed to or unsubscribed from a channel
     Subscription = MPD_IDLE_SUBSCRIPTION,
     // a message on a subscribed channel was received
-    Message = MPD_IDLE_MESSAGE
+    Message = MPD_IDLE_MESSAGE,
+    Playlist = MPD_IDLE_PLAYLIST
   };
 }

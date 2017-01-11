@@ -11,6 +11,7 @@ AM_CPPFLAGS = \
 	-Wextra \
 	-pedantic \
 	-I$(srcdir)/src \
+	-I$(srcdir)/uvw/src \
 	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
 
 lib_LTLIBRARIES = \
@@ -76,7 +77,8 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 
 libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 	src/mpd/client.cc \
-	src/mpd/status.cc
+	src/mpd/status.cc \
+	src/mpd/status-listener.cc
 
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \

@@ -43,7 +43,7 @@ namespace Mpd
     // connection closed by mpd
     ConnectionClosed = MPD_ERROR_CLOSED,
     // The server has returned an error code,
-    // which can be queried with mpd_connection_get_server_error(). 
+    // which can be queried with mpd_connection_get_server_error().
     ServerError = MPD_ERROR_SERVER
   };
 }

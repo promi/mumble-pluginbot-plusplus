@@ -54,12 +54,12 @@ namespace Mpd
   {
     return static_cast<Error> (mpd_connection_get_error (pimpl->connection));
   }
-  
+
   std::string	Client::error_message ()
   {
     return mpd_connection_get_error_message (pimpl->connection);
   }
-  
+
   void Client::clear_error ()
   {
     if (!mpd_connection_clear_error (pimpl->connection))
@@ -67,7 +67,7 @@ namespace Mpd
         throw std::runtime_error ("mpd_clear_error () failed");
       }
   }
-  
+
   std::string Client::idle_name (Idle idle)
   {
     auto name = mpd_idle_name (static_cast<mpd_idle> (idle));
@@ -173,7 +173,8 @@ namespace Mpd
     mpd_status *status = mpd_run_status (pimpl->connection);
     if (status == nullptr)
       {
-        throw std::runtime_error ("mpd_run_status () failed: " + std::string (mpd_connection_get_error_message (pimpl->connection)));
+        throw std::runtime_error ("mpd_run_status () failed: " + std::string (
+                                    mpd_connection_get_error_message (pimpl->connection)));
       }
     Status s {status};
     return s;

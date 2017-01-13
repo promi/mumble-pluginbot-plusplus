@@ -143,7 +143,7 @@ m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].
           end
       */
       default:
-        throw std::string ("m2m invalid codec");
+        throw std::runtime_error ("m2m invalid codec");
       }
     if (m_plqueue.size () > 0)
       {

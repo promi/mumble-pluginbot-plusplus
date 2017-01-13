@@ -26,6 +26,8 @@
 
 #include "network/tcp-socket.hh"
 
+#include <stdexcept>
+
 #include <netdb.h>
 #include <strings.h>
 #include <unistd.h>
@@ -35,14 +37,14 @@ TCPSocket::TCPSocket (const std::string &host, uint16_t port)
   m_sockfd = socket (AF_INET, SOCK_STREAM, 0);
   if (m_sockfd < 0)
     {
-      throw std::string ("ERROR opening socket");
+      throw std::runtime_error ("ERROR opening socket");
     }
 
   hostent *server;
   server = gethostbyname (host.c_str ());
   if (server == nullptr)
     {
-      throw std::string ("ERROR, no such host");
+      throw std::runtime_error ("ERROR, no such host");
     }
 
   bzero ((char *) &m_server_addr, sizeof (m_server_addr));
@@ -62,7 +64,7 @@ void TCPSocket::connect ()
   if (::connect (m_sockfd, (struct sockaddr*) &m_server_addr,
                  sizeof (m_server_addr)) < 0)
     {
-      throw std::string ("ERROR connecting");
+      throw std::runtime_error ("ERROR connecting");
     }
 }
 
@@ -78,7 +80,7 @@ std::string TCPSocket::read (uint32_t len)
   auto n = ::read (m_sockfd, buffer, len);
   if (n < 0)
     {
-      throw std::string ("ERROR reading from socket");
+      throw std::runtime_error ("ERROR reading from socket");
     }
   std::string s (buffer, buffer + n);
   delete[] buffer;
@@ -89,6 +91,6 @@ void TCPSocket::write (const std::string &data)
 {
   if (::write (m_sockfd, data.data (), data.size ()) < 0)
     {
-      throw std::string ("ERROR writing to socket");
+      throw std::runtime_error ("ERROR writing to socket");
     }
 }

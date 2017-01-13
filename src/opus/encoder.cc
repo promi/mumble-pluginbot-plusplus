@@ -23,6 +23,8 @@
 */
 #include "opus/encoder.hh"
 
+#include <sstream>
+
 namespace Opus
 {
   Encoder::Encoder (SampleRate sample_rate, size_t frame_size, Channels channels,
@@ -87,7 +89,10 @@ namespace Opus
                             m_size);
     if (len < 0 || static_cast<size_t> (len) != m_size)
       {
-        throw std::string ("opus_encode returned wrong length");
+        std::stringstream ss;
+        ss << "opus_encode returned wrong length (got " << len << ", expected " <<
+           m_size <<")";
+        throw std::runtime_error (ss.str ());
       }
     return out;
   }

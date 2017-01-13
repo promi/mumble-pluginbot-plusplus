@@ -35,7 +35,7 @@ std::vector<int16_t> RawFileReader::internal_read (size_t count)
     }
   else if (static_cast<size_t> (m_stream.gcount ()) != size)
     {
-      throw std::string ("failed to read enough samples from stream");
+      throw std::runtime_error ("failed to read enough samples from stream");
     }
   return EndianUtils::from_s16le (buffer);
 }

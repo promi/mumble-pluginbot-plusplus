@@ -18,6 +18,8 @@
 */
 #include "openssl/memory-basic-input-output.hh"
 
+#include <stdexcept>
+
 namespace OpenSSL
 {
   MemoryBasicInputOutput::MemoryBasicInputOutput ()
@@ -25,7 +27,7 @@ namespace OpenSSL
     m_bio = BIO_new (BIO_s_mem ());
     if (m_bio == nullptr)
       {
-        throw std::string ("BIO_new () failed");
+        throw std::runtime_error ("BIO_new () failed");
       }
   }
 

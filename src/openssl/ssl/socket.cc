@@ -27,11 +27,11 @@ namespace OpenSSL::SSL
     m_ssl = SSL_new (context.data ());
     if (m_ssl == nullptr)
       {
-        throw std::string ("SSL_new () failed");
+        throw std::runtime_error ("SSL_new () failed");
       }
     if (SSL_set_fd (m_ssl, socket.data ()) != 1)
       {
-        throw std::string ("SSL_set_fd () failed");
+        throw std::runtime_error ("SSL_set_fd () failed");
       }
   }
 
@@ -40,7 +40,7 @@ namespace OpenSSL::SSL
     m_socket.connect ();
     if (SSL_connect (m_ssl) != 1)
       {
-        throw std::string ("SSL_connect () failed");
+        throw std::runtime_error ("SSL_connect () failed");
       }
   }
 
@@ -56,7 +56,7 @@ namespace OpenSSL::SSL
     size_t bytes_read = SSL_read (m_ssl, buf.data (), buf.size ());
     if (bytes_read <= 0)
       {
-        throw std::string ("SSL_read () failed");
+        throw std::runtime_error ("SSL_read () failed");
       }
     else
       {
@@ -74,7 +74,7 @@ namespace OpenSSL::SSL
   {
     if (SSL_write (m_ssl, data.data (), data.size ()) <= 0)
       {
-        throw std::string ("SSL_write () failed");
+        throw std::runtime_error ("SSL_write () failed");
       }
   }
 

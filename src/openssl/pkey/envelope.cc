@@ -18,6 +18,8 @@
 */
 #include "openssl/pkey/envelope.hh"
 
+#include <stdexcept>
+
 namespace OpenSSL::PKey
 {
   Envelope::Envelope ()
@@ -25,7 +27,7 @@ namespace OpenSSL::PKey
     m_evp_pkey = EVP_PKEY_new ();
     if (m_evp_pkey == nullptr)
       {
-        throw std::string ("EVP_PKEY_new () failed");
+        throw std::runtime_error ("EVP_PKEY_new () failed");
       }
   }
 
@@ -43,7 +45,7 @@ namespace OpenSSL::PKey
   {
     if (EVP_PKEY_set1_RSA (m_evp_pkey, const_cast<::RSA*> (rsa.data ())) != 1)
       {
-        throw std::string ("EVP_PKEY_set1_RSA () failed");
+        throw std::runtime_error ("EVP_PKEY_set1_RSA () failed");
       }
   }
 

@@ -27,7 +27,7 @@ namespace OpenSSL
                  nullptr);
     if (rsa == nullptr)
       {
-        throw std::string ("PEM_read_bio_RSAPrivateKey () failed");
+        throw std::runtime_error ("PEM_read_bio_RSAPrivateKey () failed");
       }
     return PKey::RSA (rsa, true);
   }
@@ -44,7 +44,7 @@ namespace OpenSSL
     ::RSA *rsa = PEM_read_bio_RSAPublicKey (bio.data (), nullptr, nullptr, nullptr);
     if (rsa == nullptr)
       {
-        throw std::string ("PEM_read_bio_RSAPublicKey () failed");
+        throw std::runtime_error ("PEM_read_bio_RSAPublicKey () failed");
       }
     return PKey::RSA (rsa, false);
   }
@@ -63,7 +63,7 @@ namespace OpenSSL
     if (PEM_write_bio_RSAPrivateKey (bio.data (), const_cast<RSA*> (rsa.data ()),
                                      nullptr, nullptr, 0, nullptr, nullptr) != 1)
       {
-        throw std::string ("PEM_write_bio_RSAPrivateKey () failed");
+        throw std::runtime_error ("PEM_write_bio_RSAPrivateKey () failed");
       }
   }
 
@@ -79,7 +79,7 @@ namespace OpenSSL
   {
     if (PEM_write_bio_RSAPublicKey (bio.data (), rsa.data ()) != 1)
       {
-        throw std::string ("PEM_write_bio_RSAPublicKey () failed");
+        throw std::runtime_error ("PEM_write_bio_RSAPublicKey () failed");
       }
   }
 
@@ -96,7 +96,7 @@ namespace OpenSSL
     ::X509 *x509 = PEM_read_bio_X509 (bio.data (), nullptr, nullptr, nullptr);
     if (x509 == nullptr)
       {
-        throw std::string ("PEM_read_bio_X509 () failed");
+        throw std::runtime_error ("PEM_read_bio_X509 () failed");
       }
     return X509::Certificate (x509);
   }
@@ -112,7 +112,7 @@ namespace OpenSSL
   {
     if (PEM_write_bio_X509 (bio.data (), const_cast<::X509*> (cert.data ())) != 1)
       {
-        throw std::string ("PEM_write_bio_X509 () failed");
+        throw std::runtime_error ("PEM_write_bio_X509 () failed");
       }
   }
 

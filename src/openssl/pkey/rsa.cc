@@ -27,7 +27,7 @@ namespace OpenSSL::PKey
     m_rsa = RSA_new ();
     if (m_rsa == nullptr)
       {
-        throw std::string ("RSA_new () failed");
+        throw std::runtime_error ("RSA_new () failed");
       }
   }
 
@@ -43,15 +43,15 @@ namespace OpenSSL::PKey
     BN_ptr bn {BN_new (), ::BN_free};
     if (bn == nullptr)
       {
-        throw std::string ("BN_new () failed");
+        throw std::runtime_error ("BN_new () failed");
       }
     if (BN_set_word (bn.get (), RSA_F4) != 1)
       {
-        throw std::string ("BN_set_word () failed");
+        throw std::runtime_error ("BN_set_word () failed");
       }
     if (RSA_generate_key_ex (m_rsa, size, bn.get (), nullptr) != 1)
       {
-        throw std::string ("RSA_generate_key_ex () failed");
+        throw std::runtime_error ("RSA_generate_key_ex () failed");
       }
   }
 
@@ -63,7 +63,7 @@ namespace OpenSSL::PKey
         m_rsa = RSAPrivateKey_dup (const_cast<::RSA*> (other.m_rsa));
         if (m_rsa == nullptr)
           {
-            throw std::string ("RSAPrivateKey_dup () failed");
+            throw std::runtime_error ("RSAPrivateKey_dup () failed");
           }
       }
     else
@@ -71,7 +71,7 @@ namespace OpenSSL::PKey
         m_rsa = RSAPublicKey_dup (const_cast<::RSA*> (other.m_rsa));
         if (m_rsa == nullptr)
           {
-            throw std::string ("RSAPublicKey_dup () failed");
+            throw std::runtime_error ("RSAPublicKey_dup () failed");
           }
       }
   }
@@ -104,7 +104,7 @@ namespace OpenSSL::PKey
     ::RSA *rsa = RSAPublicKey_dup (m_rsa);
     if (rsa == nullptr)
       {
-        throw std::string ("RSAPublicKey_dup () failed");
+        throw std::runtime_error ("RSAPublicKey_dup () failed");
       }
     return RSA (rsa, false);
   }

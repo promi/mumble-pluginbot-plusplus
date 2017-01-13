@@ -113,7 +113,7 @@ namespace Mumble
       case 25:
         return std::make_unique<MumbleProto::SuggestConfig> ();
       default:
-        throw std::string ("Invalid message type");
+        throw std::runtime_error ("Invalid message type");
       }
   }
 

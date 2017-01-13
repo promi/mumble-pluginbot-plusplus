@@ -56,7 +56,7 @@ namespace Mumble
   void AudioPlayer::play_file (const std::string &file)
   {
     (void) file;
-    throw std::string ("not fully implemented yet");
+    throw std::runtime_error ("not fully implemented yet");
     /*
     if (!m_playing)
       {

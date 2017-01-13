@@ -25,7 +25,7 @@ namespace OpenSSL::X509
     m_x509 = X509_new ();
     if (m_x509 == nullptr)
       {
-        throw std::string ("X509_new () failed");
+        throw std::runtime_error ("X509_new () failed");
       }
   }
 
@@ -38,7 +38,7 @@ namespace OpenSSL::X509
     m_x509 = X509_dup (other.m_x509);
     if (m_x509 == nullptr)
       {
-        throw std::string ("X509_dup () failed");
+        throw std::runtime_error ("X509_dup () failed");
       }
   }
 
@@ -87,7 +87,7 @@ namespace OpenSSL::X509
   {
     if (X509_set_version (m_x509, version) != 1)
       {
-        throw std::string ("X509_set_version () failed");
+        throw std::runtime_error ("X509_set_version () failed");
       }
   }
 
@@ -96,7 +96,7 @@ namespace OpenSSL::X509
     if (X509_add_ext (m_x509, const_cast<X509_EXTENSION*> (extension.data ()),
                       -1) != 1)
       {
-        throw std::string ("X509_add_ext () failed");
+        throw std::runtime_error ("X509_add_ext () failed");
       }
   }
 
@@ -109,7 +109,7 @@ namespace OpenSSL::X509
     if (X509_sign (m_x509, const_cast<EVP_PKEY*> (key.data ()),
                    digest.data ()) == 0)
       {
-        throw std::string ("X509_sign () failed");
+        throw std::runtime_error ("X509_sign () failed");
       }
   }
 }

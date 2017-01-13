@@ -25,7 +25,7 @@ namespace OpenSSL::SSL
     m_ssl_ctx = SSL_CTX_new (method.data ());
     if (m_ssl_ctx == nullptr)
       {
-        throw std::string ("SSL_CTX_new () failed");
+        throw std::runtime_error ("SSL_CTX_new () failed");
       }
   }
 
@@ -43,7 +43,7 @@ namespace OpenSSL::SSL
   {
     if (SSL_CTX_use_RSAPrivateKey (m_ssl_ctx, const_cast<RSA*> (key.data ())) != 1)
       {
-        throw std::string ("SSL_CTX_use_RSAPrivateKey () failed");
+        throw std::runtime_error ("SSL_CTX_use_RSAPrivateKey () failed");
       }
   }
 
@@ -52,7 +52,7 @@ namespace OpenSSL::SSL
     if (SSL_CTX_use_certificate (m_ssl_ctx,
                                  const_cast<::X509*> (cert.data ())) != 1)
       {
-        throw std::string ("SSL_CTX_use_certificate () failed");
+        throw std::runtime_error ("SSL_CTX_use_certificate () failed");
       }
   }
 }

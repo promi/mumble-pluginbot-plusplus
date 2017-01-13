@@ -53,7 +53,7 @@ namespace Mumble
           }
         else
           {
-            throw std::string ("packet type not yet supported");
+            throw std::runtime_error ("packet type not yet supported");
           }
         // TODO: Add position_info data
       }
@@ -87,7 +87,7 @@ namespace Mumble
           }
         else
           {
-            throw std::string ("packet type not yet supported");
+            throw std::runtime_error ("packet type not yet supported");
             /*
                 case Codec::alpha:
 

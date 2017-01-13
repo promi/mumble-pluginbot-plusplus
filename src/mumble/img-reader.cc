@@ -36,18 +36,19 @@ namespace Mumble
     auto p = extension_valid (file.extension ());
     if (!p.first)
       {
-        throw std::string ("Image format must be on of the following: " +
-                           formats_to_string ());
+        throw std::runtime_error ("Image format must be on of the following: " +
+                                  formats_to_string ());
       }
     std::ifstream is (file);
     if (is.fail ())
       {
-        throw std::string ("File could not be opened for reading: ") + file.string ();
+        throw std::runtime_error (std::string ("File could not be opened for reading: ")
+                                  + file.string ());
       }
     auto size = is.tellg ();
     if (size > 128 * 1024)
       {
-        throw std::string ("Image must be smaller than 128 KiB");
+        throw std::runtime_error ("Image must be smaller than 128 KiB");
       }
     std::vector<uint8_t> data (size, 0);
     is.read (reinterpret_cast<char*> (data.data ()), size);

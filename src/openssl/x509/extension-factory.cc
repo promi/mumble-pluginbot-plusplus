@@ -43,7 +43,7 @@ namespace OpenSSL::X509
         nid = OBJ_sn2nid (oid.c_str ());
         if (nid == 0)
           {
-            throw std::string ("unknown OID: " + oid);
+            throw std::runtime_error ("unknown OID: " + oid);
           }
       }
     std::string combined_value;
@@ -62,7 +62,7 @@ namespace OpenSSL::X509
                                const_cast<char*> (combined_value.c_str ()));
     if (ext == nullptr)
       {
-        throw std::string ("X509V3_EXT_conf_nid () failed");
+        throw std::runtime_error ("X509V3_EXT_conf_nid () failed");
       }
     return Extension (ext);
   }

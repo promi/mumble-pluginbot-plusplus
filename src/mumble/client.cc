@@ -101,7 +101,7 @@ namespace Mumble
   {
     if (!m_codec_usable)
       {
-        throw std::string ("no usable codec");
+        throw std::runtime_error ("no usable codec");
       }
     if (m_recorder == nullptr)
       {
@@ -160,7 +160,7 @@ namespace Mumble
   {
     if (m_m2m == nullptr)
       {
-        throw std::string ("M2M not initializied");
+        throw std::runtime_error ("M2M not initializied");
       }
     return m_m2m->getsize (speaker);
   }
@@ -176,7 +176,7 @@ namespace Mumble
   {
     if (!m_codec_usable)
       {
-        throw std::string ("no usable codec");
+        throw std::runtime_error ("no usable codec");
       }
     if (!m_audio_streamer)
       {

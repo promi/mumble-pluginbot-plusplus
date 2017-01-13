@@ -87,13 +87,13 @@ namespace Opus
     std::vector<uint8_t> out (m_size, 0);
     auto len = opus_encode (m_encoder, samples.data (), m_frame_size, out.data (),
                             m_size);
-    if (len < 0 || static_cast<size_t> (len) != m_size)
+    if (len < 0)
       {
         std::stringstream ss;
-        ss << "opus_encode returned wrong length (got " << len << ", expected " <<
-           m_size <<")";
+        ss << "opus_encode returned error code " << len;
         throw std::runtime_error (ss.str ());
       }
+    out.resize (len);
     return out;
   }
 

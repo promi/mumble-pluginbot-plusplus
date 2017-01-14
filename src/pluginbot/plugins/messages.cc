@@ -21,6 +21,7 @@
 */
 #include "pluginbot/plugins/messages.hh"
 
+#include <algorithm>
 #include <sstream>
 
 #include "pluginbot/html.hh"
@@ -31,6 +32,27 @@ namespace MumblePluginBot
   struct MessagesPlugin::Impl
   {
     std::map<uint32_t, FlagSet<MessageType>> priv_notify;
+    FlagSet<MessageType> get_message_types (const std::string &arguments);
+    std::map<MessageType, std::string> message_type_names;
+    std::map<std::string, MessageType> name_message_types;
+
+    inline Impl ()
+    {
+      message_type_names =
+      {
+        {MessageType::Volume, "volume"},
+        {MessageType::UpdatingDB, "update"},
+        {MessageType::Random, "random"},
+        {MessageType::Single, "single"},
+        {MessageType::XFade, "xfade"},
+        {MessageType::Repeat, "repeat"},
+        {MessageType::State, "state"}
+      };
+      for (auto pair : message_type_names)
+        {
+          name_message_types[pair.second] = pair.first;
+        }
+    }
   };
 
   void MessagesPlugin::internal_init ()
@@ -38,7 +60,7 @@ namespace MumblePluginBot
 
   }
 
-  MessagesPlugin::MessagesPlugin ()
+  MessagesPlugin::MessagesPlugin () : pimpl (std::make_unique<Impl> ())
   {
 
   }
@@ -92,58 +114,64 @@ namespace MumblePluginBot
       }
   }
 
+  FlagSet<MessageType> MessagesPlugin::Impl::get_message_types (
+    const std::string &arguments)
+  {
+    FlagSet<MessageType> flag_set;
+    std::stringstream ss {arguments};
+    for (std::string argument; std::getline (ss, argument, ' '); )
+      {
+        if (argument.substr (0, 1) == "#")
+          {
+            auto flag_pair = name_message_types.find (argument.substr (1));
+            if (flag_pair != name_message_types.end ())
+              {
+                flag_set.set (flag_pair->second);
+              }
+          }
+      }
+    return flag_set;
+  }
+
   void MessagesPlugin::handle_chat (const MumbleProto::TextMessage &msg,
                                     const std::string &command,
                                     const std::string &arguments)
   {
-    (void) msg;
-    (void) command;
-    (void) arguments;
-    /*
-    super
-    @priv_notify[msg.actor] = 0 if @priv_notify[msg.actor].nil?
-    if message[2] == '#'
-      message.split.each do |command|
-        case command
-        when "#volume"
-          add = Cvolume
-        when "#update"
-          add = Cupdating_db
-        when "#random"
-          add = Crandom
-        when "#single"
-          add = Csingle
-        when "#xfade"
-          add = Cxfade
-        when "#consume"
-          add = Cconsume
-        when "#repeat"
-          add = Crepeat
-        when "#state"
-          add = Cstate
+    auto &flag_set = pimpl->priv_notify[msg.actor ()];
+    if (command == "+")
+      {
+        flag_set |= pimpl->get_message_types (arguments);
+      }
+    else if (command == "-")
+      {
+        flag_set &= ~pimpl->get_message_types (arguments);
+      }
+    else if (command == "*")
+      {
+        std::vector<std::string> names;
+        for (auto &pair : pimpl->message_type_names)
+          {
+            if (flag_set.test (pair.first))
+              {
+                names.push_back (pair.second);
+              }
+          }
+        std::sort (names.begin (), names.end ());
+        std::stringstream send;
+        for (auto &name : names)
+          {
+            send << " #" << name;
+          }
+        std::string s = send.str ();
+        if (s != "")
+          {
+            s = "You listen to the following MPD-Channels:" + s + ".";
+          }
         else
-          add = 0
-        end
-        @priv_notify[msg.actor] |= add if message[0] == '+'
-        @priv_notify[msg.actor] &= ~add if message[0] == '-'
-      end
-    end
-    if message == '*' && !@priv_notify[msg.actor].nil?
-      send = ""
-      send << " #volume" if (@priv_notify[msg.actor] & Cvolume) > 0
-      send << " #update" if (@priv_notify[msg.actor] & Cupdating_db) > 0
-      send << " #random" if (@priv_notify[msg.actor] & Crandom) > 0
-      send << " #single" if (@priv_notify[msg.actor] & Csingle) > 0
-      send << " #xfade" if (@priv_notify[msg.actor] & Cxfade) > 0
-      send << " #repeat" if (@priv_notify[msg.actor] & Crepeat) > 0
-      send << " #state" if (@priv_notify[msg.actor] & Cstate) > 0
-      if send != ""
-        send = "You listen to following MPD-Channels:" + send + "."
-      else
-        send << "You listen to no MPD-Channels"
-      end
-      @@bot[:cli].text_user(msg.actor, send)
-    end
-    */
+          {
+            s  = "You do not listen to any MPD-Channels";
+          }
+        message_to (msg.actor (), s);
+      }
   }
 }

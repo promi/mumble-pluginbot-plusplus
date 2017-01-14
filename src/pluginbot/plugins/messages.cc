@@ -96,6 +96,9 @@ namespace MumblePluginBot
                                     const std::string &command,
                                     const std::string &arguments)
   {
+    (void) msg;
+    (void) command;
+    (void) arguments;
     /*
     super
     @priv_notify[msg.actor] = 0 if @priv_notify[msg.actor].nil?

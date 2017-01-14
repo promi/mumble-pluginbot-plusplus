@@ -28,7 +28,7 @@ RawFileReader::RawFileReader (const std::string &file)
 std::vector<int16_t> RawFileReader::internal_read (size_t count)
 {
   auto size = count * 2;
-  std::vector<uint8_t> buffer (size , 0);
+  std::vector<uint8_t> buffer (size, 0);
   m_stream.read (reinterpret_cast<char*> (buffer.data ()), size);
   if (m_stream.gcount () == 0)
     {
@@ -44,11 +44,10 @@ std::vector<int16_t> RawFileReader::internal_read (size_t count)
 void RawFileReader::internal_each_buffer (size_t count,
     std::function<bool(const std::vector<int16_t>&)> f)
 {
-  auto samples = internal_read (count);
-  while (samples.size () != 0)
+  decltype(internal_read (count)) samples;
+  while ((samples = internal_read (count)).size () != 0)
     {
       f (samples);
-      samples = internal_read (count);
     }
 }
 

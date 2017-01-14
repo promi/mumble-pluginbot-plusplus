@@ -36,11 +36,11 @@ public:
   {
     auto ptr = bytes.data ();
     std::vector<int16_t> v;
-    for (size_t i = 0; i < bytes.size () / 2; i += 2)
+    for (size_t i = 0; i < bytes.size () / 2; i++)
       {
         v.push_back (
-          ptr[i + 0] << 8 |
-          ptr[i + 1] << 0
+          ptr[i * 2 + 0] << 8 |
+          ptr[i * 2 + 1] << 0
         );
       }
     return v;
@@ -51,11 +51,11 @@ public:
   {
     auto ptr = bytes.data ();
     std::vector<int16_t> v;
-    for (size_t i = 0; i < bytes.size () / 2; i += 2)
+    for (size_t i = 0; i < bytes.size () / 2; i++)
       {
         v.push_back (
-          ptr[i + 0] << 0 |
-          ptr[i + 1] << 8
+          ptr[i * 2 + 0] << 0 |
+          ptr[i * 2 + 1] << 8
         );
       }
     return v;

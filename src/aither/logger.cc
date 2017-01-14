@@ -2,6 +2,7 @@
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -60,5 +61,11 @@ Aither::Logger& operator<< (Aither::Logger& l, const std::string &s)
 Aither::Logger& operator<< (Aither::Logger& l, const char *s)
 {
   l.printf (s);
+  return l;
+}
+
+Aither::Logger& operator<< (Aither::Logger& l, int i)
+{
+  l.printf ("%d", i);
   return l;
 }

@@ -76,4 +76,24 @@ public:
   {
     return set(f);
   }
+
+  FlagSet& operator |= (const FlagSet &other)
+  {
+    m_flags |= other.m_flags;
+    return *this;
+  }
+
+  FlagSet& operator &= (const FlagSet &other)
+  {
+    m_flags &= other.m_flags;
+    return *this;
+  }
+
+  FlagSet operator ~()
+  {
+    FlagSet flag_set (*this);
+    flag_set.m_flags = ~flag_set.m_flags;
+    return flag_set;
+  }
 };
+

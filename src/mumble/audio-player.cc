@@ -201,7 +201,7 @@ namespace Mumble
       }
     else
       {
-        // TODO: check over valid sample_rates (see opus-constants.h)
+        // TODO: check other valid sample_rates (see opus-constants.h)
         assert (sample_rate == 48'000 /*'*/);
         m_encoder = std::make_unique<Opus::Encoder>
                     (m_log, static_cast<Opus::SampleRate> (sample_rate), m_framesize,

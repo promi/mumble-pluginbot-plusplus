@@ -8,6 +8,7 @@
     Copyright (c) 2015 loscoala
     Copyright (c) 2016 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +31,7 @@
 #include <vector>
 #include <queue>
 
+#include "aither/log.hh"
 #include "io/sample-reader.hh"
 #include "io/raw-s16le-file-sample-reader.hh"
 #include "mumble/connection.hh"
@@ -44,6 +46,7 @@ namespace Mumble
   class AudioPlayer
   {
   private:
+    const Aither::Log &m_log;
     int m_volume = 100;
     bool m_playing = false;
     Connection &m_conn;
@@ -60,8 +63,8 @@ namespace Mumble
     PacketDataStream m_pds;
   public:
     static const int COMPRESSED_SIZE = 48;
-    AudioPlayer (Codec codec, Connection &connection, size_t sample_rate,
-                 size_t bitrate);
+    AudioPlayer (const Aither::Log &log, Codec codec, Connection &connection,
+                 size_t sample_rate, size_t bitrate);
     ~AudioPlayer();
     void codec (Codec val);
     inline void volume (int vol)

@@ -30,12 +30,14 @@
 
 namespace Mumble
 {
-  Mumble2Mumble::Mumble2Mumble (Codec codec, Connection &conn,
+  Mumble2Mumble::Mumble2Mumble (const Aither::Log &log, Codec codec,
+                                Connection &conn,
                                 size_t sample_rate,
                                 size_t frame_size, size_t channels, size_t bitrate):
-    m_codec (codec), m_conn (conn), m_sample_rate (sample_rate),
+    m_log (log), m_codec (codec), m_conn (conn), m_sample_rate (sample_rate),
     m_channels (channels),
-    m_opus_encoder (static_cast<Opus::SampleRate> (sample_rate), sample_rate / 100,
+    m_opus_encoder (m_log, static_cast<Opus::SampleRate> (sample_rate),
+                    sample_rate / 100,
                     static_cast<Opus::Channels> (channels), COMPRESSED_SIZE)
 /*
 m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].min)

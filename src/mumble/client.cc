@@ -119,7 +119,7 @@ namespace Mumble
       {
         return;
       }
-    m_m2m = std::make_unique<Mumble2Mumble> (m_codec, *m_conn,
+    m_m2m = std::make_unique<Mumble2Mumble> (m_log, m_codec, *m_conn,
             m_config.sample_rate, m_config.sample_rate / 100, 1, m_config.bitrate);
     if (rec)
       {
@@ -181,9 +181,8 @@ namespace Mumble
       }
     if (!m_audio_streamer)
       {
-        m_audio_streamer = std::make_unique<AudioPlayer> (m_codec, *m_conn,
-                           m_config.sample_rate,
-                           m_config.bitrate);
+        m_audio_streamer = std::make_unique<AudioPlayer> (m_log, m_codec, *m_conn,
+                           m_config.sample_rate, m_config.bitrate);
       }
     return *m_audio_streamer;
   }

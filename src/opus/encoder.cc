@@ -28,10 +28,16 @@
 
 namespace Opus
 {
-  Encoder::Encoder (SampleRate sample_rate, size_t frame_size, Channels channels,
-                    size_t size)
-    : m_frame_size (frame_size), m_size (size)
+  Encoder::Encoder (const Aither::Log &log, SampleRate sample_rate,
+                    size_t frame_size,
+                    Channels channels, size_t size)
+    : m_log (log), m_frame_size (frame_size), m_size (size)
   {
+    AITHER_DEBUG("Creating Opus::Encoder with " <<
+                 "sample_rate = " << static_cast<int> (sample_rate) <<
+                 ", frame_size = " << frame_size <<
+                 ", channels = " << static_cast<int> (channels) <<
+                 ", size = " << size);
     m_encoder = opus_encoder_create (static_cast<opus_int32> (sample_rate),
                                      static_cast<int> (channels),
                                      static_cast<int> (Application::audio), nullptr);

@@ -7,6 +7,7 @@
     Copyright (c) 2015 dafoxia
     Copyright (c) 2016 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -30,6 +31,7 @@
 #include <string>
 #include <opus/opus.h>
 
+#include "aither/log.hh"
 #include "opus/constants.hh"
 
 namespace Opus
@@ -38,12 +40,13 @@ namespace Opus
   {
     //  attr_reader :sample_rate, :frame_size, :channels, :vbr_rate, :vbr_constraint, :bitrate, :signal
   private:
+    const Aither::Log &m_log;
     size_t m_frame_size;
     size_t m_size;
     OpusEncoder *m_encoder;
   public:
-    Encoder (SampleRate sample_rate, size_t frame_size, Channels channels,
-             size_t size);
+    Encoder (const Aither::Log &log, SampleRate sample_rate, size_t frame_size,
+             Channels channels, size_t size);
     ~Encoder ();
     void reset ();
     void dtx (bool enable);

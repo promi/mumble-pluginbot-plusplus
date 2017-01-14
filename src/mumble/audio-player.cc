@@ -31,14 +31,18 @@ namespace Mumble
   namespace wav = WaveFile;
   // namespace pa = PortAudio;
 
-  AudioPlayer::AudioPlayer (Codec codec, Connection &connection,
+  AudioPlayer::AudioPlayer (const Aither::Log &log, Codec codec,
+                            Connection &connection,
                             size_t sample_rate, size_t bitrate)
-    : m_conn (connection),
+    : m_log (log), m_conn (connection),
   /* m_wav_format (wav::Format (wav::Channels::mono, wav::SampleFormat::pcm_16,
      static_cast<size_t> (sample_rate))),*/
       m_codec (codec), m_bitrate (bitrate), m_sample_rate (sample_rate),
       m_framesize (COMPRESSED_SIZE * 10)
   {
+    AITHER_DEBUG("Creating AudioPlayer with codec = " << to_string (codec) <<
+                 ", sample_rate = " << sample_rate <<
+                 ", bitrate = " << bitrate);
     create_encoder (m_sample_rate, m_bitrate);
   }
 
@@ -200,8 +204,8 @@ namespace Mumble
         // TODO: check over valid sample_rates (see opus-constants.h)
         assert (sample_rate == 48'000 /*'*/);
         m_encoder = std::make_unique<Opus::Encoder>
-                    (static_cast<Opus::SampleRate> (sample_rate), m_framesize, Opus::Channels::mono,
-                     7200);
+                    (m_log, static_cast<Opus::SampleRate> (sample_rate), m_framesize,
+                     Opus::Channels::mono, 7200);
         m_encoder->bitrate (bitrate);
         // constrainted vbr doesn't work with Opus::Signal::voice
         m_encoder->signal (Opus::Signal::music);

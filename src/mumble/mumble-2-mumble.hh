@@ -6,6 +6,7 @@
     Copyright (c) 2014 niko20010
     Copyright (c) 2015 loscoala
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +30,7 @@
 #include <queue>
 #include <thread>
 
+#include "aither/log.hh"
 #include "mumble/Mumble.pb.h"
 #include "mumble/connection.hh"
 #include "mumble/packet-data-stream.hh"
@@ -44,6 +46,7 @@ namespace Mumble
   public:
     static const int COMPRESSED_SIZE = 960;
   private:
+    const Aither::Log &m_log;
     PacketDataStream m_pds;
     PacketDataStream m_sendpds;
     Codec m_codec;
@@ -62,8 +65,8 @@ namespace Mumble
     std::thread m_consume;
     // bool m_consume_running;
   public:
-    Mumble2Mumble (Codec codec, Connection &conn, size_t sample_rate,
-                   size_t frame_size, size_t channels, size_t bitrate);
+    Mumble2Mumble (const Aither::Log &log, Codec codec, Connection &conn,
+                   size_t sample_rate, size_t frame_size, size_t channels, size_t bitrate);
     ~Mumble2Mumble ();
     void process_udp_tunnel (const MumbleProto::UDPTunnel &message);
     std::list<uint32_t> getspeakers ();

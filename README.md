@@ -24,12 +24,13 @@ What works:
 - Connection to a Mumble server
 - Auto moving to a channel after connect
 - Some simple chat commands such as ".help"
-- FIFO reading / OPUS encoding / Streaming (in theory, can't be tested at this stage)
+- FIFO reading / OPUS encoding / Streaming
+- Some plugins (Messages and MPD plugins are currently under development)
 
 What doesn't work:
 
 - Some chat commands don't work
-- Plugins
+- Most plugins
 - CELT support
 - Portaudio support
 - WAV reading / writing
@@ -48,6 +49,9 @@ The code is using modern C++ language features only present in C++14 and partly 
 - libopus 1.1
 - libprotobuf
 - protobuf (for the protoc compiler)
+- libmpdclient
+- libuv
+- uvw (is automatically pulled in via a Git submodule)
 
 ## Building + Installing
 
@@ -68,6 +72,14 @@ Then the usual autotools process applies:
 It should also work without installing, libtool provides a wrapper script for this:
 
     $ ./mumble-pluginbot-plusplus --help
+    
+A running mpd is currently necessary or the bot will crash, there is a script included to start mpd:
+
+    $ tools/start-mpd.sh
+
+However the script expects a working mpd.conf in `~/.config/mumble-pluginbot-plusplus/mpd.conf`. You can start with the example script from the mumble-ruby-pluginbot repository:
+
+https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mpd.conf
 
 ## License
 

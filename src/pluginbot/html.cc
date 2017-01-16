@@ -66,6 +66,11 @@ namespace MumblePluginBot
     return "<span style=\"color: red\">" + inner_html + "</span>";
   }
 
+  std::string red_bold_span (const std::string &inner_html)
+  {
+    return "<span style=\"color: red; font-weight:bold\">" + inner_html + "</span>";
+  }
+
   std::string ul_tag (const std::string &inner_html)
   {
     return "<ul>\n" + inner_html + "\n</ul>\n";

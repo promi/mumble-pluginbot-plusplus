@@ -53,12 +53,12 @@ namespace Mpd
     int song_id () const;
     int next_song_pos () const;
     int next_song_id () const;
-    uint elapsed_time ();
-    uint elapsed_ms ();
-    uint total_time ();
-    uint kbit_rate ();
-    // AudioFormat audio_format ();
-    uint update_id ();
-    // std::string error ();
+    uint elapsed_time () const;
+    uint elapsed_ms () const;
+    uint total_time () const;
+    uint kbit_rate () const;
+    // AudioFormat audio_format () const;
+    uint update_id () const;
+    // std::string error () const;
   };
 }

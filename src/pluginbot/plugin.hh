@@ -4,6 +4,7 @@
     Copyright (c) 2015 dafoxia
     Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -40,6 +41,7 @@ namespace MumblePluginBot
     void channel_message (const std::string &message);
     void private_message (const std::string &message);
     Settings& settings ();
+    Mumble::AudioPlayer& player ();
   public:
     Plugin ();
     virtual ~Plugin ();

@@ -4,6 +4,7 @@
     Copyright (c) 2015 dafoxia
     Copyright (c) 2015 Natenom
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -26,10 +27,11 @@ namespace MumblePluginBot
   {
     Settings &settings;
     Mumble::Client &cli;
+    Mumble::AudioPlayer &player;
     uint32_t user_id;
 
     inline Impl (Settings &settings, Mumble::Client &cli, uint32_t user_id)
-      : settings (settings), cli (cli), user_id (user_id)
+      : settings (settings), cli (cli), player(cli.player ()), user_id (user_id)
     {
     }
   };
@@ -97,5 +99,10 @@ namespace MumblePluginBot
   Settings& Plugin::settings ()
   {
     return pimpl->settings;
+  }
+
+  Mumble::AudioPlayer& Plugin::player ()
+  {
+    return pimpl->player;
   }
 }

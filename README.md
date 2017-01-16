@@ -95,5 +95,6 @@ The code consists of several libtool libraries and a binary:
 - libmumble-pluginbot-plusplus-openssl - Wrapper for OpenSSL (certificate + SSL/TLS)
 - libmumble-pluginbot-plusplus-opus - libopus C++ wrapper
 - libmumble-pluginbot-plusplus-mumble - Utility classes to talk to a Mumble server
-- mumble-pluginbot-plusplus - The main binary containing the core Bot
+- libmumble-pluginbot-plusplus-mpd - Utility classes to talk to a MPD server
+- mumble-pluginbot-plusplus - The main binary containing the core Bot and the enabled plugins
 

@@ -9,6 +9,7 @@ It is a C++ rewrite of several libraries and the original mumble-ruby-pluginbot 
 - [opus-ruby] (https://github.com/dafoxia/opus-ruby)
 - [mumble-ruby] (https://github.com/dafoxia/mumble-ruby)
 - [mumble-ruby-pluginbot] (https://github.com/dafoxia/mumble-ruby-pluginbot)
+- [ruby-mpd] (https://github.com/archSeer/ruby-mpd)
 
 Thanks to all the original authors! See the source code for copyright information.
 

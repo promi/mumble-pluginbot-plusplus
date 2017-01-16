@@ -2,6 +2,7 @@
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +24,8 @@
 #include <cassert>
 #include <memory>
 
+#include "mpd/state.hh"
+
 namespace Mpd
 {
   class Status
@@ -42,7 +45,7 @@ namespace Mpd
     bool consume () const;
     uint queue_length () const;
     uint queue_version () const;
-    // State state () const;
+    State state () const;
     uint crossfade () const;
     float mixrampdb () const;
     float mixrampdelay () const;

@@ -1,7 +1,7 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -18,21 +18,20 @@
 */
 #pragma once
 
-#include <string>
+#include <cstdint>
+#include <mpd/client.h>
 
-namespace MumblePluginBot
+namespace Mpd
 {
-  std::string a_tag (const std::string &url, const std::string &label);
-  extern const std::string br_tag;
-  extern const std::string hr_tag;
-  std::string li_tag (const std::string &inner_html);
-  std::string tr_tag (const std::string &inner_html);
-  std::string td_tag (const std::string &inner_html);
-  std::string u_tag (const std::string &inner_html);
-  std::string i_tag (const std::string &inner_html);
-  std::string b_tag (const std::string &inner_html);
-  std::string red_span (const std::string &inner_html);
-  std::string red_bold_span (const std::string &inner_html);
-  std::string ul_tag (const std::string &inner_html);
-  std::string table_tag (const std::string &inner_html);
+  enum class State : uint8_t
+  {
+    // no information available
+    Unknown = MPD_STATE_UNKNOWN,
+    // not playing
+    Stop = MPD_STATE_STOP,
+    // playing
+    Play = MPD_STATE_PLAY,
+    // playing, but paused
+    Pause = MPD_STATE_PAUSE
+  };
 }

@@ -40,10 +40,9 @@ namespace MumblePluginBot
     Settings *settings;
     MessagesPlugin &messages;
     std::string info_template;
-    std::unique_ptr<Mpd::Client> mpd_client;
-    std::mutex mpd_client_mutex;
     std::thread idle_thread;
     std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
+    std::function<void (const std::string &)> channel_message;
     inline void init_info_template (const std::string &controlstring)
     {
       std::stringstream ss;
@@ -53,6 +52,7 @@ namespace MumblePluginBot
       info_template = ss.str ();
     }
     void status_update (const FlagSet<Mpd::Idle> &idle_flags);
+    void status_update (const FlagSet<Mpd::Idle> &idle_flags, Mpd::Status &status);
     void idle_thread_proc ();
   };
 
@@ -72,93 +72,106 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags)
   {
-    std::lock_guard <std::mutex> lock (mpd_client_mutex);
-    Mpd::Status status = mpd_client->run_status ();
+    try
+      {
+        Mpd::Client client {settings->mpd.host, settings->mpd.port};
+        auto status = client.run_status ();
+        status_update (idle_flags, status);
+      }
+    catch (std::runtime_error e)
+      {
+        channel_message (red_bold_span (std::string {"An error occured: "} +
+                                        e.what ()));
+      }
+  }
+
+  void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags,
+                                       Mpd::Status &status)
+  {
     if (idle_flags.test (Mpd::Idle::Mixer))
       {
         messages.send_message ("Volume was set to " +
-                               std::to_string (status.volume ()), MessageType::Volume);
+                               std::to_string (status.volume ()) + "%",
+                               MessageType::Volume);
       }
-    /*
-    @@bot[:mpd].on :volume do |volume|
-      @@bot[:messages].sendmessage("Volume was set to: #{volume}%." , 0x01)
-    end
-
-    @@bot[:mpd].on :error do |error|
-      channelmessage( "<span style='color:red;font-weight:bold;>An error occured: #{error}.</span>")
-    end
-
-    @@bot[:mpd].on :updating_db do |jobid|
-      channelmessage( "I am running a database update just now ... new songs :)<br>My job id is: #{jobid}.") if (@@bot[:chan_notify] & 0x02) != 0
-    end
-
-    @@bot[:mpd].on :random do |random|
-      if random
-        random = "On"
-      else
-        random = "Off"
-      end
-      channelmessage( "Random mode is now: #{random}.") if (@@bot[:chan_notify] & 0x04) != 0
-    end
-
-    @@bot[:mpd].on :state  do |state|
-      if @@bot[:chan_notify] & 0x80 != 0 then
-        channelmessage( "Music paused.") if  state == :pause
-        channelmessage( "Music stopped.") if state == :stop
-        channelmessage( "Music start playing.") if state == :play
-      end
-    end
-
-    @@bot[:mpd].on :single do |single|
-      if single
-        single = "On"
-      else
-        single = "Off"
-      end
-      channelmessage( "Single mode is now: #{single}.") if (@@bot[:chan_notify] & 0x08) != 0
-    end
-
-    @@bot[:mpd].on :consume do |consume|
-      if consume
-        consume = "On"
-      else
-        consume = "Off"
-      end
-
-      channelmessage( "Consume mode is now: #{consume}.") if (@@bot[:chan_notify] & 0x10) != 0
-    end
-
-    @@bot[:mpd].on :xfade do |xfade|
-      if xfade.to_i == 0
-        xfade = "Off"
-        channelmessage( "Crossfade is now: #{xfade}.") if (@@bot[:chan_notify] & 0x20) != 0
-      else
-        channelmessage( "Crossfade time (in seconds) is now: #{xfade}.") if (@@bot[:chan_notify] & 0x20) != 0
-      end
-    end
-
-    @@bot[:mpd].on :repeat do |repeat|
-      if repeat
-        repeat = "On"
-      else
-        repeat = "Off"
-      end
-      channelmessage( "Repeat mode is now: #{repeat}.") if (@@bot[:chan_notify] & 0x40) != 0
-    end
-
-    @@bot[:mpd].on :song do |current|
-    end
-    */
+    if (idle_flags.test (Mpd::Idle::Database))
+      {
+        if (settings->chan_notify.test (MessageType::UpdatingDB))
+          {
+            channel_message ("I am running a database update just now ... new songs :)");
+            // TODO: What is a jobid, check where ruby-mpd got it if relevant.
+            // "<br>My job id is: #{jobid}."
+          }
+      }
+    if (idle_flags.test (Mpd::Idle::Options))
+      {
+        if (settings->chan_notify.test (MessageType::Random))
+          {
+            channel_message (std::string {"Random mode is now: "} +
+                             (status.random () ? "On" : "Off"));
+          }
+        if (settings->chan_notify.test (MessageType::State))
+          {
+            std::string state;
+            switch (status.state ())
+              {
+              case Mpd::State::Unknown:
+                state = "state is unknown";
+                break;
+              case Mpd::State::Stop:
+                state = "stopped";
+                break;
+              case Mpd::State::Play:
+                state = "playing";
+                break;
+              case Mpd::State::Pause:
+                state = "paused";
+                break;
+              default:
+                state = "state is unknown (not implemented)";
+              }
+            channel_message ("Music " + state + ".");
+          }
+        if (settings->chan_notify.test (MessageType::Single))
+          {
+            channel_message (std::string {"Single mode is now: "} +
+                             (status.single () ? "On" : "Off"));
+          }
+        if (settings->chan_notify.test (MessageType::Consume))
+          {
+            channel_message (std::string {"Consume mode is now: "} +
+                             (status.consume () ? "On" : "Off"));
+          }
+        if (settings->chan_notify.test (MessageType::XFade))
+          {
+            auto xfade = status.crossfade ();
+            if (xfade == 0)
+              {
+                channel_message ("Crossfade is now: Off");
+              }
+            else
+              {
+                channel_message ("Crossfade time (in seconds) is now: " +
+                                 std::to_string (xfade));
+              }
+          }
+        if (settings->chan_notify.test (MessageType::Repeat))
+          {
+            channel_message (std::string {"Repeat mode is now: "} +
+                             (status.repeat () ? "On" : "Off"));
+          }
+      }
   }
 
   void MpdPlugin::internal_init ()
   {
     auto &settings = Plugin::settings ();
     pimpl->settings = &settings;
+    pimpl->channel_message = [this] (const std::string &m)
+    {
+      channel_message (m);
+    };
     pimpl->init_info_template (settings.controlstring);
-    pimpl->mpd_client = std::make_unique<Mpd::Client> (settings.mpd.host,
-                        settings.mpd.port);
-
     pimpl->mpd_status_listener = std::make_unique<Mpd::StatusListener>
                                  (settings.mpd.host, settings.mpd.port, [this] (auto idle_flags)
     {

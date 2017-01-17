@@ -26,17 +26,21 @@ namespace MumblePluginBot
   struct Plugin::Impl
   {
     Settings &settings;
-    Mumble::Client &cli;
+    Mumble::Client &client;
     Mumble::AudioPlayer &player;
     uint32_t user_id;
 
-    inline Impl (Settings &settings, Mumble::Client &cli, uint32_t user_id)
-      : settings (settings), cli (cli), player(cli.player ()), user_id (user_id)
+    inline Impl (Settings &settings, Mumble::Client &client,
+                 Mumble::AudioPlayer &player,
+                 uint32_t user_id)
+      : settings (settings), client (client), player (player), user_id (user_id)
     {
     }
   };
 
-  Plugin::Plugin ()
+  Plugin::Plugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
+                  Mumble::AudioPlayer &player)
+    : pimpl (std::make_unique<Impl> (settings, cli, player, 0)), m_log (log)
   {
   }
 
@@ -48,9 +52,8 @@ namespace MumblePluginBot
   {
   }
 
-  void Plugin::init (Settings &settings, Mumble::Client &cli)
+  void Plugin::init ()
   {
-    pimpl = std::make_unique<Impl> (settings, cli, 0);
     internal_init ();
   }
 
@@ -83,7 +86,7 @@ namespace MumblePluginBot
   void Plugin::message_to (uint32_t user_id, const std::string &message)
   {
     // TODO: When can this fail and with what exception?
-    pimpl->cli.text_user (user_id, message);
+    pimpl->client.text_user (user_id, message);
   }
 
   void Plugin::private_message (const std::string &message)
@@ -93,12 +96,17 @@ namespace MumblePluginBot
 
   void Plugin::channel_message (const std::string &message)
   {
-    pimpl->cli.text_channel (pimpl->cli.me ().channel_id (), message);
+    pimpl->client.text_channel (pimpl->client.me ().channel_id (), message);
   }
 
   Settings& Plugin::settings ()
   {
     return pimpl->settings;
+  }
+
+  Mumble::Client& Plugin::client ()
+  {
+    return pimpl->client;
   }
 
   Mumble::AudioPlayer& Plugin::player ()

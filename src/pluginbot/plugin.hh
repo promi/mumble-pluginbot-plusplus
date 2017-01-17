@@ -25,6 +25,7 @@
 #include <string>
 #include <memory>
 
+#include "aither/log.hh"
 #include "mumble/client.hh"
 #include "pluginbot/settings.hh"
 
@@ -36,17 +37,20 @@ namespace MumblePluginBot
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   protected:
+    const Aither::Log &m_log;
     virtual void internal_init ();
     void message_to (uint32_t user_id, const std::string &message);
     void channel_message (const std::string &message);
     void private_message (const std::string &message);
     Settings& settings ();
+    Mumble::Client& client ();
     Mumble::AudioPlayer& player ();
   public:
-    Plugin ();
+    Plugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
+            Mumble::AudioPlayer &player);
     virtual ~Plugin ();
     virtual std::string name () = 0;
-    void init (Settings &settings, Mumble::Client &cli);
+    void init ();
     virtual void ticks (std::chrono::time_point<std::chrono::system_clock>
                         time_point);
     virtual void handle_chat (const MumbleProto::TextMessage &msg,

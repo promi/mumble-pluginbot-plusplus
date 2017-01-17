@@ -38,7 +38,8 @@ namespace MumblePluginBot
   protected:
     void internal_init () override;
   public:
-    MpdPlugin (MessagesPlugin &messages);
+    MpdPlugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
+               Mumble::AudioPlayer &player, MessagesPlugin &messages);
     ~MpdPlugin () override;
     std::string name () override;
   };

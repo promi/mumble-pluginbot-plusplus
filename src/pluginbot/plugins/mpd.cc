@@ -34,14 +34,20 @@ namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
-    inline Impl (MessagesPlugin &messages) : messages (messages)
+    inline Impl (const Aither::Log &log, Settings &settings, Mumble::Client &client,
+                 Mumble::AudioPlayer &player, MessagesPlugin &messages)
+      : m_log (log), settings (settings), client (client), player (player),
+        messages (messages)
     {
     }
+    const Aither::Log &m_log;
+    Settings &settings;
+    Mumble::Client &client;
+    Mumble::AudioPlayer &player;
     MessagesPlugin &messages;
-    Mumble::Client *client;
-    Settings *settings;
     std::string info_template;
     std::thread idle_thread;
+    std::thread song_thread;
     std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
     std::function<void (const std::string &)> channel_message;
     inline void init_info_template (const std::string &controlstring)
@@ -59,9 +65,13 @@ namespace MumblePluginBot
     void song_thread_proc ();
   };
 
-  MpdPlugin::MpdPlugin (MessagesPlugin &messages)
+  MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
+                        Mumble::Client &cli,
+                        Mumble::AudioPlayer &player, MessagesPlugin &messages)
+    : Plugin (log, settings, cli, player),
+      pimpl (std::make_unique<Impl> (this->m_log, this->settings (), this->client (),
+                                     this->player (), messages))
   {
-    pimpl = std::make_unique<Impl> (messages);
   }
 
   MpdPlugin::~MpdPlugin ()
@@ -71,13 +81,14 @@ namespace MumblePluginBot
         pimpl->mpd_status_listener->stop ();
         pimpl->idle_thread.join ();
       }
+    pimpl->song_thread.join ();
   }
 
   void MpdPlugin::Impl::status_update (const FlagSet<Mpd::Idle> &idle_flags)
   {
     try
       {
-        Mpd::Client client {settings->mpd.host, settings->mpd.port};
+        Mpd::Client client {settings.mpd.host, settings.mpd.port};
         auto status = client.run_status ();
         status_update (idle_flags, status);
       }
@@ -99,7 +110,7 @@ namespace MumblePluginBot
       }
     if (idle_flags.test (Mpd::Idle::Database))
       {
-        if (settings->chan_notify.test (MessageType::UpdatingDB))
+        if (settings.chan_notify.test (MessageType::UpdatingDB))
           {
             channel_message ("I am running a database update just now ... new songs :)");
             // TODO: What is a jobid, check where ruby-mpd got it if relevant.
@@ -108,12 +119,13 @@ namespace MumblePluginBot
       }
     if (idle_flags.test (Mpd::Idle::Options))
       {
-        if (settings->chan_notify.test (MessageType::Random))
+        auto chan_notify = settings.chan_notify;
+        if (chan_notify.test (MessageType::Random))
           {
             channel_message (std::string {"Random mode is now: "} +
                              (status.random () ? "On" : "Off"));
           }
-        if (settings->chan_notify.test (MessageType::State))
+        if (chan_notify.test (MessageType::State))
           {
             std::string state;
             switch (status.state ())
@@ -135,17 +147,17 @@ namespace MumblePluginBot
               }
             channel_message ("Music " + state + ".");
           }
-        if (settings->chan_notify.test (MessageType::Single))
+        if (chan_notify.test (MessageType::Single))
           {
             channel_message (std::string {"Single mode is now: "} +
                              (status.single () ? "On" : "Off"));
           }
-        if (settings->chan_notify.test (MessageType::Consume))
+        if (chan_notify.test (MessageType::Consume))
           {
             channel_message (std::string {"Consume mode is now: "} +
                              (status.consume () ? "On" : "Off"));
           }
-        if (settings->chan_notify.test (MessageType::XFade))
+        if (chan_notify.test (MessageType::XFade))
           {
             auto xfade = status.crossfade ();
             if (xfade == 0)
@@ -158,7 +170,7 @@ namespace MumblePluginBot
                                  std::to_string (xfade));
               }
           }
-        if (settings->chan_notify.test (MessageType::Repeat))
+        if (chan_notify.test (MessageType::Repeat))
           {
             channel_message (std::string {"Repeat mode is now: "} +
                              (status.repeat () ? "On" : "Off"));
@@ -172,9 +184,9 @@ namespace MumblePluginBot
     std::unique_ptr<std::string> title {song.tag (Mpd::TagType::Title, 0)};
     std::unique_ptr<std::string> album {song.tag (Mpd::TagType::Album, 0)};
     std::string file {song.uri ()};
-    if (settings->use_comment_for_status_display)
+    if (settings.use_comment_for_status_display)
       {
-        std::stringstream image {settings->logo};
+        std::stringstream image {settings.logo};
         /*
           if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
           if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
@@ -204,11 +216,11 @@ namespace MumblePluginBot
             output << "<tr><td>Source:</td><td>" << file << "</td></tr>";
           }
         output << "</table><br>" + info_template;
-        client->comment(image.str () + output.str ());
+        client.comment(image.str () + output.str ());
       }
     else
       {
-        if (settings->chan_notify.test (MessageType::State))
+        if (settings.chan_notify.test (MessageType::State))
           {
             std::string msg;
             if (artist == nullptr || title == nullptr || album == nullptr)
@@ -226,8 +238,8 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::song_thread_proc ()
   {
-    Mpd::Client client {settings->mpd.host, settings->mpd.port};
-    client.run_set_volume (settings->initial_volume);
+    Mpd::Client client {settings.mpd.host, settings.mpd.port};
+    client.run_set_volume (settings.initial_volume);
     std::string last_file;
     bool init = true;
     while (true)
@@ -256,8 +268,6 @@ namespace MumblePluginBot
   void MpdPlugin::internal_init ()
   {
     auto &settings = Plugin::settings ();
-    pimpl->client = client ();
-    pimpl->settings = &settings;
     pimpl->channel_message = [this] (const std::string &m)
     {
       channel_message (m);
@@ -287,9 +297,9 @@ namespace MumblePluginBot
         }
     });
     player ().stream_named_pipe (settings.mpd.fifopath);
-    std::thread([&]
+    pimpl->song_thread = std::thread([&]
     {
-      status_thread_proc ();
+      pimpl->song_thread_proc ();
     });
   }
 

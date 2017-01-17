@@ -27,6 +27,12 @@
 
 namespace MumblePluginBot
 {
+  VersionPlugin::VersionPlugin (const Aither::Log &log, Settings &settings,
+                                Mumble::Client &cli, Mumble::AudioPlayer &player)
+    : Plugin (log, settings, cli, player)
+  {
+  }
+
   std::string VersionPlugin::name ()
   {
     return "version";

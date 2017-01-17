@@ -60,7 +60,9 @@ namespace MumblePluginBot
 
   }
 
-  MessagesPlugin::MessagesPlugin () : pimpl (std::make_unique<Impl> ())
+  MessagesPlugin::MessagesPlugin (const Aither::Log &log, Settings &settings,
+                                  Mumble::Client &cli, Mumble::AudioPlayer &player)
+    : Plugin (log, settings, cli, player), pimpl (std::make_unique<Impl> ())
   {
 
   }

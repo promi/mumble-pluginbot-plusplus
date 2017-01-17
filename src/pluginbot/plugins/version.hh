@@ -29,6 +29,8 @@ namespace MumblePluginBot
   class VersionPlugin : public Plugin
   {
   public:
+    VersionPlugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
+                   Mumble::AudioPlayer &player);
     std::string name () override;
     std::string help () override;
     void handle_chat (const MumbleProto::TextMessage &msg,

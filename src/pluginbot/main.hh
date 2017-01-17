@@ -63,7 +63,6 @@ namespace MumblePluginBot
     {
       return m_run;
     }
-    void init_settings ();
     void disconnect ();
     int calc_overall_bandwidth (int framelength, int bitrate) const;
     int overall_bandwidth () const;

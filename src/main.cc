@@ -213,8 +213,6 @@ real_main (int argc, char *argv[])
     {
       MumblePluginBot::Main client (settings, config_filename, m_log);
       AITHER_VERBOSE("pluginbot (" << GIT_DESCRIBE << ") is starting...");
-      client.init_settings ();
-      AITHER_VERBOSE("start");
       client.mumble_start ();
       try
         {

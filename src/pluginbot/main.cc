@@ -53,14 +53,28 @@ namespace MumblePluginBot
               const std::string &config_filename,
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
+    m_run = false;
+    m_cli = std::make_unique<Mumble::Client>
+            (m_log, m_settings.connection.host, m_settings.connection.port,
+             m_settings.connection.username, m_settings.connection.userpassword,
+             [&] (auto &conf)
+    {
+      conf.bitrate = m_settings.quality_bitrate;
+      conf.vbr_rate = m_settings.use_vbr;
+      conf.ssl_cert_opts.cert_dir = m_settings.certdir;
+    });
     // Load all plugins
     // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
     // Dir["./plugins/ *.rb"].each do |f|
-    m_plugins.push_back (std::make_unique<VersionPlugin> ());
-    auto messages_ptr = std::make_unique<MessagesPlugin> ();
+    auto &player = m_cli->player ();
+    m_plugins.push_back (std::make_unique<VersionPlugin> (m_log, m_settings, *m_cli,
+                         player));
+    auto messages_ptr = std::make_unique<MessagesPlugin> (m_log, m_settings, *m_cli,
+                        player);
     MessagesPlugin &messages = *messages_ptr;
     m_plugins.push_back (std::move (messages_ptr));
-    m_plugins.push_back (std::make_unique<MpdPlugin> (messages));
+    m_plugins.push_back (std::make_unique<MpdPlugin> (m_log, m_settings, *m_cli,
+                         player, messages));
     // Sort by name, so all plugin related user command output is in alphabetical order
     m_plugins.sort ([] (auto &a, auto &b)
     {
@@ -103,20 +117,6 @@ namespace MumblePluginBot
       {
         AITHER_WARNING("Can't join timertick thread");
       }
-  }
-
-  void Main::init_settings ()
-  {
-    m_run = false;
-    m_cli = std::make_unique<Mumble::Client>
-            (m_log, m_settings.connection.host, m_settings.connection.port,
-             m_settings.connection.username, m_settings.connection.userpassword,
-             [&] (auto &conf)
-    {
-      conf.bitrate = m_settings.quality_bitrate;
-      conf.vbr_rate = m_settings.use_vbr;
-      conf.ssl_cert_opts.cert_dir = m_settings.certdir;
-    });
   }
 
   void Main::disconnect ()
@@ -260,7 +260,7 @@ namespace MumblePluginBot
         }
     });
     m_run = true;
-    m_cli->player ().stream_named_pipe (m_settings.mpd.fifopath);
+    // m_cli->player ().stream_named_pipe (m_settings.mpd.fifopath);
     init_plugins ();
     m_ticktimer_running = true;
     m_ticktimer = std::thread
@@ -276,7 +276,7 @@ namespace MumblePluginBot
   {
     for (auto &plugin : m_plugins)
       {
-        plugin->init (m_settings, *m_cli);
+        plugin->init ();
       }
   }
 

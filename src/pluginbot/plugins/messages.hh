@@ -36,7 +36,8 @@ namespace MumblePluginBot
   protected:
     void internal_init () override;
   public:
-    MessagesPlugin ();
+    MessagesPlugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
+                    Mumble::AudioPlayer &player);
     ~MessagesPlugin () override;
     std::string name () override;
     void handle_chat (const MumbleProto::TextMessage &msg,

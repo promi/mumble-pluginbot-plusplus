@@ -27,6 +27,7 @@
 #include "mpd/idle.hh"
 #include "mpd/flag-set.hh"
 #include "mpd/status.hh"
+#include "mpd/song.hh"
 
 namespace Mpd
 {
@@ -83,5 +84,51 @@ namespace Mpd
     void send_status ();
     Status recv_status ();
     Status run_status ();
+    // Song
+    Song recv_song ();
+    // Player
+    void send_current_song ();
+    Song run_current_song ();
+    void send_play ();
+    void run_play ();
+    void send_play_pos (unsigned song_pos);
+    void run_play_pos (unsigned song_pos);
+    void send_play_id (unsigned id);
+    void run_play_id (unsigned song_id);
+    void send_stop ();
+    void run_stop ();
+    void send_toggle_pause ();
+    void run_toggle_pause ();
+    void send_pause (bool mode);
+    void run_pause (bool mode);
+    void send_next ();
+    void run_next ();
+    void send_previous ();
+    void run_previous ();
+    void send_seek_pos (unsigned song_pos, unsigned t);
+    void run_seek_pos (unsigned song_pos, unsigned t);
+    void send_seek_id (unsigned id, unsigned t);
+    void run_seek_id (unsigned song_id, unsigned t);
+    void send_repeat (bool mode);
+    void run_repeat (bool mode);
+    void send_random (bool mode);
+    void run_random (bool mode);
+    void send_single (bool mode);
+    void run_single (bool mode);
+    void send_consume (bool mode);
+    void run_consume (bool mode);
+    void send_crossfade (unsigned seconds);
+    void run_crossfade (unsigned seconds);
+    void send_mixrampdb (float db);
+    void run_mixrampdb (float db);
+    void send_mixrampdelay (float seconds);
+    void run_mixrampdelay (float seconds);
+    void send_clearerror ();
+    void run_clearerror ();
+    // Mixer
+    void send_set_volume (unsigned volume);
+    void run_set_volume (unsigned volume);
+    void send_change_volume (int relative_volume);
+    void run_change_volume (int relative_volume);
   };
 }

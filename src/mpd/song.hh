@@ -18,7 +18,11 @@
 */
 #pragma once
 
+#include <utility>
+#include <string>
 #include <mpd/client.h>
+
+#include "mpd/tag-type.hh"
 
 namespace Mpd
 {
@@ -41,6 +45,6 @@ namespace Mpd
     unsigned id () const;
     unsigned prio () const;
     // mpd_song* begin (const Pair *pair);
-    bool feed (const Pair &pair);
+    bool feed (const std::pair<std::string, std::string> &pair);
   };
 }

@@ -37,8 +37,9 @@ namespace MumblePluginBot
     inline Impl (MessagesPlugin &messages) : messages (messages)
     {
     }
-    Settings *settings;
     MessagesPlugin &messages;
+    Mumble::Client *client;
+    Settings *settings;
     std::string info_template;
     std::thread idle_thread;
     std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
@@ -54,6 +55,8 @@ namespace MumblePluginBot
     void status_update (const FlagSet<Mpd::Idle> &idle_flags);
     void status_update (const FlagSet<Mpd::Idle> &idle_flags, Mpd::Status &status);
     void idle_thread_proc ();
+    void update_song (Mpd::Song &song);
+    void song_thread_proc ();
   };
 
   MpdPlugin::MpdPlugin (MessagesPlugin &messages)
@@ -78,7 +81,7 @@ namespace MumblePluginBot
         auto status = client.run_status ();
         status_update (idle_flags, status);
       }
-    catch (std::runtime_error e)
+    catch (std::runtime_error &e)
       {
         channel_message (red_bold_span (std::string {"An error occured: "} +
                                         e.what ()));
@@ -165,8 +168,13 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::update_song (Mpd::Song &song)
   {
-    if (settings.use_comment_for_status_display)
+    std::unique_ptr<std::string> artist {song.tag (Mpd::TagType::Artist, 0)};
+    std::unique_ptr<std::string> title {song.tag (Mpd::TagType::Title, 0)};
+    std::unique_ptr<std::string> album {song.tag (Mpd::TagType::Album, 0)};
+    std::string file {song.uri ()};
+    if (settings->use_comment_for_status_display)
       {
+        std::stringstream image {settings->logo};
         /*
           if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
           if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
@@ -177,71 +185,78 @@ namespace MumblePluginBot
           else
           image = @@bot[:logo]
           end
-        */                      
+        */
         std::stringstream output {"<br><table>"};
-        if (song.artist != "")
+        if (artist != nullptr)
           {
-            output << "<tr><td>Artist:</td><td>" << song.artist << "</td></tr>";
+            output << "<tr><td>Artist:</td><td>" << *artist << "</td></tr>";
           }
-        if (song.title != "")
+        if (title != nullptr)
           {
-            output << "<tr><td>Title:</td><td>" << song.title << "</td></tr>";
+            output << "<tr><td>Title:</td><td>" << *title << "</td></tr>";
           }
-        if (song.album != "")
+        if (album != nullptr)
           {
-            output << "<tr><td>Album:</td><td>" << song.album << "</td></tr>";
+            output << "<tr><td>Album:</td><td>" << *album << "</td></tr>";
           }
-        if (song.artist == "" && song.title == "" && song.album == "" && song.file != "")
+        if (artist == nullptr && title == nullptr && album == nullptr)
           {
-            output << "<tr><td>Source:</td><td>" << song.file << "</td></tr>";
+            output << "<tr><td>Source:</td><td>" << file << "</td></tr>";
           }
-        output << "</table><br>" + infotemplate;
-        client ().set_comment(/*image + */output);
+        output << "</table><br>" + info_template;
+        client->comment(image.str () + output.str ());
       }
     else
       {
-        if (settings.chan_notify.test (State))
+        if (settings->chan_notify.test (MessageType::State))
           {
             std::string msg;
-            if (current.artist == "" && current.title == "" && current.album == "")
+            if (artist == nullptr || title == nullptr || album == nullptr)
               {
-                msg = current.file;
+                msg = file;
               }
             else
               {
-                msg = current.artist + " - " + current.title + " (" + current.album + ")";
+                msg = *artist + " - " + *title + " (" + *album + ")";
               }
+            channel_message (msg);
           }
       }
   }
-  
+
   void MpdPlugin::Impl::song_thread_proc ()
   {
-      Mpd::Client client {settings.mpd.host, settings.mpd.port};
-      client.run_set_volume (settings.mpd.initial_volume);
-      std::string title;
-      bool init = true;
-      while (true)
-        {
-          using namespace std::chrono_literals;
-          std::this_thread::sleep_for (1s);
-          auto current = std::make_unique (client.run_current_song ());
-          if (current != nullptr)
-            {
-              if (init || current.title != title)
-                {
-                  init = false;
-                  title = current.title;
-                  update_song (current);
-                }
-            }
-          AITHER_DEBUG("[displayinfo] update");
-        }
+    Mpd::Client client {settings->mpd.host, settings->mpd.port};
+    client.run_set_volume (settings->initial_volume);
+    std::string last_file;
+    bool init = true;
+    while (true)
+      {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for (1s);
+        try
+          {
+            auto song = client.run_current_song ();
+            auto file = song.uri ();
+            if (init || file != last_file)
+              {
+                init = false;
+                last_file = file;
+                update_song (song);
+              }
+            AITHER_DEBUG("[displayinfo] update");
+          }
+        catch(std::runtime_error &e)
+          {
+            AITHER_DEBUG("Error updating song");
+          }
+      }
   }
-  
+
   void MpdPlugin::internal_init ()
   {
     auto &settings = Plugin::settings ();
+    pimpl->client = client ();
     pimpl->settings = &settings;
     pimpl->channel_message = [this] (const std::string &m)
     {

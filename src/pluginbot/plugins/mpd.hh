@@ -42,5 +42,9 @@ namespace MumblePluginBot
                Mumble::AudioPlayer &player, MessagesPlugin &messages);
     ~MpdPlugin () override;
     std::string name () override;
+    void handle_chat (const MumbleProto::TextMessage &msg,
+                      const std::string &command,
+                      const std::string &arguments) override;
+    std::string help () override;
   };
 }

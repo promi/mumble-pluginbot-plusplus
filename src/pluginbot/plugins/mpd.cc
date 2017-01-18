@@ -89,7 +89,7 @@ namespace MumblePluginBot
     try
       {
         Mpd::Client client {settings.mpd.host, settings.mpd.port};
-        auto status = client.run_status ();
+        auto status = client.status ();
         status_update (idle_flags, status);
       }
     catch (std::runtime_error &e)
@@ -180,10 +180,10 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::update_song (Mpd::Song &song)
   {
-    std::unique_ptr<std::string> artist {song.tag (Mpd::TagType::Artist, 0)};
-    std::unique_ptr<std::string> title {song.tag (Mpd::TagType::Title, 0)};
-    std::unique_ptr<std::string> album {song.tag (Mpd::TagType::Album, 0)};
-    std::string file {song.uri ()};
+    auto artist = song.tag (Mpd::TagType::Artist, 0);
+    auto title = song.tag (Mpd::TagType::Title, 0);
+    auto album = song.tag (Mpd::TagType::Album, 0);
+    auto file = song.uri ();
     if (settings.use_comment_for_status_display)
       {
         std::stringstream image {settings.logo};
@@ -216,7 +216,7 @@ namespace MumblePluginBot
             output << "<tr><td>Source:</td><td>" << file << "</td></tr>";
           }
         output << "</table><br>" + info_template;
-        client.comment(image.str () + output.str ());
+        client.comment (output.str ()); // image.str () + output.str ());
       }
     else
       {
@@ -239,7 +239,7 @@ namespace MumblePluginBot
   void MpdPlugin::Impl::song_thread_proc ()
   {
     Mpd::Client client {settings.mpd.host, settings.mpd.port};
-    client.run_set_volume (settings.initial_volume);
+    client.volume (settings.initial_volume);
     std::string last_file;
     bool init = true;
     while (true)
@@ -248,15 +248,15 @@ namespace MumblePluginBot
         std::this_thread::sleep_for (1s);
         try
           {
-            auto song = client.run_current_song ();
+            auto song = client.current_song ();
             auto file = song.uri ();
             if (init || file != last_file)
               {
                 init = false;
                 last_file = file;
                 update_song (song);
+                AITHER_DEBUG("[displayinfo] update");
               }
-            AITHER_DEBUG("[displayinfo] update");
           }
         catch(std::runtime_error &e)
           {

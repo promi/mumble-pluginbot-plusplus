@@ -494,7 +494,7 @@ namespace Mumble
   {
     MumbleProto::Version msg;
     msg.set_version (encode_version (1, 3, 0));
-    msg.set_release (std::string ("mrpbpp ") + Mumble::_VERSION);
+    msg.set_release (std::string ("mumble-pluginbot-plusplus ") + Mumble::_VERSION);
     msg.set_os ("Unknown");
     msg.set_os_version ("Unknown");
     // os: %x{uname -s -m}.strip,

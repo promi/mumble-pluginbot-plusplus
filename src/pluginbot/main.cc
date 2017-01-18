@@ -39,15 +39,15 @@
 namespace MumblePluginBot
 {
   const std::string org_source_url =
-    "https://github.com/dafoxia/mumble-ruby-pluginbot/";
+    "https://github.com/promi/mumble-pluginbot-plusplus/";
   const std::string org_doc_url =
-    "https://wiki.natenom.com/w/Mumble-Ruby-Pluginbot/";
+    "https://github.com/promi/mumble-pluginbot-plusplus/";
   const std::string org_license_url =
-    "https://github.com/dafoxia/mumble-ruby-pluginbot/blob/master/LICENSE/";
+    "https://github.com/promi/mumble-pluginbot-plusplus/blob/master/COPYING/";
   const std::string org_issues_url =
-    "https://github.com/dafoxia/mumble-ruby-pluginbot/issues/";
+    "https://github.com/promi/mumble-pluginbot-plusplus/issues/";
   const std::string org_wiki_url =
-    "https://wiki.natenom.com/w/Mumble-Ruby-Pluginbot/";
+    "https://github.com/promi/mumble-pluginbot-plusplus/";
 
   Main::Main (const Settings &settings,
               const std::string &config_filename,
@@ -63,27 +63,6 @@ namespace MumblePluginBot
       conf.vbr_rate = m_settings.use_vbr;
       conf.ssl_cert_opts.cert_dir = m_settings.certdir;
     });
-    // Load all plugins
-    // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
-    // Dir["./plugins/ *.rb"].each do |f|
-    auto &player = m_cli->player ();
-    m_plugins.push_back (std::make_unique<VersionPlugin> (m_log, m_settings, *m_cli,
-                         player));
-    auto messages_ptr = std::make_unique<MessagesPlugin> (m_log, m_settings, *m_cli,
-                        player);
-    MessagesPlugin &messages = *messages_ptr;
-    m_plugins.push_back (std::move (messages_ptr));
-    m_plugins.push_back (std::make_unique<MpdPlugin> (m_log, m_settings, *m_cli,
-                         player, messages));
-    // Sort by name, so all plugin related user command output is in alphabetical order
-    m_plugins.sort ([] (auto &a, auto &b)
-    {
-      return a->name () < b->name ();
-    });
-    for (auto &plugin : m_plugins)
-      {
-        AITHER_VERBOSE("Plugin '" << plugin->name () << "' loaded.");
-      }
     if (config_filename != "")
       {
         AITHER_VERBOSE("parse extra config");
@@ -274,10 +253,31 @@ namespace MumblePluginBot
 
   void Main::init_plugins ()
   {
+    // Load all plugins
+    // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
+    // Dir["./plugins/ *.rb"].each do |f|
+    auto &player = m_cli->player ();
+    m_plugins.push_back (std::make_unique<VersionPlugin> (m_log, m_settings, *m_cli,
+                         player));
+    auto messages_ptr = std::make_unique<MessagesPlugin> (m_log, m_settings, *m_cli,
+                        player);
+    MessagesPlugin &messages = *messages_ptr;
+    m_plugins.push_back (std::move (messages_ptr));
+    m_plugins.push_back (std::make_unique<MpdPlugin> (m_log, m_settings, *m_cli,
+                         player, messages));
+    for (auto &plugin : m_plugins)
+      {
+        AITHER_VERBOSE("Plugin '" << plugin->name () << "' loaded.");
+      }
     for (auto &plugin : m_plugins)
       {
         plugin->init ();
       }
+    // Sort by name, so all plugin related user command output is in alphabetical order
+    m_plugins.sort ([] (auto &a, auto &b)
+    {
+      return a->name () < b->name ();
+    });
   }
 
   void Main::timertick ()
@@ -586,7 +586,7 @@ namespace MumblePluginBot
     out << li_tag (a_tag (org_source_url, "Get my source code")) << std::endl;
     out << li_tag (a_tag (org_doc_url, "Read my documentation")) << std::endl;
     out << li_tag ("I am licensed under the " + a_tag (org_license_url,
-                   "MIT license")) << std::endl;
+                   "AGPLv3 license")) << std::endl;
     out << li_tag ("If you have any issues, bugs or ideas please tell us on " +
                    a_tag (org_issues_url, org_issues_url)) << std::endl;
     ca.reply (header.str () + ul_tag (out.str ()));
@@ -895,7 +895,7 @@ namespace MumblePluginBot
         // Send default help text.
         const auto &cs = ca.settings.controlstring;
         std::string help = br_tag;
-        help += "Hi, I am a " + a_tag (org_wiki_url, "Mumble-Ruby-Pluginbot") +
+        help += "Hi, I am a " + a_tag (org_wiki_url, "mumble-pluginbot-plusplus") +
                 " and YOU can control me through text commands." + br_tag;
         help += br_tag;
         help += "I will give you a good start with the basic commands you "

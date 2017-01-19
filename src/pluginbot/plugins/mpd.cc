@@ -34,11 +34,26 @@ namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
+    struct CommandHelp
+    {
+      std::string argument;
+      std::string description;
+    };
+
+    struct CommandArgs
+    {
+      const MumbleProto::TextMessage &msg;
+      const std::string &command;
+      const std::string &arguments;
+      Mpd::Client &mpd_client;
+    };
+
     struct Command
     {
-      std::vector<std::string> help;
+      std::function<void (const CommandArgs&)> invoke;
+      std::vector<CommandHelp> help;
     };
- 
+
     inline Impl (const Aither::Log &log, Settings &settings, Mumble::Client &client,
                  Mumble::AudioPlayer &player, MessagesPlugin &messages)
       : m_log (log), settings (settings), client (client), player (player),
@@ -55,6 +70,7 @@ namespace MumblePluginBot
     std::thread song_thread;
     std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
     std::function<void (const std::string &)> channel_message;
+    std::function<void (const std::string &)> private_message;
     std::map<std::string, Command> m_commands;
     inline void init_info_template (const std::string &controlstring)
     {
@@ -70,7 +86,8 @@ namespace MumblePluginBot
     void update_song (Mpd::Song &song);
     void song_thread_proc ();
     void init_commands ();
-    void seek ();
+    void seek (const CommandArgs &ca);
+    void crossfade (const CommandArgs &ca);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -280,6 +297,10 @@ namespace MumblePluginBot
     {
       channel_message (m);
     };
+    pimpl->private_message = [this] (const std::string &m)
+    {
+      private_message (m);
+    };
     pimpl->init_info_template (settings.controlstring);
     pimpl->mpd_status_listener = std::make_unique<Mpd::StatusListener>
                                  (settings.mpd.host, settings.mpd.port, [this] (auto idle_flags)
@@ -319,16 +340,24 @@ namespace MumblePluginBot
   void MpdPlugin::Impl::init_commands ()
   {
     m_commands =
+    {
       {
-      {
-        "about", {
-          false, [] (auto ca)
+        "seek", {
+          [this] (auto ca)
           {
-            about (ca);
+            seek (ca);
+          },
+          {
+            {"value", "Seek to an absolute position (in seconds)."},
+            {"+-value", "Seek relative to current position (in seconds)."},
+            {"mm:ss", "Seek to an absolute position"},
+            {"+/-mm:ss", "Seek relative to current position"},
+            {"hh::mm:ss", "Seek to an absolute position"},
+            {"+/-hh::mm:ss", "Seek relative to current position"}
           }
         }
       }
-      }
+    };
   }
 
   std::string MpdPlugin::help ()
@@ -348,13 +377,8 @@ namespace MumblePluginBot
              comment + br_tag;
     };
     h << hr_tag + red_span ("Plugin " + name ()) + br_tag;
+    // TODO: Alpha sort commands from pimpl->m_commands and display help here.
     h << f ("settings", "Print current MPD settings.");
-    h << g ("seek", "value", "Seek to an absolute position (in seconds).");
-    h << g ("seek", "+/-value", "Seek relative to current position (in seconds).");
-    h << g ("seek", "mm:ss", "Seek to an absolute position");
-    h << g ("seek", "+/-mm:ss", "Seek relative to current position");
-    h << g ("seek", "hh::mm:ss", "Seek to an absolute position");
-    h << g ("seek", "+/-hh::mm:ss", "Seek relative to current position");
     h << g ("crossfade", "value",
             "Set Crossfade to value seconds, 0 to disable crossfading.");
     h << f ("next", "Play next title in the queue.");
@@ -407,8 +431,9 @@ namespace MumblePluginBot
     return h.str ();
   }
 
-  void MpdPlugin::Impl::seek ()
+  void MpdPlugin::Impl::seek (const CommandArgs &ca)
   {
+    (void) ca;
     /*
       if message == 'seek'
       # seek command without a value...
@@ -461,25 +486,31 @@ namespace MumblePluginBot
     */
   }
 
+  void MpdPlugin::Impl::crossfade (const CommandArgs &ca)
+  {
+    try
+      {
+        ca.mpd_client.crossfade (std::stoi (ca.arguments));
+      }
+    catch (std::invalid_argument &e)
+      {
+        private_message ("Invalid argument");
+      }
+  }
+
   void MpdPlugin::handle_chat (const MumbleProto::TextMessage &msg,
                                const std::string &command, const std::string &arguments)
   {
-    (void) msg;
+    auto commands = pimpl->m_commands;
+    auto cmd = commands.find (command);
+    if (cmd == std::end (commands))
+      {
+        return;
+      }
     Mpd::Client mpd_client {pimpl->settings.mpd.host, pimpl->settings.mpd.port};
-    if (command == "seek")
-      {
-        pimpl->seek ();
-      }
-    else if (command == "crossfade")
-      {
-        try
-          {
-            mpd_client.crossfade (std::stoi (arguments));
-          }
-        catch (std::invalid_argument &e)
-          {
-          }
-      }
+    Impl::CommandArgs ca {msg, command, arguments, mpd_client};
+    cmd->second.invoke (ca);
+    // if command == 'mpdhelp' ...
     /*
     @@bot[:mpd].next if message == 'next'
     @@bot[:mpd].previous if message == 'prev'

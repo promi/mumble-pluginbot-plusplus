@@ -34,6 +34,11 @@ namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
+    struct Command
+    {
+      std::vector<std::string> help;
+    };
+ 
     inline Impl (const Aither::Log &log, Settings &settings, Mumble::Client &client,
                  Mumble::AudioPlayer &player, MessagesPlugin &messages)
       : m_log (log), settings (settings), client (client), player (player),
@@ -50,6 +55,7 @@ namespace MumblePluginBot
     std::thread song_thread;
     std::unique_ptr<Mpd::StatusListener> mpd_status_listener;
     std::function<void (const std::string &)> channel_message;
+    std::map<std::string, Command> m_commands;
     inline void init_info_template (const std::string &controlstring)
     {
       std::stringstream ss;
@@ -63,6 +69,7 @@ namespace MumblePluginBot
     void idle_thread_proc ();
     void update_song (Mpd::Song &song);
     void song_thread_proc ();
+    void init_commands ();
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -307,6 +314,22 @@ namespace MumblePluginBot
   {
     return "mpd";
   }
+
+  void MpdPlugin::Impl::init_commands ()
+  {
+    m_commands =
+      {
+      {
+        "about", {
+          false, [] (auto ca)
+          {
+            about (ca);
+          }
+        }
+      }
+      }
+  }
+
 
   /*
   def help(h)

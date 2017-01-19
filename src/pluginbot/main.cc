@@ -404,7 +404,8 @@ namespace MumblePluginBot
         plugin->handle_chat (msg, command, arguments);
       }
 
-    std::function<void(const std::string&)> reply = [this, actor] (auto msg)
+    //std::function<void(const std::string&)> reply = [this, actor] (auto msg)
+    auto reply = [this, actor] (auto msg)
     {
       m_cli->text_user (actor, msg);
     };

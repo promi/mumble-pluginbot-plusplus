@@ -82,6 +82,12 @@ However the script expects a working mpd.conf in `~/.config/mumble-pluginbot-plu
 
 https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mpd.conf
 
+## Debugging
+
+When using `gdb` you should either install first and invoke `gdb` as usual or you can use `libtool`s execute mode to debug without installing:
+
+    $ libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.something.org ...
+
 ## License
 
 mumble-pluginbot-plusplus is licensed under the AGPLv3+ license. The original code is licensed under the MIT license.

@@ -25,6 +25,7 @@
 
 #include <sstream>
 #include <thread>
+#include <algorithm>
 
 #include "mpd/client.hh"
 #include "mpd/status-listener.hh"
@@ -59,6 +60,7 @@ namespace MumblePluginBot
       : m_log (log), settings (settings), client (client), player (player),
         messages (messages)
     {
+      init_commands ();
     }
     const Aither::Log &m_log;
     Settings &settings;
@@ -358,26 +360,7 @@ namespace MumblePluginBot
         }
       }
     };
-  }
-
-  std::string MpdPlugin::help ()
-  {
-    std::stringstream h;
-    const std::string &controlstring = pimpl->settings.controlstring;
-    // std::func<std::string(const std::string&, const std::string&)>
-    auto f = [&] (const std::string &command, const std::string &comment)
-    {
-      return b_tag (controlstring + command) + " - " + comment + br_tag;
-    };
-    //std::func<std::string(const std::string&, const std::string&, const std::string&)> g = [&] (auto command, auto argument, auto comment)
-    auto g = [&] (const std::string &command, const std::string &argument,
-                  const std::string &comment)
-    {
-      return b_tag (controlstring + command + " " + i_tag (argument)) + " - " +
-             comment + br_tag;
-    };
-    h << hr_tag + red_span ("Plugin " + name ()) + br_tag;
-    // TODO: Alpha sort commands from pimpl->m_commands and display help here.
+    /*
     h << f ("settings", "Print current MPD settings.");
     h << g ("crossfade", "value",
             "Set Crossfade to value seconds, 0 to disable crossfading.");
@@ -428,6 +411,28 @@ namespace MumblePluginBot
     h << f ("mpdnotcommands", "Show what commands mpd disallowed to Bot.");
     h << f ("mpddecoders", "Show enabled decoders and "
             "what they can decode for your mpd.");
+    */
+  }
+
+  std::string MpdPlugin::help ()
+  {
+    const std::string &controlstring = pimpl->settings.controlstring;
+
+    std::stringstream h;
+    h << hr_tag + red_span ("Plugin " + name ()) + br_tag;
+    for (const auto &p : pimpl->m_commands)
+      {
+        for (auto help : p.second.help)
+          {
+            std::string argstr;
+            if (help.argument != "")
+              {
+                argstr = " " + i_tag (help.argument);
+              }
+            h << b_tag (controlstring + p.first + argstr)
+              + " - " + help.description + br_tag;
+          }
+      }
     return h.str ();
   }
 

@@ -26,6 +26,7 @@
 #include <sstream>
 #include <thread>
 #include <algorithm>
+#include <cstdlib>
 
 #include "mpd/client.hh"
 #include "mpd/status-listener.hh"
@@ -90,6 +91,7 @@ namespace MumblePluginBot
     void init_commands ();
     void seek (const CommandArgs &ca);
     void crossfade (const CommandArgs &ca);
+    std::string time_decode (uint time);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -438,13 +440,13 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::seek (const CommandArgs &ca)
   {
-    (void) ca;
+    if (ca.arguments == "")
+      {
+        auto status = ca.mpd_client.status ();
+        private_message ("Now on position " + time_decode (status.elapsed_time ()) +
+                         "/" + time_decode (status.total_time ()) + ".");
+      }
     /*
-      if message == 'seek'
-      # seek command without a value...
-      privatemessage("Now on position #{timedecode @@bot[:mpd].status[:time][0]}/#{timedecode @@bot[:mpd].status[:time][1]}.")
-      end
-
       if message[0..3] == 'seek'
       seekto = case message.count ":"
       when 0 then         # Seconds
@@ -956,25 +958,31 @@ namespace MumblePluginBot
     */
   }
 
-  /*
-  private
-
-  def timedecode(time)
-  begin
-  #Code from https://stackoverflow.com/questions/19595840/rails-get-the-time-difference-in-hours-minutes-and-seconds
-  now_mm, now_ss = time.to_i.divmod(60)
-  now_hh, now_mm = now_mm.divmod(60)
-  if ( now_hh < 24 )
-  now = "%02d:%02d:%02d" % [now_hh, now_mm, now_ss]
-  else
-  now_dd, now_hh = now_hh.divmod(24)
-  now = "%04d days %02d:%02d:%02d" % [now_dd, now_hh, now_mm, now_ss]
-  end
-  rescue
-  now "unknown"
-  end
-  end
-
-  end
-  */
+  std::string MpdPlugin::Impl::time_decode (uint time)
+  {
+    // Code from https://stackoverflow.com/questions/19595840/rails-get-the-time-difference-in-hours-minutes-and-seconds
+    auto mm_ss = std::div (time, 60);
+    auto hh_mm = std::div (mm_ss.quot, 60);
+    auto dd_hh = std::div (hh_mm.quot, 24);
+    std::string s {30, ' '};
+    // TODO: C++17 has an overload that returns a non const pointer.
+    // This doesn't seem to work in GCC 6.3.0
+    // Since we may be calling the const char* overload here, writing to it may be
+    // undefined behavior!
+    auto data = const_cast<char*> (s.data ());
+    if (hh_mm.quot < 24)
+      {
+        auto size = snprintf (data, s.size (), "%02d:%02d:%02d",
+                              hh_mm.quot, mm_ss.quot, mm_ss.rem);
+        s.resize (size);
+        return s;
+      }
+    else
+      {
+        auto size = snprintf (data, s.size (), "%04d days %02d:%02d:%02d",
+                              dd_hh.quot, hh_mm.quot, mm_ss.quot, mm_ss.rem);
+        s.resize (size);
+        return s;
+      }
+  }
 }

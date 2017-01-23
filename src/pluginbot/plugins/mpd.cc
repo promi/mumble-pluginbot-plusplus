@@ -964,25 +964,19 @@ namespace MumblePluginBot
     auto mm_ss = std::div (time, 60);
     auto hh_mm = std::div (mm_ss.quot, 60);
     auto dd_hh = std::div (hh_mm.quot, 24);
-    std::string s {30, ' '};
-    // TODO: C++17 has an overload that returns a non const pointer.
-    // This doesn't seem to work in GCC 6.3.0
-    // Since we may be calling the const char* overload here, writing to it may be
-    // undefined behavior!
-    auto data = const_cast<char*> (s.data ());
+    const size_t max_size = 30;
+    char data[max_size] = {0};
+    size_t size;
     if (hh_mm.quot < 24)
       {
-        auto size = snprintf (data, s.size (), "%02d:%02d:%02d",
-                              hh_mm.quot, mm_ss.quot, mm_ss.rem);
-        s.resize (size);
-        return s;
+        size = snprintf (data, max_size, "%02d:%02d:%02d",
+                         hh_mm.quot, mm_ss.quot, mm_ss.rem);
       }
     else
       {
-        auto size = snprintf (data, s.size (), "%04d days %02d:%02d:%02d",
-                              dd_hh.quot, hh_mm.quot, mm_ss.quot, mm_ss.rem);
-        s.resize (size);
-        return s;
+        size = snprintf (data, max_size, "%04d days %02d:%02d:%02d",
+                         dd_hh.quot, hh_mm.quot, mm_ss.quot, mm_ss.rem);
       }
+    return std::string {data, data + size};
   }
 }

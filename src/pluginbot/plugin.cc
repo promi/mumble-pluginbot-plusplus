@@ -85,8 +85,14 @@ namespace MumblePluginBot
 
   void Plugin::message_to (uint32_t user_id, const std::string &message)
   {
-    // TODO: When can this fail and with what exception?
-    pimpl->client.text_user (user_id, message);
+    try
+      {
+        pimpl->client.text_user (user_id, message);
+      }
+    catch (std::runtime_error &e)
+      {
+        AITHER_DEBUG ("failed to send message to user: " << user_id);
+      }
   }
 
   void Plugin::private_message (const std::string &message)

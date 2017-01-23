@@ -967,15 +967,20 @@ namespace MumblePluginBot
     const size_t max_size = 30;
     char data[max_size] = {0};
     size_t size;
-    if (hh_mm.quot < 24)
+    if (mm_ss.quot < 60)
+      {
+        size = snprintf (data, max_size, "%02d:%02d",
+                         mm_ss.quot, mm_ss.rem);
+      }
+    else if (hh_mm.quot < 24)
       {
         size = snprintf (data, max_size, "%02d:%02d:%02d",
-                         hh_mm.quot, mm_ss.quot, mm_ss.rem);
+                         hh_mm.quot, hh_mm.rem, mm_ss.rem);
       }
     else
       {
         size = snprintf (data, max_size, "%04d days %02d:%02d:%02d",
-                         dd_hh.quot, hh_mm.quot, mm_ss.quot, mm_ss.rem);
+                         dd_hh.quot, dd_hh.rem, hh_mm.rem, mm_ss.rem);
       }
     return std::string {data, data + size};
   }

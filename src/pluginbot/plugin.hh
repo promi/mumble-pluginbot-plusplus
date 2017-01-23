@@ -38,24 +38,28 @@ namespace MumblePluginBot
     std::unique_ptr<Impl> pimpl;
   protected:
     const Aither::Log &m_log;
-    virtual void internal_init ();
     void message_to (uint32_t user_id, const std::string &message);
     void channel_message (const std::string &message);
     void private_message (const std::string &message);
     Settings& settings ();
     Mumble::Client& client ();
     Mumble::AudioPlayer& player ();
+    virtual std::string internal_name () = 0;
+    virtual void internal_init () = 0;
+    virtual void internal_chat (const MumbleProto::TextMessage &msg,
+                                const std::string &command,
+                                const std::string &arguments) = 0;
+    virtual std::string internal_help () = 0;
   public:
     Plugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
             Mumble::AudioPlayer &player);
     virtual ~Plugin ();
-    virtual std::string name () = 0;
+    std::string name ();
     void init ();
-    virtual void ticks (std::chrono::time_point<std::chrono::system_clock>
-                        time_point);
-    virtual void handle_chat (const MumbleProto::TextMessage &msg,
-                              const std::string &command,
-                              const std::string &arguments);
-    virtual std::string help ();
+    void tick (const std::chrono::time_point<std::chrono::system_clock>
+               &time_point);
+    void chat (const MumbleProto::TextMessage &msg, const std::string &command,
+               const std::string &arguments);
+    std::string help ();
   };
 }

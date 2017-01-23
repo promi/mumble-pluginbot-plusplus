@@ -33,12 +33,17 @@ namespace MumblePluginBot
   {
   }
 
-  std::string VersionPlugin::name ()
+  std::string VersionPlugin::internal_name ()
   {
     return "version";
   }
 
-  std::string VersionPlugin::help ()
+  void VersionPlugin::internal_init ()
+  {
+
+  }
+
+  std::string VersionPlugin::internal_help ()
   {
     std::stringstream h;
     h << hr_tag;
@@ -47,11 +52,12 @@ namespace MumblePluginBot
     return h.str ();
   }
 
-  void VersionPlugin::handle_chat (const MumbleProto::TextMessage &msg,
-                                   const std::string &command,
-                                   const std::string &arguments)
+  void VersionPlugin::internal_chat (const MumbleProto::TextMessage &msg,
+                                     const std::string &command,
+                                     const std::string &arguments)
   {
-    Plugin::handle_chat (msg, command, arguments);
+    (void) msg;
+    (void) arguments;
     if (command == "version")
       {
         private_message (std::string ("Version: ") + GIT_DESCRIBE);

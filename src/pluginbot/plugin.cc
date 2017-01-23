@@ -48,6 +48,11 @@ namespace MumblePluginBot
   {
   }
 
+  std::string Plugin::name ()
+  {
+    return internal_name ();
+  }
+
   void Plugin::internal_init ()
   {
   }
@@ -57,30 +62,28 @@ namespace MumblePluginBot
     internal_init ();
   }
 
-  void Plugin::ticks (std::chrono::time_point<std::chrono::system_clock>
-                      time_point)
+  void Plugin::tick (const std::chrono::time_point<std::chrono::system_clock>
+                     &time_point)
   {
     (void) time_point;
   }
 
-  void Plugin::handle_chat (const MumbleProto::TextMessage &msg,
-                            const std::string &command,
-                            const std::string &arguments)
+  void Plugin::chat (const MumbleProto::TextMessage &msg,
+                     const std::string &command,
+                     const std::string &arguments)
   {
     pimpl->user_id = msg.actor ();
-    (void) command;
-    (void) arguments;
+    internal_chat (msg, command, arguments);
   }
 
-  /*
-    def handle_command(command)
-    #raise "#{self.class.name} doesn't implement `handle_command`!"
-    end
-  */
+  std::string Plugin::internal_help ()
+  {
+    return "no help text available for plugin: " + name ();
+  }
 
   std::string Plugin::help ()
   {
-    return "no help text available for plugin: " + name ();
+    return internal_help ();
   }
 
   void Plugin::message_to (uint32_t user_id, const std::string &message)

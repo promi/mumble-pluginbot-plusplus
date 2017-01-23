@@ -336,7 +336,7 @@ namespace MumblePluginBot
     });
   }
 
-  std::string MpdPlugin::name ()
+  std::string MpdPlugin::internal_name ()
   {
     return "mpd";
   }
@@ -416,7 +416,7 @@ namespace MumblePluginBot
     */
   }
 
-  std::string MpdPlugin::help ()
+  std::string MpdPlugin::internal_help ()
   {
     const std::string &controlstring = pimpl->settings.controlstring;
 
@@ -505,8 +505,8 @@ namespace MumblePluginBot
       }
   }
 
-  void MpdPlugin::handle_chat (const MumbleProto::TextMessage &msg,
-                               const std::string &command, const std::string &arguments)
+  void MpdPlugin::internal_chat (const MumbleProto::TextMessage &msg,
+                                 const std::string &command, const std::string &arguments)
   {
     auto commands = pimpl->m_commands;
     auto cmd = commands.find (command);

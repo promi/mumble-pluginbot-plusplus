@@ -34,16 +34,16 @@ namespace MumblePluginBot
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   protected:
+    std::string internal_name () override;
     void internal_init () override;
+    void internal_chat (const MumbleProto::TextMessage &msg,
+                        const std::string &command,
+                        const std::string &arguments) override;
+    std::string internal_help () override;
   public:
     MessagesPlugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
                     Mumble::AudioPlayer &player);
     ~MessagesPlugin () override;
-    std::string name () override;
-    void handle_chat (const MumbleProto::TextMessage &msg,
-                      const std::string &command,
-                      const std::string &arguments) override;
-    std::string help () override;
     void send_message (const std::string message, MessageType type);
   };
 }

@@ -291,7 +291,7 @@ namespace MumblePluginBot
         // AITHER_DEBUG ("tick");
         for (auto& plugin : m_plugins)
           {
-            plugin->ticks (time);
+            plugin->tick (time);
           }
       }
   }
@@ -401,7 +401,7 @@ namespace MumblePluginBot
     const auto &actor = msg.actor ();
     for (auto &plugin : m_plugins)
       {
-        plugin->handle_chat (msg, command, arguments);
+        plugin->chat (msg, command, arguments);
       }
 
     //std::function<void(const std::string&)> reply = [this, actor] (auto msg)

@@ -72,12 +72,12 @@ namespace MumblePluginBot
 
   }
 
-  std::string MessagesPlugin::name ()
+  std::string MessagesPlugin::internal_name ()
   {
     return "Messages";
   }
 
-  std::string MessagesPlugin::help ()
+  std::string MessagesPlugin::internal_help ()
   {
     const auto &controlstring = settings ().controlstring;
     std::stringstream h;
@@ -135,9 +135,9 @@ namespace MumblePluginBot
     return flag_set;
   }
 
-  void MessagesPlugin::handle_chat (const MumbleProto::TextMessage &msg,
-                                    const std::string &command,
-                                    const std::string &arguments)
+  void MessagesPlugin::internal_chat (const MumbleProto::TextMessage &msg,
+                                      const std::string &command,
+                                      const std::string &arguments)
   {
     auto &flag_set = pimpl->priv_notify[msg.actor ()];
     if (command == "+")

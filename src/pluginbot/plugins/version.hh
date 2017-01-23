@@ -28,13 +28,15 @@ namespace MumblePluginBot
 {
   class VersionPlugin : public Plugin
   {
+  protected:
+    std::string internal_name () override;
+    void internal_init () override;
+    std::string internal_help () override;
+    void internal_chat (const MumbleProto::TextMessage &msg,
+                        const std::string &command,
+                        const std::string &arguments) override;
   public:
     VersionPlugin (const Aither::Log &log, Settings &settings, Mumble::Client &cli,
                    Mumble::AudioPlayer &player);
-    std::string name () override;
-    std::string help () override;
-    void handle_chat (const MumbleProto::TextMessage &msg,
-                      const std::string &command,
-                      const std::string &arguments) override;
   };
 }

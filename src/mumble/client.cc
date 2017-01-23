@@ -134,7 +134,7 @@ namespace Mumble
   {
     if (m_m2m == nullptr)
       {
-        throw "M2M not initializied";
+        throw std::runtime_error ("M2M not initializied");
       }
     return m_m2m->getspeakers ();
   }
@@ -143,7 +143,7 @@ namespace Mumble
   {
     if (m_m2m == nullptr)
       {
-        throw "M2M not initializied";
+        throw std::runtime_error ("M2M not initializied");
       }
     return m_m2m->getframe (speaker);
   }
@@ -152,7 +152,7 @@ namespace Mumble
   {
     if (m_m2m == nullptr)
       {
-        throw "M2M not initializied";
+        throw std::runtime_error ("M2M not initializied");
       }
     return m_m2m->produce (frame);
   }
@@ -544,7 +544,7 @@ namespace Mumble
     Channel* channel = find_channel (channelname);
     if (channel == nullptr)
       {
-        throw "ChannelNotFound";
+        throw std::runtime_error ("ChannelNotFound");
       }
     return channel_id (*channel);
   }
@@ -559,7 +559,7 @@ namespace Mumble
     const auto &it = m_channels.find (channel_id);
     if (it == std::end (m_channels))
       {
-        throw "ChannelNotFound";
+        throw std::runtime_error ("ChannelNotFound");
       }
     return channel_id;
   }
@@ -569,7 +569,7 @@ namespace Mumble
     User* user = find_user (username);
     if (user == nullptr)
       {
-        throw "UserNotFound";
+        throw std::runtime_error ("UserNotFound");
       }
     return user_session (*user);
   }
@@ -583,7 +583,7 @@ namespace Mumble
   {
     if (m_users.find (session) == std::end (m_users))
       {
-        throw "UserNotFound";
+        throw std::runtime_error ("UserNotFound");
       }
     return session;
   }

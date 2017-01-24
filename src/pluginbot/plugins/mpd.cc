@@ -474,23 +474,23 @@ namespace MumblePluginBot
           case 2:
             if (parts[1] > 59)
               {
-                throw std::invalid_argument ("seconds out of range");
+                throw std::invalid_argument ("Seconds out of range");
               }
             seconds = parts[0] * 60 + parts[1];
             break;
           case 3:
             if (parts[1] > 59)
               {
-                throw std::invalid_argument ("minutes out of range");
+                throw std::invalid_argument ("Minutes out of range");
               }
             if (parts[2] > 59)
               {
-                throw std::invalid_argument ("seconds out of range");
+                throw std::invalid_argument ("Seconds out of range");
               }
             seconds = parts[0] * 60 * 60 + parts[1] * 60 + parts[2];
             break;
           default:
-            throw std::invalid_argument ("invalid count of `:` chars");
+            throw std::invalid_argument ("Invalid count of `:` chars");
           }
         auto status = ca.mpd_client.status ();
         auto elapsed = status.elapsed_time ();
@@ -518,14 +518,7 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::crossfade (const CommandArgs &ca)
   {
-    try
-      {
-        ca.mpd_client.crossfade (std::stoi (ca.arguments));
-      }
-    catch (std::invalid_argument &e)
-      {
-        private_message ("Invalid argument");
-      }
+    ca.mpd_client.crossfade (std::stoi (ca.arguments));
   }
 
   void MpdPlugin::internal_chat (const MumbleProto::TextMessage &msg,

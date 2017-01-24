@@ -313,12 +313,13 @@ namespace MumblePluginBot
         // ignore text messages from the server
         return;
       }
+    auto actor = msg.actor ();
     // This is hacky because mumble uses -1 for user_id of unregistered users,
     // while mumble-ruby seems to just omit the value for unregistered users.
     // With this hacky thing commands from SuperUser are also being ignored.
     uint32_t msg_userid = (uint32_t) -1;
     bool sender_is_registered = false;
-    auto &user = m_cli->users ().at (msg.actor ());
+    auto &user = m_cli->users ().at (actor);
     if (user.has_user_id ())
       {
         msg_userid = user.user_id ();
@@ -367,7 +368,7 @@ namespace MumblePluginBot
       }
     if (!m_settings.controllable)
       {
-        AITHER_DEBUG("not listening because controllable is 'false'");
+        AITHER_DEBUG("Not listening, because controllable is 'false'");
         return;
       }
     // message consists of: control_string + command [+ space + arguments]
@@ -389,7 +390,26 @@ namespace MumblePluginBot
       {
         arguments = message.substr (space_pos + 1);
       }
-    handle_text_message2 (msg, command, arguments, msg_userid);
+    auto reply = [&] (auto msg)
+    {
+      m_cli->text_user (actor, msg);
+    };
+    try
+      {
+        handle_text_message2 (msg, command, arguments, msg_userid);
+      }
+    catch (std::invalid_argument &e)
+      {
+        reply (std::string ("Invalid argument: ") + e.what ());
+      }
+    catch (std::out_of_range &e)
+      {
+        reply (std::string ("Value was out of range: ") + e.what ());
+      }
+    catch (...)
+      {
+        reply ("Unknown error");
+      }
   }
 
   void Main::handle_text_message2 (const MumbleProto::TextMessage &msg,
@@ -397,7 +417,7 @@ namespace MumblePluginBot
                                    const std::string &arguments,
                                    uint32_t msg_userid)
   {
-    AITHER_DEBUG("text message was parsed, searching for function to call");
+    AITHER_DEBUG("Text message was parsed, searching for function to call");
     const auto &actor = msg.actor ();
     for (auto &plugin : m_plugins)
       {
@@ -641,24 +661,8 @@ namespace MumblePluginBot
         ca.reply ("Setting '" + key + "' not found!");
         return;
       }
-    try
-      {
-        it->from_string (val);
-        ca.reply ("Setting '" + key + "' updated.");
-      }
-    catch (std::invalid_argument &e)
-      {
-        ca.reply ("Invalid value for setting '" + key + "': " + e.what () + "!");
-      }
-    catch (std::out_of_range &e)
-      {
-        ca.reply ("The value was out of range for setting '" + key + "': " +
-                  e.what () + "!");
-      }
-    catch (...)
-      {
-        ca.reply ("Unknown error");
-      }
+    it->from_string (val);
+    ca.reply ("Setting '" + key + "' updated.");
   }
 
   void Main::bind (CommandArgs &ca)
@@ -715,23 +719,16 @@ namespace MumblePluginBot
       }
     else
       {
-        try
+        int volume = std::stoi (ca.arguments);
+        if (volume >= 0 && volume <= 100)
           {
-            int volume = std::stoi (ca.arguments);
-            if (volume >= 0 && volume <= 100)
-              {
-                ca.settings.ducking_vol = volume;
-                ca.reply ("ducking is set to " + std::to_string (volume) +
-                          "% of normal volume.");
-              }
-            else
-              {
-                ca.reply ("Volume must be within a range of 0 to 100.");
-              }
+            ca.settings.ducking_vol = volume;
+            ca.reply ("Ducking is set to " + std::to_string (volume) +
+                      "% of normal volume.");
           }
-        catch (std::invalid_argument)
+        else
           {
-            ca.reply ("Invalid volume: " + ca.arguments);
+            ca.reply ("Volume must be within a range of 0 to 100.");
           }
       }
   }
@@ -745,18 +742,11 @@ namespace MumblePluginBot
       }
     else
       {
-        try
-          {
-            int bitrate = std::stoi (ca.arguments);
-            ca.cli.bitrate (bitrate);
-            ca.reply ("Encoding is set now to " + std::to_string (bitrate) + " bit/s.");
-            ca.reply ("The calculated overall bandwidth is " + std::to_string (
-                        ca.main.overall_bandwidth ()) + " bit/s.");
-          }
-        catch (std::invalid_argument)
-          {
-            ca.reply ("Invalid bitrate: " + ca.arguments);
-          }
+        int bitrate = std::stoi (ca.arguments);
+        ca.cli.bitrate (bitrate);
+        ca.reply ("Encoding is set now to " + std::to_string (bitrate) + " bit/s.");
+        ca.reply ("The calculated overall bandwidth is " + std::to_string (
+                    ca.main.overall_bandwidth ()) + " bit/s.");
       }
   }
 
@@ -765,26 +755,19 @@ namespace MumblePluginBot
     if (ca.arguments == "")
       {
         std::chrono::milliseconds frame_length = ca.cli.frame_length ();
-        ca.reply ("sending in " + std::to_string (frame_length.count ()) +
+        ca.reply ("Sending in " + std::to_string (frame_length.count ()) +
                   " ms frames.");
       }
     else
       {
-        try
-          {
-            std::chrono::milliseconds frame_length {std::stoi (ca.arguments)};
-            ca.cli.frame_length (frame_length);
-            ca.reply ("Sending now in " + std::to_string (frame_length.count ()) +
-                      " ms frames.");
-            ca.reply ("The calculated overall bandwidth is " + std::to_string (
-                        ca.main.overall_bandwidth ()) + " bit/s.");
-            ca.reply ("Server settings " + std::to_string (ca.cli.max_bandwidth ()) +
-                      " bit/s.");
-          }
-        catch (std::invalid_argument)
-          {
-            ca.reply ("Invalid framesize: " + ca.arguments);
-          }
+        std::chrono::milliseconds frame_length {std::stoi (ca.arguments)};
+        ca.cli.frame_length (frame_length);
+        ca.reply ("Sending now in " + std::to_string (frame_length.count ()) +
+                  " ms frames.");
+        ca.reply ("The calculated overall bandwidth is " + std::to_string (
+                    ca.main.overall_bandwidth ()) + " bit/s.");
+        ca.reply ("Server settings " + std::to_string (ca.cli.max_bandwidth ()) +
+                  " bit/s.");
       }
   }
 

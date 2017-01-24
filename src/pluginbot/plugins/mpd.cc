@@ -92,6 +92,7 @@ namespace MumblePluginBot
     void seek (const CommandArgs &ca);
     void crossfade (const CommandArgs &ca);
     std::string time_decode (uint time);
+    std::vector<uint> split_timecode (const std::string &timecode);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -440,57 +441,79 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::seek (const CommandArgs &ca)
   {
-    if (ca.arguments == "")
+    if (ca.arguments != "")
       {
+        bool negative;
+        bool absolute;
+        std::string timecode;
+        if (ca.arguments[0] == '+')
+          {
+            timecode = ca.arguments.substr (1);
+            absolute = false;
+            negative = false;
+          }
+        else if (ca.arguments[0] == '-')
+          {
+            timecode = ca.arguments.substr (1);
+            absolute = false;
+            negative = true;
+          }
+        else
+          {
+            timecode = ca.arguments;
+            absolute = true;
+            negative = false;
+          }
+        auto parts = split_timecode (timecode);
+        uint seconds;
+        switch (parts.size ())
+          {
+          case 1:
+            seconds = parts[0];
+            break;
+          case 2:
+            if (parts[1] > 59)
+              {
+                throw std::invalid_argument ("seconds out of range");
+              }
+            seconds = parts[0] * 60 + parts[1];
+            break;
+          case 3:
+            if (parts[1] > 59)
+              {
+                throw std::invalid_argument ("minutes out of range");
+              }
+            if (parts[2] > 59)
+              {
+                throw std::invalid_argument ("seconds out of range");
+              }
+            seconds = parts[0] * 60 * 60 + parts[1] * 60 + parts[2];
+            break;
+          default:
+            throw std::invalid_argument ("invalid count of `:` chars");
+          }
         auto status = ca.mpd_client.status ();
-        private_message ("Now on position " + time_decode (status.elapsed_time ()) +
-                         "/" + time_decode (status.total_time ()) + ".");
+        auto elapsed = status.elapsed_time ();
+        auto id = status.song_id ();
+        uint t;
+        if (absolute)
+          {
+            t = seconds;
+          }
+        else
+          {
+            t = elapsed + seconds * (negative ? -1 : 1);
+          }
+        AITHER_DEBUG("t = " << t);
+        ca.mpd_client.seek_id (id, t);
       }
-    /*
-      if message[0..3] == 'seek'
-      seekto = case message.count ":"
-      when 0 then         # Seconds
-      if message.match(/^seek [+-]?[0-9]{1,3}$/)
-      result = message.match(/^seek ([+-]?[0-9]{1,3})$/)[1]
-      else
-      return 0
-      end
-      when 1 then         # Minutes:Seconds
-      if message.match(/^seek ([+-]?[0-5]?[0-9]:[0-5]?[0-9])/)
-      time = message.match(/^seek ([+-]?[0-5]?[0-9]:[0-5]?[0-9])/)[1].split(/:/)
-      case time[0][0]
-      when "+"
-      result = time[0].to_i * 60 + time[1].to_i
-      result = "+" + result.to_s
-      when "-"
-      result = time[0].to_i * 60 + time[1].to_i * -1
-      else
-      result = time[0].to_i * 60 + time[1].to_i
-      end
-      end
-      when 2 then         # Hours:Minutes:Seconds
-      if message.match(/^seek ([+-]?(?:[01]?[0-9]|2[0-3]):[0-5]?[0-9]:[0-5]?[0-9])/)
-      time = message.match(/^seek ([+-]?(?:[01]?[0-9]|2[0-3]):[0-5]?[0-9]:[0-5]?[0-9])/)[1].split(/:/)
-      case time[0][0]
-      when "+"
-      result = time[0].to_i * 3600 + time[1].to_i * 60 + time[2].to_i
-      result = "+" + result.to_s
-      when "-"
-      result = time[0].to_i * 3600 + time[1].to_i * -60 + time[2].to_i * -1
-      else
-      result = time[0].to_i * 3600 + time[1].to_i * 60 + time[2].to_i
-      end
-      end
-      end
-      begin
-      @@bot[:mpd].seek seekto
-      rescue
-      # mpd is old and knows no seek commands
-      puts "[mpd-plugin] [error] seek without success, maybe mpd version < 0.17 installed"
-      end
-      channelmessage( "Now on position #{timedecode @@bot[:mpd].status[:time][0]}/#{timedecode @@bot[:mpd].status[:time][1]}.")
-      end
-    */
+    // Warning: Don't reuse the old status from before seeking.
+    // The chat message has to reflect the *new* position!
+    auto status = ca.mpd_client.status ();
+    auto elapsed = status.elapsed_time ();
+    auto total = status.total_time ();
+    private_message ("Now on position " +
+                     time_decode (elapsed) + "/" + time_decode (total) + ".");
   }
 
   void MpdPlugin::Impl::crossfade (const CommandArgs &ca)
@@ -983,5 +1006,16 @@ namespace MumblePluginBot
                          dd_hh.quot, dd_hh.rem, hh_mm.rem, mm_ss.rem);
       }
     return std::string {data, data + size};
+  }
+
+  std::vector<uint> MpdPlugin::Impl::split_timecode (const std::string &timecode)
+  {
+    std::stringstream ss {timecode};
+    std::vector<uint> v;
+    for (std::string part; std::getline (ss, part, ':'); )
+      {
+        v.push_back (std::stoi (part));
+      }
+    return v;
   }
 }

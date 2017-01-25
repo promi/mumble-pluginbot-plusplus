@@ -85,7 +85,7 @@ namespace Mpd
     Status recv_status ();
     Status status ();
     // Song
-    Song recv_song ();
+    std::unique_ptr<Song> recv_song ();
     // Player
     void send_current_song ();
     Song current_song ();

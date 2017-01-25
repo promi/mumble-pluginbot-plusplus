@@ -577,10 +577,8 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
       ca.mpd_client.clear ();
       private_message ("The play queue was cleared.");
-      */
     };
     return {help, invoke};
   }
@@ -593,7 +591,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      // @@bot[:mpd].random = !@@bot[:mpd].random?
+      ca.mpd_client.random (!ca.mpd_client.status ().random ());
     };
     return {help, invoke};
   }
@@ -606,7 +604,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      // @@bot[:mpd].single = !@@bot[:mpd].single?
+      ca.mpd_client.single (!ca.mpd_client.status ().single ());
     };
     return {help, invoke};
   }
@@ -619,7 +617,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      // @@bot[:mpd].repeat = !@@bot[:mpd].repeat?
+      ca.mpd_client.repeat (!ca.mpd_client.status ().repeat ());
     };
     return {help, invoke};
   }
@@ -635,7 +633,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      // @@bot[:mpd].consume = !@@bot[:mpd].consume?
+      ca.mpd_client.consume (!ca.mpd_client.status ().consume ());
     };
     return {help, invoke};
   }
@@ -648,7 +646,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      // @@bot[:mpd].pause = !@@bot[:mpd].paused?
+      ca.mpd_client.toggle_pause ();
     };
     return {help, invoke};
   }
@@ -677,42 +675,63 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      if message == 'play'
-      @@bot[:mpd].play
-      @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
-      @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
-
-      if message == 'play first'
-      begin
-      @@bot[:mpd].play 0
-      privatemessage("Playing first song in the queue (0).")
-      rescue
-      privatemessage("There is no title in the queue, cant play the first entry.")
-      end
-      end
-
-      if message == 'play last'
-      if @@bot[:mpd].queue.length > 0
-      lastsongid = @@bot[:mpd].queue.length.to_i - 1
-      @@bot[:mpd].play (lastsongid)
-      privatemessage("Playing last song in the queue (#{lastsongid}).")
+      if (ca.arguments == "")
+        {
+          ca.mpd_client.play ();
+        }
+      else if (ca.arguments == "first")
+        {
+          try
+            {
+              ca.mpd_client.play_pos (0);
+              private_message ("Playing first song in the queue (0).");
+            }
+          catch (...)
+            {
+              private_message ("There are no titles in the queue, "
+                               "can't play the first entry.");
+            }
+        }
+      else if (ca.arguments == "last")
+        {
+          size_t queue_length = 0;
+          ca.mpd_client.send_list_queue_meta ();
+          for (std::unique_ptr<Mpd::Song> song;
+               (song = ca.mpd_client.recv_song ()) != nullptr; queue_length++);
+          if (queue_length > 0)
+            {
+              auto last_song_id = queue_length - 1;
+              ca.mpd_client.play_pos (last_song_id);
+              private_message ("Playing last song in the queue (" +
+                               std::to_string (last_song_id) + ").");
+            }
+          else
+            {
+              private_message("There are no titles in the queue, "
+                              "can't play the last entry.");
+            }
+        }
       else
-      privatemessage("There is no title in the queue, cant play the first entry.")
-      end
-      end
-
-      if message.match(/^play [0-9]{1,3}$/)
-      tracknumber = message.match(/^play ([0-9]{1,3})$/)[1].to_i
-      begin
-      @@bot[:mpd].play tracknumber
-      rescue
-      privatemessage("Title on position #{tracknumber.to_s} does not exist")
-      end
-      @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
-      @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
-      end
-      */
+        {
+          auto track_number = std::stoi (ca.arguments);
+          try
+            {
+              ca.mpd_client.play_pos (track_number);
+            }
+          catch (...)
+            {
+              private_message("Title on position " + std::to_string (track_number) +
+                              " does not exist");
+            }
+        }
+      if (client.me ().deaf ())
+        {
+          client.deaf (false);
+        }
+      if (client.me ().mute ())
+        {
+          client.mute (false);
+        }
     };
     return {help, invoke};
   }

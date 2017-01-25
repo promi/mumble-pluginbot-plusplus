@@ -180,15 +180,17 @@ namespace Mpd
     return s;
   }
 
-  Song Client::recv_song ()
+  std::unique_ptr<Song> Client::recv_song ()
   {
     auto song_ptr = mpd_recv_song (pimpl->connection);
     if (song_ptr == nullptr)
       {
-        throw std::runtime_error ("mpd_recv_song () failed");
+        return nullptr;
       }
-    Song s {song_ptr};
-    return s;
+    else
+      {
+        return std::make_unique<Song> (song_ptr);
+      }
   }
 
   void Client::send_current_song ()

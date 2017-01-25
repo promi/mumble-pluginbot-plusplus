@@ -124,6 +124,7 @@ namespace Mumble
     std::vector<int16_t> m2m_get_frame (uint32_t speaker);
     void m2m_writeframe (const std::vector<int16_t> &frame);
     size_t m2m_getsize (uint32_t speaker);
+    void deaf (bool b = true);
     void mute (bool b = true);
     AudioPlayer& player ();
     User& me ();

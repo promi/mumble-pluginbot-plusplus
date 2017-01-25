@@ -166,6 +166,13 @@ namespace Mumble
     return m_m2m->getsize (speaker);
   }
 
+  void Client::deaf (bool b)
+  {
+    MumbleProto::UserState message;
+    message.set_self_deaf (b);
+    send (message);
+  }
+
   void Client::mute (bool b)
   {
     MumbleProto::UserState message;

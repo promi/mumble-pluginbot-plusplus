@@ -130,7 +130,7 @@ namespace Mpd
   FlagSet<Idle> Client::recv_idle (bool disable_timeout)
   {
     return FlagSet<Idle> (static_cast<Idle> (mpd_recv_idle (pimpl->connection,
-                                                            disable_timeout)));
+                          disable_timeout)));
   }
 
   FlagSet<Idle> Client::idle ()
@@ -141,7 +141,7 @@ namespace Mpd
   FlagSet<Idle> Client::idle_mask (FlagSet<Idle> mask)
   {
     return FlagSet<Idle> (static_cast<Idle> (mpd_run_idle_mask (pimpl->connection,
-                                                                static_cast<mpd_idle> (mask.to_enum ()))));
+                          static_cast<mpd_idle> (mask.to_enum ()))));
   }
 
   FlagSet<Idle> Client::noidle ()
@@ -621,8 +621,8 @@ namespace Mpd
         throw std::runtime_error ("mpd_run_add () failed");
       }
   }
-    
-    void Client::send_add_id (const std::string &file)
+
+  void Client::send_add_id (const std::string &file)
   {
     if (!mpd_send_add_id (pimpl->connection, file.c_str ()))
       {

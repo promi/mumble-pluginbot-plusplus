@@ -52,8 +52,8 @@ namespace MumblePluginBot
 
     struct Command
     {
-      std::function<void (const CommandArgs&)> invoke;
       std::vector<CommandHelp> help;
+      std::function<void (const CommandArgs&)> invoke;
     };
 
     inline Impl (const Aither::Log &log, Settings &settings, Mumble::Client &client,
@@ -89,8 +89,40 @@ namespace MumblePluginBot
     void update_song (Mpd::Song &song);
     void song_thread_proc ();
     void init_commands ();
-    void seek (const CommandArgs &ca);
-    void crossfade (const CommandArgs &ca);
+    Command seek ();
+    Command crossfade ();
+    Command next ();
+    Command prev ();
+    Command clear ();
+    Command random ();
+    Command single ();
+    Command repeat ();
+    Command consume ();
+    Command pp ();
+    Command stop ();
+    Command play ();
+    Command songlist ();
+    Command playlist ();
+    Command saveplaylist ();
+    Command delplaylist ();
+    Command song ();
+    Command status ();
+    Command playlists ();
+    Command add ();
+    Command delete_ ();
+    Command where ();
+    Command queue ();
+    Command stats ();
+    Command shuffle ();
+    Command file ();
+    Command v ();
+    Command update ();
+    Command mpdconfig ();
+    Command mpdcommands ();
+    Command mpdnotcommands ();
+    Command mpddecoders ();
+    Command mpdurlhandlers ();
+    Command displayinfo ();
     std::string time_decode (uint time);
     std::vector<uint> split_timecode (const std::string &timecode);
   };
@@ -346,75 +378,44 @@ namespace MumblePluginBot
   {
     m_commands =
     {
-      {
-        "seek", {
-          [this] (auto ca)
-          {
-            seek (ca);
-          },
-          {
-            {"value", "Seek to an absolute position (in seconds)."},
-            {"+-value", "Seek relative to current position (in seconds)."},
-            {"mm:ss", "Seek to an absolute position"},
-            {"+/-mm:ss", "Seek relative to current position"},
-            {"hh::mm:ss", "Seek to an absolute position"},
-            {"+/-hh::mm:ss", "Seek relative to current position"}
-          }
-        }
-      }
+      {"seek", seek ()},
+      {"crossfade", crossfade ()},
+      {"next", next ()},
+      {"seek", seek ()},
+      {"crossfade", crossfade ()},
+      {"next", next ()},
+      {"prev", prev ()},
+      {"clear", clear ()},
+      {"random", random ()},
+      {"single", single ()},
+      {"repeat", repeat ()},
+      {"consume", consume ()},
+      {"pp", pp ()},
+      {"stop", stop ()},
+      {"play", play ()},
+      {"songlist", songlist ()},
+      {"playlist", playlist ()},
+      {"saveplaylist", saveplaylist ()},
+      {"delplaylist", delplaylist ()},
+      {"song", song ()},
+      {"status", status ()},
+      {"playlists", playlists ()},
+      {"add", add ()},
+      {"delete", delete_ ()},
+      {"where", where ()},
+      {"queue", queue ()},
+      {"stats", stats ()},
+      {"shuffle", shuffle ()},
+      {"file", file ()},
+      {"v", v ()},
+      {"update", update ()},
+      {"mpdconfig", mpdconfig ()},
+      {"mpdcommands", mpdcommands ()},
+      {"mpdnotcommands", mpdnotcommands ()},
+      {"mpddecoders", mpddecoders ()},
+      {"mpdurlhandlers", mpdurlhandlers ()},
+      {"displayinfo", displayinfo ()}
     };
-    /*
-    h << f ("settings", "Print current MPD settings.");
-    h << g ("crossfade", "value",
-            "Set Crossfade to value seconds, 0 to disable crossfading.");
-    h << f ("next", "Play next title in the queue.");
-    h << f ("prev", "Play previous title in the queue.");
-    h << f ("clear", "Clear the playqueue.");
-    h << f ("random", "Toggle random mode.");
-    h << f ("single", "Toggle single mode.");
-    h << f ("repeat", "Toggle repeat mode.");
-    h << f ("consume",
-            "Toggle consume mode. If this mode is enabled, songs will be "
-            "removed from the play queue once they were played.");
-    h << f ("pp", "Toggle pause/play.");
-    h << f ("stop", "Stop playing.");
-    h << f ("play", "Start playing.");
-    h << g ("play", "first", "Play the first song in the queue.");
-    h << g ("play", "last", "Play the last song in the queue.");
-    h << g ("play", "number", "Play title on position <i>number</i> in queue.");
-    h << f ("songlist", "Print the list of ALL songs in the MPD collection.");
-    h << g ("playlist", "id", "Load the playlist referenced by the id.");
-    h << g ("saveplaylist", "name", "Save queue into a playlist named 'name'");
-    h << g ("delplaylist", "id", "Remove a playlist with the given id. "
-            "Use " + controlstring + "playlists to get a list of "
-            "available playlists.");
-    h << f ("song", "Print some information about the currently played song.");
-    h << f ("status", "Print current status of MPD.");
-    h << f ("playlists", "Print the available playlists from MPD.");
-    h << g ("add", "searchstring",
-            "Find song(s) by searchstring and print matches.");
-    h << g ("delete", "ID", "Delete an entry from the current queue. "
-            "Use " + controlstring + "queue to get the IDs of all songs in "
-            "the current queue.");
-    h << g ("where", "searchstring",
-            "Find song(s) by searchstring and print matches.");
-    h << f ("queue", "Print the current play queue.");
-    h << f ("stats", "Print some interesing MPD statistics.");
-    h << f ("shuffle", "Play songs from the play queue in a random order.");
-    h << f ("file", "Print the filename of the current song. "
-            "This is useful if the file doesn't have ID3 tags "
-            "and so the " + controlstring + b_tag ("song") + " command shows nothing.");
-    h << f ("v++++", "Turns volume 20% up.");
-    h << f ("v-", "Turns volume 5% down.");
-    h << g ("v", "value", "Set the volume to the given value.");
-    h << f ("v", "Print the current playback volume.");
-    h << f ("update", "Start a MPD database update.");
-    h << f ("mpdconfig", "Try to read mpd config.");
-    h << f ("mpdcommands", "Show what commands mpd do allow to Bot (not to you!).");
-    h << f ("mpdnotcommands", "Show what commands mpd disallowed to Bot.");
-    h << f ("mpddecoders", "Show enabled decoders and "
-            "what they can decode for your mpd.");
-    */
   }
 
   std::string MpdPlugin::internal_help ()
@@ -439,86 +440,910 @@ namespace MumblePluginBot
     return h.str ();
   }
 
-  void MpdPlugin::Impl::seek (const CommandArgs &ca)
+  MpdPlugin::Impl::Command MpdPlugin::Impl::seek ()
   {
-    if (ca.arguments != "")
-      {
-        bool negative;
-        bool absolute;
-        std::string timecode;
-        if (ca.arguments[0] == '+')
-          {
-            timecode = ca.arguments.substr (1);
-            absolute = false;
-            negative = false;
-          }
-        else if (ca.arguments[0] == '-')
-          {
-            timecode = ca.arguments.substr (1);
-            absolute = false;
-            negative = true;
-          }
-        else
-          {
-            timecode = ca.arguments;
-            absolute = true;
-            negative = false;
-          }
-        auto parts = split_timecode (timecode);
-        uint seconds;
-        switch (parts.size ())
-          {
-          case 1:
-            seconds = parts[0];
-            break;
-          case 2:
-            if (parts[1] > 59)
-              {
-                throw std::invalid_argument ("Seconds out of range");
-              }
-            seconds = parts[0] * 60 + parts[1];
-            break;
-          case 3:
-            if (parts[1] > 59)
-              {
-                throw std::invalid_argument ("Minutes out of range");
-              }
-            if (parts[2] > 59)
-              {
-                throw std::invalid_argument ("Seconds out of range");
-              }
-            seconds = parts[0] * 60 * 60 + parts[1] * 60 + parts[2];
-            break;
-          default:
-            throw std::invalid_argument ("Invalid count of `:` chars");
-          }
-        auto status = ca.mpd_client.status ();
-        auto elapsed = status.elapsed_time ();
-        auto id = status.song_id ();
-        uint t;
-        if (absolute)
-          {
-            t = seconds;
-          }
-        else
-          {
-            t = elapsed + seconds * (negative ? -1 : 1);
-          }
-        AITHER_DEBUG("t = " << t);
-        ca.mpd_client.seek_id (id, t);
-      }
-    // Warning: Don't reuse the old status from before seeking.
-    // The chat message has to reflect the *new* position!
-    auto status = ca.mpd_client.status ();
-    auto elapsed = status.elapsed_time ();
-    auto total = status.total_time ();
-    private_message ("Now on position " +
-                     time_decode (elapsed) + "/" + time_decode (total) + ".");
+    std::vector<CommandHelp> help =
+    {
+      {"value", "Seek to an absolute position (in seconds)."},
+      {"+-value", "Seek relative to current position (in seconds)."},
+      {"mm:ss", "Seek to an absolute position"},
+      {"+/-mm:ss", "Seek relative to current position"},
+      {"hh::mm:ss", "Seek to an absolute position"},
+      {"+/-hh::mm:ss", "Seek relative to current position"}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      if (ca.arguments != "")
+        {
+          bool negative;
+          bool absolute;
+          std::string timecode;
+          if (ca.arguments[0] == '+')
+            {
+              timecode = ca.arguments.substr (1);
+              absolute = false;
+              negative = false;
+            }
+          else if (ca.arguments[0] == '-')
+            {
+              timecode = ca.arguments.substr (1);
+              absolute = false;
+              negative = true;
+            }
+          else
+            {
+              timecode = ca.arguments;
+              absolute = true;
+              negative = false;
+            }
+          auto parts = split_timecode (timecode);
+          uint seconds;
+          switch (parts.size ())
+            {
+            case 1:
+              seconds = parts[0];
+              break;
+            case 2:
+              if (parts[1] > 59)
+                {
+                  throw std::invalid_argument ("Seconds out of range");
+                }
+              seconds = parts[0] * 60 + parts[1];
+              break;
+            case 3:
+              if (parts[1] > 59)
+                {
+                  throw std::invalid_argument ("Minutes out of range");
+                }
+              if (parts[2] > 59)
+                {
+                  throw std::invalid_argument ("Seconds out of range");
+                }
+              seconds = parts[0] * 60 * 60 + parts[1] * 60 + parts[2];
+              break;
+            default:
+              throw std::invalid_argument ("Invalid count of `:` chars");
+            }
+          auto status = ca.mpd_client.status ();
+          auto elapsed = status.elapsed_time ();
+          auto id = status.song_id ();
+          uint t;
+          if (absolute)
+            {
+              t = seconds;
+            }
+          else
+            {
+              t = elapsed + seconds * (negative ? -1 : 1);
+            }
+          AITHER_DEBUG("t = " << t);
+          ca.mpd_client.seek_id (id, t);
+        }
+      // Warning: Don't reuse the old status from before seeking.
+      // The chat message has to reflect the *new* position!
+      auto status = ca.mpd_client.status ();
+      auto elapsed = status.elapsed_time ();
+      auto total = status.total_time ();
+      private_message ("Now on position " +
+                       time_decode (elapsed) + "/" + time_decode (total) + ".");
+    };
+    return {help, invoke};
   }
 
-  void MpdPlugin::Impl::crossfade (const CommandArgs &ca)
+  MpdPlugin::Impl::Command MpdPlugin::Impl::crossfade ()
   {
-    ca.mpd_client.crossfade (std::stoi (ca.arguments));
+    std::vector<CommandHelp> help =
+    {
+      {"value", "Set Crossfade to value seconds, 0 to disable crossfading."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      ca.mpd_client.crossfade (std::stoi (ca.arguments));
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::next ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Play next title in the queue."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      ca.mpd_client.next ();
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::prev ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Play previous title in the queue."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      ca.mpd_client.previous ();
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::clear ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Clear the playqueue."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      ca.mpd_client.clear ();
+      private_message ("The play queue was cleared.");
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::random ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Toggle random mode."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      // @@bot[:mpd].random = !@@bot[:mpd].random?
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::single ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Toggle single mode."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      // @@bot[:mpd].single = !@@bot[:mpd].single?
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::repeat ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Toggle repeat mode."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      // @@bot[:mpd].repeat = !@@bot[:mpd].repeat?
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::consume ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {
+        "", "Toggle consume mode. If this mode is enabled, songs will be "
+        "removed from the play queue once they were played."
+      }
+    };
+    auto invoke = [this] (auto ca)
+    {
+      // @@bot[:mpd].consume = !@@bot[:mpd].consume?
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::pp ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Toggle pause/play."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      // @@bot[:mpd].pause = !@@bot[:mpd].paused?
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::stop ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Stop playing."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      ca.mpd_client.stop ();
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::play ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Start playing."},
+      {"first", "Play the first song in the queue."},
+      {"last", "Play the last song in the queue."},
+      {"number", "Play title on position <i>number</i> in queue."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      if message == 'play'
+      @@bot[:mpd].play
+      @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
+      @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
+
+      if message == 'play first'
+      begin
+      @@bot[:mpd].play 0
+      privatemessage("Playing first song in the queue (0).")
+      rescue
+      privatemessage("There is no title in the queue, cant play the first entry.")
+      end
+      end
+
+      if message == 'play last'
+      if @@bot[:mpd].queue.length > 0
+      lastsongid = @@bot[:mpd].queue.length.to_i - 1
+      @@bot[:mpd].play (lastsongid)
+      privatemessage("Playing last song in the queue (#{lastsongid}).")
+      else
+      privatemessage("There is no title in the queue, cant play the first entry.")
+      end
+      end
+
+      if message.match(/^play [0-9]{1,3}$/)
+      tracknumber = message.match(/^play ([0-9]{1,3})$/)[1].to_i
+      begin
+      @@bot[:mpd].play tracknumber
+      rescue
+      privatemessage("Title on position #{tracknumber.to_s} does not exist")
+      end
+      @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
+      @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
+      end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::songlist ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print the list of ALL songs in the MPD collection."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        block = 0
+        out = ""
+        @@bot[:mpd].songs.each do |song|
+        if block >= 50
+        privatemessage(out.to_s)
+        out = ""
+        block = 0
+        end
+        out << "<br/>" + song.file.to_s
+        block += 1
+        end
+        privatemessage(out.to_s)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::playlist ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"id", "Load the playlist referenced by the id."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      playlist_id = message.match(/^playlist ([0-9]{1,3})$/)[1].to_i
+      begin
+      playlist = @@bot[:mpd].playlists[playlist_id]
+      @@bot[:mpd].clear
+      playlist.load
+      @@bot[:mpd].play
+      privatemessage( "The playlist \"#{playlist.name}\" was loaded and starts now.")
+      rescue
+      privatemessage( "Sorry, the given playlist id does not exist.")
+      end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::saveplaylist ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"name", "Save queue into a playlist named 'name'"}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+            name = message.gsub("saveplaylist", "").lstrip
+            if name != ""
+            puts name
+            playlist = MPD::Playlist.new(@@bot[:mpd], name)
+            @@bot[:mpd].queue.each do |song|
+            playlist.add song
+            end
+
+            privatemessage( "The playlist \"#{name}\" was created.
+            Use the command #{@@bot[:controlstring]}playlists to get a list of all available playlists." )
+            else
+            privatemessage( "no playlist name gaven.")
+            end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::delplaylist ()
+  {
+    auto controlstring = settings.controlstring;
+    std::vector<CommandHelp> help =
+    {
+      {
+        "id", "Remove a playlist with the given id. "
+        "Use " + controlstring + "playlists to get a list of "
+        "available playlists."
+      }
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        playlist_id = message.match(/^delplaylist ([0-9]{1,3})$/)[1].to_i
+        begin
+        playlist = @@bot[:mpd].playlists[playlist_id]
+        playlist.destroy
+        privatemessage( "The playlist \"#{playlist.name}\" deleted.")
+        rescue
+        privatemessage( "Sorry, the given playlist id does not exist.")
+        end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::song ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print some information about the currently played song."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+              current = @@bot[:mpd].current_song
+              if not current.nil? #Would crash if playlist was empty.
+              privatemessage( "#{current.artist} - #{current.title} (#{current.album})")
+              else
+              privatemessage( "No song is played currently.")
+              end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::status ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print current status of MPD."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        out = "<table>"
+        @@bot[:mpd].status.each do |key, value|
+
+        case
+        when key.to_s == 'volume'
+        out << "<tr><td>Current volume:</td><td>#{value}%</td></tr>"
+        when key.to_s == 'repeat'
+        if value
+        repeat = "on"
+        else
+        repeat = "off"
+        end
+        out << "<tr><td>Repeat mode:</td><td>#{repeat}</td></tr>"
+        when key.to_s == 'random'
+        if value
+        random = "on"
+        else
+        random = "off"
+        end
+        out << "<tr><td>Random mode:</td><td>#{random}</td></tr>"
+        when key.to_s == 'single'
+        if value
+        single = "on"
+        else
+        single = "off"
+        end
+        out << "<tr><td>Single mode:</td><td>#{single}</td></tr>"
+        when key.to_s == 'consume'
+        if value
+        consume = "on"
+        else
+        consume = "off"
+        end
+        out << "<tr><td>Consume mode:</td><td>#{consume}</td></tr>"
+        when key.to_s == 'playlist'
+        out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
+
+        #FIXME Not possible, because the "value" in this context is random(?) after every playlist loading.
+        #playlist = @@bot[:mpd].playlists[value.to_i]
+        #if not playlist.nil?
+        #  out << "<tr><td>Current playlist:</td><td>#{playlist.name}</td></tr>"
+        #else
+        #  out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
+        #end
+        when key.to_s == 'playlistlength'
+        out << "<tr><td>Song count in current queue/playlist:</td><td valign='bottom'>#{timedecode(value)}</td></tr>"
+        when key.to_s == 'mixrampdb'
+        out << "<tr><td>Mixramp db:</td><td>#{value}</td></tr>"
+        when key.to_s == 'state'
+        case
+        when value.to_s == 'play'
+        state = "playing"
+        when value.to_s == 'stop'
+        state = "stopped"
+        when value.to_s == 'pause'
+        state = "paused"
+        else
+        state = "unknown state"
+        end
+        out << "<tr><td>Current state:</td><td>#{state}</td></tr>"
+        when key.to_s == 'song'
+        current = @@bot[:mpd].current_song
+        if not current.nil?
+        out << "<tr><td>Current song:</td><td>#{current.artist} - #{current.title} (#{current.album})</td></tr>"
+        else
+        out << "<tr><td>Current song:</td><td>#{value})</td></tr>"
+        end
+        when key.to_s == 'songid'
+        #queue = Queue.new
+        ##queue = @@bot[:mpd].queue
+        #puts "queue: " + queue.inspect
+        #current_song = queue.song_with_id(value.to_i)
+
+        #out << "<tr><td>Current songid:</td><td>#{current_song}</td></tr>"
+        out << "<tr><td>Current songid:</td><td>#{value}</td></tr>"
+        when key.to_s == 'time'
+        out << "<tr><td>Current position:</td><td>#{timedecode(value[0])}/#{timedecode(value[1])}</td></tr>"
+        when key.to_s == 'elapsed'
+        out << "<tr><td>Elapsed:</td><td>#{timedecode(value)}</td></tr>"
+        when key.to_s == 'bitrate'
+        out << "<tr><td>Current song bitrate:</td><td>#{value}</td></tr>"
+        when key.to_s == 'audio'
+        out << "<tr><td>Audio properties:</td><td>samplerate(#{value[0]}), bitrate(#{value[1]}), channels(#{value[2]})</td></tr>"
+        when key.to_s == 'nextsong'
+        out << "<tr><td>Position ID of next song to play (in the queue):</td><td valign='bottom'>#{value}</td></tr>"
+        when key.to_s == 'nextsongid'
+        out << "<tr><td>Song ID of next song to play:</td><td valign='bottom'>#{value}</td></tr>"
+        else
+        out << "<tr><td>#{key}:</td><td>#{value}</td></tr>"
+        end
+
+        end
+        out << "</table>"
+        privatemessage(out)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::playlists ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print the available playlists from MPD."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        text_out = ""
+        counter = 0
+        @@bot[:mpd].playlists.each do |pl|
+        text_out = text_out + "#{counter} - #{pl.name}<br/>"
+        counter += 1
+        end
+        privatemessage( "I know the following playlists:<br>#{text_out}")
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::add ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"searchstring", "Find song(s) by searchstring and print matches."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        search = (message.gsub("add", "").lstrip).tr('"\\','')
+        text_out = "search is empty"
+        if search != ""
+        text_out ="added:<br/>"
+        count = 0
+        @@bot[:mpd].where(any: "#{search}").each do |song|
+        text_out << "add #{song.file}<br/>"
+        @@bot[:mpd].add(song)
+        count += 1
+        end
+        text_out = "found nothing" if count == 0
+        end
+        privatemessage( text_out)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::delete_ ()
+  {
+    auto controlstring = settings.controlstring;
+    std::vector<CommandHelp> help =
+    {
+      {
+        "ID", "Delete an entry from the current queue. "
+        "Use " + controlstring + "queue to get the IDs of all songs in "
+        "the current queue."
+      }
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        begin
+        @@bot[:mpd].delete message.split(/ /)[1]
+        rescue
+        privatemessage( "Sorry, could not delete.")
+        end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::where ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"searchstring", "Find song(s) by searchstring and print matches."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        search = message.gsub("where", "").lstrip.tr('"\\','')
+        text_out = "you should search not nothing!"
+        if search != ""
+        text_out ="found:<br/>"
+        @@bot[:mpd].where(any: "#{search}").each do |song|
+        text_out << "#{song.file}<br/>"
+        end
+        end
+        privatemessage( text_out)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::queue ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print the current play queue."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      if @@bot[:mpd].queue.length > 0
+      text_out ="<table><th><td>#</td><td>Name</td></th>"
+      songnr = 0
+
+      @@bot[:mpd].queue.each do |song|
+      if song.title.to_s.empty?
+      text_out << "<tr><td>#{songnr}</td><td>No ID / Stream? Source: #{song.file}</td></tr>"
+      else
+      text_out << "<tr><td>#{songnr}</td><td>#{song.title}</td></tr>"
+      end
+      songnr += 1
+      end
+      text_out << "</table>"
+      else
+      text_out = "The queue is empty."
+      privatemessage( text_out)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::stats ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print some interesing MPD statistics."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+              out = "<table>"
+              @@bot[:mpd].stats.each do |key, value|
+              case
+              when key.to_s == 'uptime'
+              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
+              when key.to_s == 'playtime'
+              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
+              when key.to_s == 'db_playtime'
+              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
+              else
+              out << "<tr><td>#{key}</td><td>#{value}</td></tr>"
+              end
+              end
+              out << "</table>"
+              privatemessage( out)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::shuffle ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Play songs from the play queue in a random order."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      @@bot[:mpd].shuffle
+      privatemessage( "Shuffle, shuffle and get a new order. :)")
+       */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::file ()
+  {
+    auto controlstring = settings.controlstring;
+    std::vector<CommandHelp> help =
+    {
+      {
+        "", "Print the filename of the current song. "
+        "This is useful if the file doesn't have ID3 tags "
+        "and so the " + controlstring + b_tag ("song") + " command shows nothing."
+      }
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+         current = @@bot[:mpd].current_song
+         privatemessage( "Filename of currently played song:<br>#{current.file}</span>") if not current.nil?
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::v ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Print the current playback volume."},
+      {"value", "Set the volume to the given value."},
+      {"++++", "Turns volume 20% up."},
+      {"-", "Turns volume 5% down."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+      if message == 'v'
+      volume = @@bot[:mpd].volume
+      privatemessage( "Current volume is #{volume}%.")
+      end
+
+      if message.match(/^v [0-9]{1,3}$/)
+      volume = message.match(/^v ([0-9]{1,3})$/)[1].to_i
+
+      if (volume >=0 ) && (volume <= 100)
+      @@bot[:mpd].volume = volume
+      else
+      privatemessage( "Volume can be within a range of 0 to 100")
+      end
+      end
+
+      if message.match(/^v[-]+$/)
+      multi = message.match(/^v([-]+)$/)[1].scan(/\-/).length
+      volume = ((@@bot[:mpd].volume).to_i - 5 * multi)
+      if volume < 0
+      channelmessage( "Volume can't be set to &lt; 0.")
+      volume = 0
+      end
+      @@bot[:mpd].volume = volume
+      end
+
+      if message.match(/^v[+]+$/)
+      multi = message.match(/^v([+]+)$/)[1].scan(/\+/).length
+      volume = ((@@bot[:mpd].volume).to_i + 5 * multi)
+      if volume > 100
+      channelmessage( "Volume can't be set to &gt; 100.")
+      volume = 100
+      end
+      @@bot[:mpd].volume = volume
+      end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::update ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Start a MPD database update."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+              @@bot[:mpd].update
+              privatemessage("Running database update...")
+              while @@bot[:mpd].status[:updating_db] != nil do
+              sleep 0.5
+              end
+              privatemessage("Done.")
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::mpdconfig ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Try to read mpd config."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        config = @@bot[:mpd].config
+        rescue
+        config = "Configuration only for local clients readable"
+        end
+        privatemessage( config)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::mpdcommands ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Show what commands mpd do allow to Bot (not to you!)."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        output = ""
+        @@bot[:mpd].commands.each do |command|
+        output << "<br>#{command}"
+        end
+        privatemessage( output)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::mpdnotcommands ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Show what commands mpd disallowed to Bot."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        output = ""
+        @@bot[:mpd].notcommands.each do |command|
+        output << "<br\>#{command}"
+        end
+        privatemessage( output)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::mpddecoders ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Show enabled decoders and what they can decode for your mpd."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        output = "<table>"
+        @@bot[:mpd].decoders.each do |decoder|
+        output << "<tr>"
+        output << "<td>#{decoder[:plugin]}</td>"
+        output << "<td>"
+        begin
+        decoder[:suffix].each do |suffix|
+        output << "#{suffix} "
+        end
+        output << "</td>"
+        rescue
+        output << "#{decoder[:suffix]}"
+        end
+        end
+        output << "</table>"
+        privatemessage( output)
+        end
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::mpdurlhandlers ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "Show mpd url handlers."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        output = ""
+        @@bot[:mpd].url_handlers.each do |handler|
+        output << "<br\>#{handler}"
+        end
+        privatemessage( output)
+      */
+    };
+    return {help, invoke};
+  }
+
+  MpdPlugin::Impl::Command MpdPlugin::Impl::displayinfo ()
+  {
+    std::vector<CommandHelp> help =
+    {
+      {"", "."}
+    };
+    auto invoke = [this] (auto ca)
+    {
+      /*
+        if @@bot[:use_comment_for_status_display] == true
+        @@bot[:use_comment_for_status_display] = false
+        privatemessage( "Output is now \"Channel\"")
+        @@bot[:cli].set_comment(@template_if_comment_disabled % [@controlstring])
+        else
+        @@bot[:use_comment_for_status_display] = true
+        privatemessage( "Output is now \"Comment\"")
+        @@bot[:cli].set_comment(@template_if_comment_enabled)
+        end
+        rescue NoMethodError
+        if @@bot[:debug]
+        puts "#{$!}"
+        end
+        end
+      */
+    };
+    return {help, invoke};
   }
 
   void MpdPlugin::internal_chat (const MumbleProto::TextMessage &msg,
@@ -534,444 +1359,6 @@ namespace MumblePluginBot
     Impl::CommandArgs ca {msg, command, arguments, mpd_client};
     cmd->second.invoke (ca);
     // if command == 'mpdhelp' ...
-    /*
-    @@bot[:mpd].next if message == 'next'
-    @@bot[:mpd].previous if message == 'prev'
-
-    if message == 'clear'
-    @@bot[:mpd].clear
-    privatemessage( "The playqueue was cleared.")
-    end
-
-    if message[0,6] == 'delete'
-    begin
-    @@bot[:mpd].delete message.split(/ /)[1]
-    rescue
-    privatemessage( "Sorry, could not delete.")
-    end
-    end
-
-    if message == 'random'
-    @@bot[:mpd].random = !@@bot[:mpd].random?
-    end
-
-    if message == 'repeat'
-    @@bot[:mpd].repeat = !@@bot[:mpd].repeat?
-    end
-
-    if message == 'single'
-    @@bot[:mpd].single = !@@bot[:mpd].single?
-    end
-
-    if message == 'consume'
-    @@bot[:mpd].consume = !@@bot[:mpd].consume?
-    end
-
-    if message == 'pp'
-    @@bot[:mpd].pause = !@@bot[:mpd].paused?
-    end
-
-    @@bot[:mpd].stop if message == 'stop'
-
-    if message == 'play'
-    @@bot[:mpd].play
-    @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
-    @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
-    end
-
-    if message == 'play first'
-    begin
-    @@bot[:mpd].play 0
-    privatemessage("Playing first song in the queue (0).")
-    rescue
-    privatemessage("There is no title in the queue, cant play the first entry.")
-    end
-    end
-
-    if message == 'play last'
-    if @@bot[:mpd].queue.length > 0
-    lastsongid = @@bot[:mpd].queue.length.to_i - 1
-    @@bot[:mpd].play (lastsongid)
-    privatemessage("Playing last song in the queue (#{lastsongid}).")
-    else
-    privatemessage("There is no title in the queue, cant play the first entry.")
-    end
-    end
-
-    if message.match(/^play [0-9]{1,3}$/)
-    tracknumber = message.match(/^play ([0-9]{1,3})$/)[1].to_i
-    begin
-    @@bot[:mpd].play tracknumber
-    rescue
-    privatemessage("Title on position #{tracknumber.to_s} does not exist")
-    end
-    @@bot[:cli].me.deafen false if @@bot[:cli].me.deafened?
-    @@bot[:cli].me.mute false if @@bot[:cli].me.muted?
-    end
-
-    if message == 'songlist'
-    block = 0
-    out = ""
-    @@bot[:mpd].songs.each do |song|
-    if block >= 50
-    privatemessage(out.to_s)
-    out = ""
-    block = 0
-    end
-    out << "<br/>" + song.file.to_s
-    block += 1
-    end
-    privatemessage(out.to_s)
-    end
-
-    if message == 'stats'
-    out = "<table>"
-    @@bot[:mpd].stats.each do |key, value|
-    case
-    when key.to_s == 'uptime'
-    out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-    when key.to_s == 'playtime'
-    out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-    when key.to_s == 'db_playtime'
-    out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-    else
-    out << "<tr><td>#{key}</td><td>#{value}</td></tr>"
-    end
-    end
-    out << "</table>"
-    privatemessage( out)
-    end
-
-    if message == 'queue'
-    if @@bot[:mpd].queue.length > 0
-    text_out ="<table><th><td>#</td><td>Name</td></th>"
-    songnr = 0
-
-    @@bot[:mpd].queue.each do |song|
-    if song.title.to_s.empty?
-    text_out << "<tr><td>#{songnr}</td><td>No ID / Stream? Source: #{song.file}</td></tr>"
-    else
-    text_out << "<tr><td>#{songnr}</td><td>#{song.title}</td></tr>"
-    end
-    songnr += 1
-    end
-    text_out << "</table>"
-    else
-    text_out = "The queue is empty."
-    end
-
-    privatemessage( text_out)
-    end
-
-    if message[0,12] == 'saveplaylist'
-    name = message.gsub("saveplaylist", "").lstrip
-    if name != ""
-    puts name
-    playlist = MPD::Playlist.new(@@bot[:mpd], name)
-    @@bot[:mpd].queue.each do |song|
-    playlist.add song
-    end
-
-    privatemessage( "The playlist \"#{name}\" was created.
-    Use the command #{@@bot[:controlstring]}playlists to get a list of all available playlists." )
-    else
-    privatemessage( "no playlist name gaven.")
-    end
-    end
-
-    if message.match(/^delplaylist [0-9]{1,3}.*$/)
-    playlist_id = message.match(/^delplaylist ([0-9]{1,3})$/)[1].to_i
-    begin
-    playlist = @@bot[:mpd].playlists[playlist_id]
-    playlist.destroy
-    privatemessage( "The playlist \"#{playlist.name}\" deleted.")
-    rescue
-    privatemessage( "Sorry, the given playlist id does not exist.")
-    end
-    end
-
-    if ( message[0,5] == 'where' )
-    search = message.gsub("where", "").lstrip.tr('"\\','')
-    text_out = "you should search not nothing!"
-    if search != ""
-    text_out ="found:<br/>"
-    @@bot[:mpd].where(any: "#{search}").each do |song|
-    text_out << "#{song.file}<br/>"
-    end
-    end
-    privatemessage( text_out)
-    end
-
-    if ( message[0,3] == 'add' )
-    search = (message.gsub("add", "").lstrip).tr('"\\','')
-    text_out = "search is empty"
-    if search != ""
-    text_out ="added:<br/>"
-    count = 0
-    @@bot[:mpd].where(any: "#{search}").each do |song|
-    text_out << "add #{song.file}<br/>"
-    @@bot[:mpd].add(song)
-    count += 1
-    end
-    text_out = "found nothing" if count == 0
-    end
-    privatemessage( text_out)
-    end
-
-    if message == 'playlists'
-    text_out = ""
-    counter = 0
-    @@bot[:mpd].playlists.each do |pl|
-    text_out = text_out + "#{counter} - #{pl.name}<br/>"
-    counter += 1
-    end
-    privatemessage( "I know the following playlists:<br>#{text_out}")
-    end
-
-    if message.match(/^playlist [0-9]{1,3}.*$/)
-    playlist_id = message.match(/^playlist ([0-9]{1,3})$/)[1].to_i
-    begin
-    playlist = @@bot[:mpd].playlists[playlist_id]
-    @@bot[:mpd].clear
-    playlist.load
-    @@bot[:mpd].play
-    privatemessage( "The playlist \"#{playlist.name}\" was loaded and starts now.")
-    rescue
-    privatemessage( "Sorry, the given playlist id does not exist.")
-    end
-    end
-
-    if message == 'status'
-    out = "<table>"
-    @@bot[:mpd].status.each do |key, value|
-
-    case
-    when key.to_s == 'volume'
-    out << "<tr><td>Current volume:</td><td>#{value}%</td></tr>"
-    when key.to_s == 'repeat'
-    if value
-    repeat = "on"
-    else
-    repeat = "off"
-    end
-    out << "<tr><td>Repeat mode:</td><td>#{repeat}</td></tr>"
-    when key.to_s == 'random'
-    if value
-    random = "on"
-    else
-    random = "off"
-    end
-    out << "<tr><td>Random mode:</td><td>#{random}</td></tr>"
-    when key.to_s == 'single'
-    if value
-    single = "on"
-    else
-    single = "off"
-    end
-    out << "<tr><td>Single mode:</td><td>#{single}</td></tr>"
-    when key.to_s == 'consume'
-    if value
-    consume = "on"
-    else
-    consume = "off"
-    end
-    out << "<tr><td>Consume mode:</td><td>#{consume}</td></tr>"
-    when key.to_s == 'playlist'
-    out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
-
-    #FIXME Not possible, because the "value" in this context is random(?) after every playlist loading.
-    #playlist = @@bot[:mpd].playlists[value.to_i]
-    #if not playlist.nil?
-    #  out << "<tr><td>Current playlist:</td><td>#{playlist.name}</td></tr>"
-    #else
-    #  out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
-    #end
-    when key.to_s == 'playlistlength'
-    out << "<tr><td>Song count in current queue/playlist:</td><td valign='bottom'>#{timedecode(value)}</td></tr>"
-    when key.to_s == 'mixrampdb'
-    out << "<tr><td>Mixramp db:</td><td>#{value}</td></tr>"
-    when key.to_s == 'state'
-    case
-    when value.to_s == 'play'
-    state = "playing"
-    when value.to_s == 'stop'
-    state = "stopped"
-    when value.to_s == 'pause'
-    state = "paused"
-    else
-    state = "unknown state"
-    end
-    out << "<tr><td>Current state:</td><td>#{state}</td></tr>"
-    when key.to_s == 'song'
-    current = @@bot[:mpd].current_song
-    if not current.nil?
-    out << "<tr><td>Current song:</td><td>#{current.artist} - #{current.title} (#{current.album})</td></tr>"
-    else
-    out << "<tr><td>Current song:</td><td>#{value})</td></tr>"
-    end
-    when key.to_s == 'songid'
-    #queue = Queue.new
-    ##queue = @@bot[:mpd].queue
-    #puts "queue: " + queue.inspect
-    #current_song = queue.song_with_id(value.to_i)
-
-    #out << "<tr><td>Current songid:</td><td>#{current_song}</td></tr>"
-    out << "<tr><td>Current songid:</td><td>#{value}</td></tr>"
-    when key.to_s == 'time'
-    out << "<tr><td>Current position:</td><td>#{timedecode(value[0])}/#{timedecode(value[1])}</td></tr>"
-    when key.to_s == 'elapsed'
-    out << "<tr><td>Elapsed:</td><td>#{timedecode(value)}</td></tr>"
-    when key.to_s == 'bitrate'
-    out << "<tr><td>Current song bitrate:</td><td>#{value}</td></tr>"
-    when key.to_s == 'audio'
-    out << "<tr><td>Audio properties:</td><td>samplerate(#{value[0]}), bitrate(#{value[1]}), channels(#{value[2]})</td></tr>"
-    when key.to_s == 'nextsong'
-    out << "<tr><td>Position ID of next song to play (in the queue):</td><td valign='bottom'>#{value}</td></tr>"
-    when key.to_s == 'nextsongid'
-    out << "<tr><td>Song ID of next song to play:</td><td valign='bottom'>#{value}</td></tr>"
-    else
-    out << "<tr><td>#{key}:</td><td>#{value}</td></tr>"
-    end
-
-    end
-    out << "</table>"
-    privatemessage(out)
-    end
-
-    if message == 'file'
-    current = @@bot[:mpd].current_song
-    privatemessage( "Filename of currently played song:<br>#{current.file}</span>") if not current.nil?
-    end
-
-    if message == 'song'
-    current = @@bot[:mpd].current_song
-    if not current.nil? #Would crash if playlist was empty.
-    privatemessage( "#{current.artist} - #{current.title} (#{current.album})")
-    else
-    privatemessage( "No song is played currently.")
-    end
-    end
-
-    if message == 'shuffle'
-    @@bot[:mpd].shuffle
-    privatemessage( "Shuffle, shuffle and get a new order. :)")
-    end
-
-    if message == 'v'
-    volume = @@bot[:mpd].volume
-    privatemessage( "Current volume is #{volume}%.")
-    end
-
-    if message.match(/^v [0-9]{1,3}$/)
-    volume = message.match(/^v ([0-9]{1,3})$/)[1].to_i
-
-    if (volume >=0 ) && (volume <= 100)
-    @@bot[:mpd].volume = volume
-    else
-    privatemessage( "Volume can be within a range of 0 to 100")
-    end
-    end
-
-    if message.match(/^v[-]+$/)
-    multi = message.match(/^v([-]+)$/)[1].scan(/\-/).length
-    volume = ((@@bot[:mpd].volume).to_i - 5 * multi)
-    if volume < 0
-    channelmessage( "Volume can't be set to &lt; 0.")
-    volume = 0
-    end
-    @@bot[:mpd].volume = volume
-    end
-
-    if message.match(/^v[+]+$/)
-    multi = message.match(/^v([+]+)$/)[1].scan(/\+/).length
-    volume = ((@@bot[:mpd].volume).to_i + 5 * multi)
-    if volume > 100
-    channelmessage( "Volume can't be set to &gt; 100.")
-    volume = 100
-    end
-    @@bot[:mpd].volume = volume
-    end
-
-    if message == 'update'
-    @@bot[:mpd].update
-    privatemessage("Running database update...")
-    while @@bot[:mpd].status[:updating_db] != nil do
-    sleep 0.5
-    end
-    privatemessage("Done.")
-    end
-
-    if message == 'displayinfo'
-    begin
-    if @@bot[:use_comment_for_status_display] == true
-    @@bot[:use_comment_for_status_display] = false
-    privatemessage( "Output is now \"Channel\"")
-    @@bot[:cli].set_comment(@template_if_comment_disabled % [@controlstring])
-    else
-    @@bot[:use_comment_for_status_display] = true
-    privatemessage( "Output is now \"Comment\"")
-    @@bot[:cli].set_comment(@template_if_comment_enabled)
-    end
-    rescue NoMethodError
-    if @@bot[:debug]
-    puts "#{$!}"
-    end
-    end
-    end
-
-    if message == 'mpdconfig'
-    begin
-    config = @@bot[:mpd].config
-    rescue
-    config = "Configuration only for local clients readable"
-    end
-    privatemessage( config)
-    end
-
-    if message == 'mpdcommands'
-    output = ""
-    @@bot[:mpd].commands.each do |command|
-    output << "<br>#{command}"
-    end
-    privatemessage( output)
-    end
-
-    if message == 'mpdnotcommands'
-    output = ""
-    @@bot[:mpd].notcommands.each do |command|
-    output << "<br\>#{command}"
-    end
-    privatemessage( output)
-    end
-
-    if message == 'mpdurlhandlers'
-    output = ""
-    @@bot[:mpd].url_handlers.each do |handler|
-    output << "<br\>#{handler}"
-    end
-    privatemessage( output)
-    end
-
-    if message == 'mpddecoders'
-    output = "<table>"
-    @@bot[:mpd].decoders.each do |decoder|
-    output << "<tr>"
-    output << "<td>#{decoder[:plugin]}</td>"
-    output << "<td>"
-    begin
-    decoder[:suffix].each do |suffix|
-    output << "#{suffix} "
-    end
-    output << "</td>"
-    rescue
-    output << "#{decoder[:suffix]}"
-    end
-    end
-    output << "</table>"
-    privatemessage( output)
-    end
-    end
-    */
   }
 
   std::string MpdPlugin::Impl::time_decode (uint time)

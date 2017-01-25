@@ -130,7 +130,7 @@ namespace Mpd
   FlagSet<Idle> Client::recv_idle (bool disable_timeout)
   {
     return FlagSet<Idle> (static_cast<Idle> (mpd_recv_idle (pimpl->connection,
-                          disable_timeout)));
+                                                            disable_timeout)));
   }
 
   FlagSet<Idle> Client::idle ()
@@ -141,7 +141,7 @@ namespace Mpd
   FlagSet<Idle> Client::idle_mask (FlagSet<Idle> mask)
   {
     return FlagSet<Idle> (static_cast<Idle> (mpd_run_idle_mask (pimpl->connection,
-                          static_cast<mpd_idle> (mask.to_enum ()))));
+                                                                static_cast<mpd_idle> (mask.to_enum ()))));
   }
 
   FlagSet<Idle> Client::noidle ()
@@ -527,6 +527,377 @@ namespace Mpd
     if (!mpd_run_change_volume (pimpl->connection, relative_volume))
       {
         throw std::runtime_error ("mpd_send_run_change_volume () failed");
+      }
+  }
+
+  void Client::send_list_queue_meta ()
+  {
+    if (!mpd_send_list_queue_meta (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_list_queue_meta () failed");
+      }
+  }
+
+  void Client::send_list_queue_range_meta (unsigned start, unsigned end)
+  {
+    if (!mpd_send_list_queue_range_meta (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_send_list_queue_range_meta () failed");
+      }
+  }
+
+  void Client::send_get_queue_song_pos (unsigned pos)
+  {
+    if (!mpd_send_get_queue_song_pos (pimpl->connection, pos))
+      {
+        throw std::runtime_error ("mpd_send_get_queue_song_pos () failed");
+      }
+  }
+
+  Song Client::get_queue_song_pos (unsigned pos)
+  {
+    auto song_ptr = mpd_run_get_queue_song_pos (pimpl->connection, pos);
+    if (!song_ptr)
+      {
+        throw std::runtime_error ("mpd_run_get_queue_song_pos () failed");
+      }
+    return Song {song_ptr};
+  }
+
+  void Client::send_get_queue_song_id (unsigned id)
+  {
+    if (!mpd_send_get_queue_song_id (pimpl->connection, id))
+      {
+        throw std::runtime_error ("mpd_send_get_queue_song_id () failed");
+      }
+  }
+
+  Song Client::get_queue_song_id (unsigned id)
+  {
+    auto song_ptr = mpd_run_get_queue_song_id (pimpl->connection, id);
+    if (!song_ptr)
+      {
+        throw std::runtime_error ("mpd_run_get_queue_song_id () failed");
+      }
+    return Song {song_ptr};
+  }
+
+  void Client::send_queue_changes_meta (unsigned version)
+  {
+    if (!mpd_send_queue_changes_meta (pimpl->connection, version))
+      {
+        throw std::runtime_error ("mpd_send_queue_changes_meta () failed");
+      }
+  }
+
+  void Client::send_queue_changes_brief (unsigned version)
+  {
+    if (!mpd_send_queue_changes_brief (pimpl->connection, version))
+      {
+        throw std::runtime_error ("mpd_send_queue_changes_brief () failed");
+      }
+  }
+
+  void Client::recv_queue_change_brief (unsigned *position_r, unsigned *id_r)
+  {
+    if (!mpd_recv_queue_change_brief (pimpl->connection, position_r, id_r))
+      {
+        throw std::runtime_error ("mpd_recv_ () failed");
+      }
+  }
+
+  void Client::send_add (const std::string &file)
+  {
+    if (!mpd_send_add (pimpl->connection, file.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_add () failed");
+      }
+  }
+
+  void Client::add (const std::string &uri)
+  {
+    if (!mpd_run_add (pimpl->connection, uri.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_add () failed");
+      }
+  }
+    
+    void Client::send_add_id (const std::string &file)
+  {
+    if (!mpd_send_add_id (pimpl->connection, file.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_add_id () failed");
+      }
+  }
+
+  void Client::send_add_id_to (const std::string &uri, unsigned to)
+  {
+    if (!mpd_send_add_id_to (pimpl->connection, uri.c_str (), to))
+      {
+        throw std::runtime_error ("mpd_send_add_id_to () failed");
+      }
+  }
+
+  int Client::recv_song_id ()
+  {
+    auto song_id = mpd_recv_song_id (pimpl->connection);
+    if (song_id == -1)
+      {
+        if (error () != Error::Success)
+          {
+            throw std::runtime_error ("mpd_recv_song_id () failed");
+          }
+      }
+    return song_id;
+  }
+
+  int Client::add_id (const std::string &file)
+  {
+    auto song_id = mpd_run_add_id (pimpl->connection, file.c_str ());
+    if (song_id == -1)
+      {
+        if (error () != Error::Success)
+          {
+            throw std::runtime_error ("mpd_run_add_id () failed");
+          }
+      }
+    return song_id;
+  }
+
+  int Client::add_id_to (const std::string &uri, unsigned to)
+  {
+    auto song_id = mpd_run_add_id_to (pimpl->connection, uri.c_str (), to);
+    if (song_id == -1)
+      {
+        if (error () != Error::Success)
+          {
+            throw std::runtime_error ("mpd_run_add_id_to () failed");
+          }
+      }
+    return song_id;
+  }
+
+  void Client::send_delete (unsigned pos)
+  {
+    if (!mpd_send_delete (pimpl->connection, pos))
+      {
+        throw std::runtime_error ("mpd_send_delete () failed");
+      }
+  }
+
+  void Client::delete_ (unsigned pos)
+  {
+    if (!mpd_run_delete (pimpl->connection, pos))
+      {
+        throw std::runtime_error ("mpd_run_delete () failed");
+      }
+  }
+
+  void Client::send_delete_range (unsigned start, unsigned end)
+  {
+    if (!mpd_send_delete_range (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_send_delete_range () failed");
+      }
+  }
+
+  void Client::delete_range (unsigned start, unsigned end)
+  {
+    if (!mpd_run_delete_range (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_run_delete_range () failed");
+      }
+  }
+
+  void Client::send_delete_id (unsigned id)
+  {
+    if (!mpd_send_delete_id (pimpl->connection, id))
+      {
+        throw std::runtime_error ("mpd_send_delete_id () failed");
+      }
+  }
+
+  void Client::delete_id (unsigned id)
+  {
+    if (!mpd_run_delete_id (pimpl->connection, id))
+      {
+        throw std::runtime_error ("mpd_run_delete_id () failed");
+      }
+  }
+
+  void Client::send_shuffle ()
+  {
+    if (!mpd_send_shuffle (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_shuffle () failed");
+      }
+  }
+
+  void Client::shuffle ()
+  {
+    if (!mpd_run_shuffle (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_run_shuffle () failed");
+      }
+  }
+
+  void Client::send_shuffle_range (unsigned start, unsigned end)
+  {
+    if (!mpd_send_shuffle_range (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_send_shuffle_range () failed");
+      }
+  }
+
+  void Client::shuffle_range (unsigned start, unsigned end)
+  {
+    if (!mpd_run_shuffle_range (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_run_shuffle_range () failed");
+      }
+  }
+
+  void Client::send_clear ()
+  {
+    if (!mpd_send_clear (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_clear () failed");
+      }
+  }
+
+  void Client::clear ()
+  {
+    if (!mpd_run_clear (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_run_clear () failed");
+      }
+  }
+
+  void Client::send_move (unsigned from, unsigned to)
+  {
+    if (!mpd_send_move (pimpl->connection, from, to))
+      {
+        throw std::runtime_error ("mpd_send_move () failed");
+      }
+  }
+
+  void Client::move (unsigned from, unsigned to)
+  {
+    if (!mpd_run_move (pimpl->connection, from, to))
+      {
+        throw std::runtime_error ("mpd_run_move () failed");
+      }
+  }
+
+  void Client::send_move_id (unsigned from, unsigned to)
+  {
+    if (!mpd_send_move_id (pimpl->connection, from, to))
+      {
+        throw std::runtime_error ("mpd_send_move_id () failed");
+      }
+  }
+
+  void Client::move_id (unsigned from, unsigned to)
+  {
+    if (!mpd_run_move_id (pimpl->connection, from, to))
+      {
+        throw std::runtime_error ("mpd_run_move_id () failed");
+      }
+  }
+
+  void Client::send_move_range (unsigned start, unsigned end, unsigned to)
+  {
+    if (!mpd_send_move_range (pimpl->connection, start, end, to))
+      {
+        throw std::runtime_error ("mpd_send_move_range () failed");
+      }
+  }
+
+  void Client::move_range (unsigned start, unsigned end, unsigned to)
+  {
+    if (!mpd_run_move_range (pimpl->connection, start, end, to))
+      {
+        throw std::runtime_error ("mpd_run_move_range () failed");
+      }
+  }
+
+  void Client::send_swap (unsigned pos1, unsigned pos2)
+  {
+    if (!mpd_send_swap (pimpl->connection, pos1, pos2))
+      {
+        throw std::runtime_error ("mpd_send_swap () failed");
+      }
+  }
+
+  void Client::swap (unsigned pos1, unsigned pos2)
+  {
+    if (!mpd_run_swap (pimpl->connection, pos1, pos2))
+      {
+        throw std::runtime_error ("mpd_run_swap () failed");
+      }
+  }
+
+  void Client::send_swap_id (unsigned id1, unsigned id2)
+  {
+    if (!mpd_send_swap_id (pimpl->connection, id1, id2))
+      {
+        throw std::runtime_error ("mpd_send_swap_id () failed");
+      }
+  }
+
+  void Client::swap_id (unsigned id1, unsigned id2)
+  {
+    if (!mpd_run_swap_id (pimpl->connection, id1, id2))
+      {
+        throw std::runtime_error ("mpd_run_swap_id () failed");
+      }
+  }
+
+  void Client::send_prio (int priority, unsigned position)
+  {
+    if (!mpd_send_prio (pimpl->connection, priority, position))
+      {
+        throw std::runtime_error ("mpd_send_prio () failed");
+      }
+  }
+
+  void Client::prio (int priority, unsigned position)
+  {
+    if (!mpd_run_prio (pimpl->connection, priority, position))
+      {
+        throw std::runtime_error ("mpd_run_prio () failed");
+      }
+  }
+
+  void Client::send_prio_range (int priority, unsigned start, unsigned end)
+  {
+    if (!mpd_send_prio_range (pimpl->connection, priority, start, end))
+      {
+        throw std::runtime_error ("mpd_send_prio_range () failed");
+      }
+  }
+
+  void Client::prio_range (int priority, unsigned start, unsigned end)
+  {
+    if (!mpd_run_prio_range (pimpl->connection, priority, start, end))
+      {
+        throw std::runtime_error ("mpd_run_prio_range () failed");
+      }
+  }
+
+  void Client::send_prio_id (int priority, unsigned id)
+  {
+    if (!mpd_send_prio_id (pimpl->connection, priority, id))
+      {
+        throw std::runtime_error ("mpd_send_prio_id () failed");
+      }
+  }
+
+  void Client::prio_id (int priority, unsigned id)
+  {
+    if (!mpd_run_prio_id (pimpl->connection, priority, id))
+      {
+        throw std::runtime_error ("mpd_run_prio_id () failed");
       }
   }
 }

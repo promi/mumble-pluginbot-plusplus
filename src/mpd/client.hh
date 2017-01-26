@@ -28,6 +28,7 @@
 #include "mpd/flag-set.hh"
 #include "mpd/status.hh"
 #include "mpd/song.hh"
+#include "mpd/operator.hh"
 
 namespace Mpd
 {
@@ -175,5 +176,31 @@ namespace Mpd
     void prio_range (int priority, unsigned start, unsigned end);
     void send_prio_id (int priority, unsigned id);
     void prio_id (int priority, unsigned id);
+    // Search
+    void search_db_songs (bool exact);
+    void search_add_db_songs (bool exact);
+    void search_queue_songs (bool exact);
+    void search_db_tags (TagType type);
+    void count_db_songs ();
+    void search_add_base_constraint (Operator oper, const std::string &value);
+    void search_add_uri_constraint (Operator oper, const std::string &value);
+    void search_add_tag_constraint (Operator oper, TagType type,
+                                    const std::string &value);
+    void search_add_any_tag_constraint (Operator oper, const std::string &value);
+    void search_add_modified_since_constraint (Operator oper, time_t value);
+    void search_add_window (unsigned start, unsigned end);
+    void search_commit ();
+    void search_cancel ();
+    std::pair<std::string, std::string> recv_pair_tag (TagType type);
+    // Database
+    void send_list_all (const std::string &path);
+    void send_list_all_meta (const std::string &path);
+    void send_list_meta (const std::string &path);
+    void send_read_comments (const std::string &path);
+    void send_update (const std::string &path);
+    void send_rescan (const std::string &path);
+    unsigned recv_update_id ();
+    unsigned update (const std::string &path);
+    unsigned rescan (const std::string &path);
   };
 }

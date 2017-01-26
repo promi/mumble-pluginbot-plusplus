@@ -902,4 +902,212 @@ namespace Mpd
         throw std::runtime_error ("mpd_run_prio_id () failed");
       }
   }
+
+  void Client::search_db_songs (bool exact)
+  {
+    if (!mpd_search_db_songs (pimpl->connection, exact))
+      {
+        throw std::runtime_error ("mpd_search_db_songs () failed");
+      }
+  }
+
+  void Client::search_add_db_songs (bool exact)
+  {
+    if (!mpd_search_add_db_songs (pimpl->connection, exact))
+      {
+        throw std::runtime_error ("mpd_search_add_db_songs () failed");
+      }
+  }
+
+  void Client::search_queue_songs (bool exact)
+  {
+    if (!mpd_search_queue_songs (pimpl->connection, exact))
+      {
+        throw std::runtime_error ("mpd_search_queue_songs () failed");
+      }
+  }
+
+  void Client::search_db_tags (TagType type)
+  {
+    if (!mpd_search_db_tags (pimpl->connection, static_cast<mpd_tag_type> (type)))
+      {
+        throw std::runtime_error ("mpd_search_db_tags () failed");
+      }
+  }
+
+  void Client::count_db_songs ()
+  {
+    if (!mpd_count_db_songs (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_count_db_songs () failed");
+      }
+  }
+
+  void Client::search_add_base_constraint (Operator oper,
+      const std::string &value)
+  {
+    if (!mpd_search_add_base_constraint (pimpl->connection,
+                                         static_cast<mpd_operator> (oper),
+                                         value.c_str ()))
+      {
+        throw std::runtime_error ("mpd_search_add_base_constraint () failed");
+      }
+  }
+
+  void Client::search_add_uri_constraint (Operator oper, const std::string &value)
+  {
+    if (!mpd_search_add_uri_constraint (pimpl->connection,
+                                        static_cast<mpd_operator> (oper),
+                                        value.c_str ()))
+      {
+        throw std::runtime_error ("mpd_search_add_uri_constraint () failed");
+      }
+  }
+
+  void Client::search_add_tag_constraint (Operator oper, TagType type,
+                                          const std::string &value)
+  {
+    if (!mpd_search_add_tag_constraint (pimpl->connection,
+                                        static_cast<mpd_operator> (oper),
+                                        static_cast<mpd_tag_type> (type),
+                                        value.c_str ()))
+      {
+        throw std::runtime_error ("mpd_search_add_tag_constraint () failed");
+      }
+  }
+
+  void Client::search_add_any_tag_constraint (Operator oper,
+      const std::string &value)
+  {
+    if (!mpd_search_add_any_tag_constraint (pimpl->connection,
+                                            static_cast<mpd_operator> (oper),
+                                            value.c_str ()))
+      {
+        throw std::runtime_error ("mpd_search_add_any_tag_constraint () failed");
+      }
+  }
+
+  void Client::search_add_modified_since_constraint (Operator oper, time_t value)
+  {
+    if (!mpd_search_add_modified_since_constraint (pimpl->connection,
+        static_cast<mpd_operator> (oper),
+        value))
+      {
+        throw std::runtime_error ("mpd_search_add_modified_since_constraint () failed");
+      }
+  }
+
+  void Client::search_add_window (unsigned start, unsigned end)
+  {
+    if (!mpd_search_add_window (pimpl->connection, start, end))
+      {
+        throw std::runtime_error ("mpd_search_add_window () failed");
+      }
+  }
+
+  void Client::search_commit ()
+  {
+    if (!mpd_search_commit (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_search_commit () failed");
+      }
+  }
+
+  void Client::search_cancel ()
+  {
+    mpd_search_cancel (pimpl->connection);
+  }
+
+  std::pair<std::string, std::string> Client::recv_pair_tag (TagType type)
+  {
+    auto pair_ptr = mpd_recv_pair_tag (pimpl->connection,
+                                       static_cast<mpd_tag_type> (type));
+    if (pair_ptr == nullptr)
+      {
+        throw std::runtime_error ("mpd_recv_pair_tag () failed");
+      }
+    std::pair<std::string, std::string> pair;
+    pair.first = pair_ptr->name;
+    pair.second = pair_ptr->value;
+    return pair;
+  }
+
+  void Client::send_list_all (const std::string &path)
+  {
+    if (!mpd_send_list_all (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_list_all () failed");
+      }
+  }
+
+  void Client::send_list_all_meta (const std::string &path)
+  {
+    if (!mpd_send_list_all_meta (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_list_all_meta () failed");
+      }
+  }
+
+  void Client::send_list_meta (const std::string &path)
+  {
+    if (!mpd_send_list_meta (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_list_meta () failed");
+      }
+  }
+
+  void Client::send_read_comments (const std::string &path)
+  {
+    if (!mpd_send_read_comments (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_read_comments () failed");
+      }
+  }
+
+  void Client::send_update (const std::string &path)
+  {
+    if (!mpd_send_update (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_update () failed");
+      }
+  }
+
+  void Client::send_rescan (const std::string &path)
+  {
+    if (!mpd_send_rescan (pimpl->connection, path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_rescan () failed");
+      }
+  }
+
+  unsigned Client::recv_update_id ()
+  {
+    auto update_id = mpd_recv_update_id (pimpl->connection);
+    if (update_id == 0)
+      {
+        throw std::runtime_error ("mpd_recv_update_id () failed");
+      }
+    return update_id;
+  }
+
+  unsigned Client::update (const std::string &path)
+  {
+    auto update_id = mpd_run_update (pimpl->connection, path.c_str ());
+    if (update_id == 0)
+      {
+        throw std::runtime_error ("mpd_run_update () failed");
+      }
+    return update_id;
+  }
+
+  unsigned Client::rescan (const std::string &path)
+  {
+    auto update_id = mpd_run_rescan (pimpl->connection, path.c_str ());
+    if (update_id == 0)
+      {
+        throw std::runtime_error ("mpd_run_rescan () failed");
+      }
+    return update_id;
+  }
+
 }

@@ -744,20 +744,32 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        block = 0
-        out = ""
-        @@bot[:mpd].songs.each do |song|
-        if block >= 50
-        privatemessage(out.to_s)
-        out = ""
-        block = 0
-        end
-        out << "<br/>" + song.file.to_s
-        block += 1
-        end
-        privatemessage(out.to_s)
-      */
+      const std::string &chunk_header = "<ul>\n";
+      const std::string &chunk_footer = "</ul>\n";
+
+      auto &mpd = ca.mpd_client;
+      mpd.send_list_all ("");
+      std::stringstream buffer;
+      buffer << chunk_header;
+      std::unique_ptr<Mpd::Song> song;
+      // TODO: Even though the generated messages seem to be fine, only a certain amount
+      // actually makes it to the Mumble client. Find out where the message is lost.
+      for (size_t i = 0; (song = mpd.recv_song ()) != nullptr; i++)
+        {
+          buffer << li_tag (song->uri ());
+          if ((i + 1) % 50 == 0)
+            {
+              buffer << chunk_footer;
+              private_message (buffer.str ());
+              buffer.clear ();
+              buffer << chunk_header;
+            }
+        }
+      if (buffer.str () != chunk_header)
+        {
+          buffer << chunk_footer;
+          private_message (buffer.str ());
+        }
     };
     return {help, invoke};
   }

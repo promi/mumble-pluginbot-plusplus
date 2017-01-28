@@ -193,6 +193,17 @@ namespace Mpd
       }
   }
 
+  std::vector<std::unique_ptr<Song>> Client::recv_songs ()
+  {
+    std::vector<std::unique_ptr<Song>> v;
+    for (std::unique_ptr<Song> song;
+         (song = recv_song ()) != nullptr; )
+      {
+        v.emplace_back (std::move (song));
+      }
+    return v;
+  }
+
   void Client::send_current_song ()
   {
     if (!mpd_send_current_song (pimpl->connection))
@@ -1133,7 +1144,7 @@ namespace Mpd
       }
   }
 
-  std::vector<std::unique_ptr<Playlist>> Client::playlists ()
+  std::vector<std::unique_ptr<Playlist>> Client::recv_playlists ()
   {
     std::vector<std::unique_ptr<Playlist>> v;
     send_list_playlists ();

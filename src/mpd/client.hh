@@ -89,6 +89,7 @@ namespace Mpd
     Status status ();
     // Song
     std::unique_ptr<Song> recv_song ();
+    std::vector<std::unique_ptr<Song>> recv_songs ();
     // Player
     void send_current_song ();
     std::unique_ptr<Song> current_song ();
@@ -207,7 +208,7 @@ namespace Mpd
     // Playlist
     void send_list_playlists ();
     std::unique_ptr<Playlist> recv_playlist ();
-    std::vector<std::unique_ptr<Playlist>> playlists ();
+    std::vector<std::unique_ptr<Playlist>> recv_playlists ();
     void send_list_playlist (const std::string &name);
     void send_list_playlist_meta (const std::string &name);
     void send_playlist_clear (const std::string &name);

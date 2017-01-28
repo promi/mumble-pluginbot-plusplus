@@ -242,6 +242,7 @@ namespace Mumble
     MumbleProto::TextMessage msg;
     msg.add_channel_id (channel_id);
     msg.set_message (message_text);
+    send (msg);
     return m_channels.at (channel_id);
   }
 

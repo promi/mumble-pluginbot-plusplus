@@ -125,6 +125,8 @@ namespace MumblePluginBot
     Command displayinfo ();
     std::string time_decode (uint time);
     std::vector<uint> split_timecode (const std::string &timecode);
+    std::unique_ptr<Mpd::Playlist> playlist_by_id (const CommandArgs &ca,
+        int playlist_id);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -790,30 +792,17 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist_id = std::stoi (ca.arguments);
-      try
+      auto playlist = playlist_by_id (ca, std::stoi (ca.arguments));
+      if (playlist == nullptr)
         {
-          auto playlists = mpd.playlists ();
-          if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
-            {
-              private_message ("A playlist with that id does not exist.");
-            }
-          else
-            {
-              auto playlist = std::move (playlists.at (playlist_id));
-              auto path = playlist->path ();
-              mpd.clear ();
-              mpd.load (path);
-              mpd.play ();
-              private_message ("The playlist \"" + path +
-                               "\" was loaded and is now playing.");
-            }
+          return;
         }
-      catch (const std::runtime_error &e)
-        {
-          private_message ("A playlist with that id could not be loaded.");
-          AITHER_DEBUG("Error loading playlist: " << playlist_id << ", " << e.what ());
-        }
+      auto path = playlist->path ();
+      mpd.clear ();
+      mpd.load (path);
+      mpd.play ();
+      private_message ("The playlist \"" + path +
+                       "\" was loaded and is now playing.");
     };
     return {help, invoke};
   }
@@ -857,27 +846,14 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist_id = std::stoi (ca.arguments);
-      try
+      auto playlist = playlist_by_id (ca, std::stoi (ca.arguments));
+      if (playlist == nullptr)
         {
-          auto playlists = mpd.playlists ();
-          if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
-            {
-              private_message ("A playlist with that id does not exist.");
-            }
-          else
-            {
-              auto playlist = std::move (playlists.at (playlist_id));
-              auto path = playlist->path ();
-              mpd.rm (path);
-              private_message ("The playlist \"" + path + "\" was deleted.");
-            }
+          return;
         }
-      catch (const std::runtime_error &e)
-        {
-          private_message ("A playlist with that id could not be loaded.");
-          AITHER_DEBUG("Error loading playlist: " << playlist_id << ", " << e.what ());
-        }
+      auto path = playlist->path ();
+      mpd.rm (path);
+      private_message ("The playlist \"" + path + "\" was deleted.");
     };
     return {help, invoke};
   }
@@ -1458,5 +1434,22 @@ namespace MumblePluginBot
         v.push_back (std::stoi (part));
       }
     return v;
+  }
+
+  std::unique_ptr<Mpd::Playlist> MpdPlugin::Impl::playlist_by_id (
+    const CommandArgs &ca,
+    int playlist_id)
+  {
+    auto &mpd = ca.mpd_client;
+    auto playlists = mpd.recv_playlists ();
+    if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
+      {
+        private_message ("A playlist with that id does not exist.");
+        return nullptr;
+      }
+    else
+      {
+        return std::move (playlists.at (playlist_id));
+      }
   }
 }

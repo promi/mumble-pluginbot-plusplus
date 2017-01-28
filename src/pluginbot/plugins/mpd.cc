@@ -826,21 +826,19 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-            name = message.gsub("saveplaylist", "").lstrip
-            if name != ""
-            puts name
-            playlist = MPD::Playlist.new(@@bot[:mpd], name)
-            @@bot[:mpd].queue.each do |song|
-            playlist.add song
-            end
-
-            privatemessage( "The playlist \"#{name}\" was created.
-            Use the command #{@@bot[:controlstring]}playlists to get a list of all available playlists." )
-            else
-            privatemessage( "no playlist name gaven.")
-            end
-      */
+      auto name = ca.arguments;
+      if (name == "")
+        {
+          private_message ("Please specify a playlist name.");
+        }
+      else
+        {
+          AITHER_DEBUG (name);
+          ca.mpd_client.save (name);
+          private_message ("The playlist \"" + name + "\" was created. Use the command " +
+                           settings.controlstring + "playlists to get a list of " +
+                           "all available playlists.");
+        }
     };
     return {help, invoke};
   }

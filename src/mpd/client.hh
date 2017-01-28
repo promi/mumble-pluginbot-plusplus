@@ -22,6 +22,7 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include <vector>
 
 #include "mpd/error.hh"
 #include "mpd/idle.hh"
@@ -29,6 +30,7 @@
 #include "mpd/status.hh"
 #include "mpd/song.hh"
 #include "mpd/operator.hh"
+#include "mpd/playlist.hh"
 
 namespace Mpd
 {
@@ -89,7 +91,7 @@ namespace Mpd
     std::unique_ptr<Song> recv_song ();
     // Player
     void send_current_song ();
-    Song current_song ();
+    std::unique_ptr<Song> current_song ();
     void send_play ();
     void play ();
     void send_play_pos (unsigned song_pos);
@@ -202,5 +204,26 @@ namespace Mpd
     unsigned recv_update_id ();
     unsigned update (const std::string &path);
     unsigned rescan (const std::string &path);
+    // Playlist
+    void send_list_playlists ();
+    std::unique_ptr<Playlist> recv_playlist ();
+    std::vector<std::unique_ptr<Playlist>> playlists ();
+    void send_list_playlist (const std::string &name);
+    void send_list_playlist_meta (const std::string &name);
+    void send_playlist_clear (const std::string &name);
+    void playlist_clear (const std::string &name);
+    void send_playlist_add (const std::string &name, const std::string &path);
+    void playlist_add (const std::string &name, const std::string &path);
+    void send_playlist_move (const std::string &name, unsigned from, unsigned to);
+    void send_playlist_delete (const std::string &name, unsigned pos);
+    void playlist_delete (const std::string &name, unsigned pos);
+    void send_save (const std::string &name);
+    void save (const std::string &name);
+    void send_load (const std::string &name);
+    void load (const std::string &name);
+    void send_rename (const std::string &from, const std::string &to);
+    void rename (const std::string &from, const std::string &to);
+    void send_rm (const std::string &name);
+    void rm (const std::string &name);
   };
 }

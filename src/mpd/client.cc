@@ -201,15 +201,17 @@ namespace Mpd
       }
   }
 
-  Song Client::current_song ()
+  std::unique_ptr<Song> Client::current_song ()
   {
     auto song_ptr = mpd_run_current_song (pimpl->connection);
     if (song_ptr == nullptr)
       {
-        throw std::runtime_error ("mpd_run_current_song () failed");
+        return nullptr;
       }
-    Song s {song_ptr};
-    return s;
+    else
+      {
+        return std::make_unique<Song> (song_ptr);
+      }
   }
 
   void Client::send_play ()
@@ -1110,4 +1112,174 @@ namespace Mpd
     return update_id;
   }
 
+  void Client::send_list_playlists ()
+  {
+    if (!mpd_send_list_playlists (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_list_playlists () failed");
+      }
+  }
+
+  std::unique_ptr<Playlist> Client::recv_playlist ()
+  {
+    auto playlist_ptr = mpd_recv_playlist (pimpl->connection);
+    if (playlist_ptr == nullptr)
+      {
+        return nullptr;
+      }
+    else
+      {
+        return std::make_unique<Playlist> (playlist_ptr);
+      }
+  }
+
+  std::vector<std::unique_ptr<Playlist>> Client::playlists ()
+  {
+    std::vector<std::unique_ptr<Playlist>> v;
+    send_list_playlists ();
+    for (std::unique_ptr<Playlist> playlist;
+         (playlist = recv_playlist ()) != nullptr; )
+      {
+        v.emplace_back (std::move (playlist));
+      }
+    return v;
+  }
+
+  void Client::send_list_playlist (const std::string &name)
+  {
+    if (!mpd_send_list_playlist (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_list_playlist () failed");
+      }
+  }
+
+  void Client::send_list_playlist_meta (const std::string &name)
+  {
+    if (!mpd_send_list_playlist_meta (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_list_playlist_meta () failed");
+      }
+  }
+
+  void Client::send_playlist_clear (const std::string &name)
+  {
+    if (!mpd_send_playlist_clear (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_playlist_clear () failed");
+      }
+  }
+
+  void Client::playlist_clear (const std::string &name)
+  {
+    if (!mpd_run_playlist_clear (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_playlist_clear () failed");
+      }
+  }
+
+  void Client::send_playlist_add (const std::string &name,
+                                  const std::string &path)
+  {
+    if (!mpd_send_playlist_add (pimpl->connection, name.c_str (), path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_playlist_add () failed");
+      }
+  }
+
+  void Client::playlist_add (const std::string &name, const std::string &path)
+  {
+    if (!mpd_run_playlist_add (pimpl->connection, name.c_str (), path.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_playlist_add () failed");
+      }
+  }
+
+  void Client::send_playlist_move (const std::string &name, unsigned from,
+                                   unsigned to)
+  {
+    if (!mpd_send_playlist_move (pimpl->connection, name.c_str (), from, to))
+      {
+        throw std::runtime_error ("mpd_send_playlist_move () failed");
+      }
+  }
+
+  void Client::send_playlist_delete (const std::string &name, unsigned pos)
+  {
+    if (!mpd_send_playlist_delete (pimpl->connection, name.c_str (), pos))
+      {
+        throw std::runtime_error ("mpd_send_playlist_delete () failed");
+      }
+  }
+
+  void Client::playlist_delete (const std::string &name, unsigned pos)
+  {
+    if (!mpd_run_playlist_delete (pimpl->connection, name.c_str (), pos))
+      {
+        throw std::runtime_error ("mpd_run_playlist_delete () failed");
+      }
+  }
+
+  void Client::send_save (const std::string &name)
+  {
+    if (!mpd_send_save (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_save () failed");
+      }
+  }
+
+  void Client::save (const std::string &name)
+  {
+    if (!mpd_run_save (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_save () failed");
+      }
+  }
+
+  void Client::send_load (const std::string &name)
+  {
+    if (!mpd_send_load (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_load () failed");
+      }
+  }
+
+  void Client::load (const std::string &name)
+  {
+    if (!mpd_run_load (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_load () failed");
+      }
+  }
+
+  void Client::send_rename (const std::string &from, const std::string &to)
+  {
+    if (!mpd_send_rename (pimpl->connection, from.c_str (), to.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_rename () failed");
+      }
+  }
+
+  void Client::rename (const std::string &from, const std::string &to)
+  {
+    if (!mpd_run_rename (pimpl->connection, from.c_str (), to.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_rename () failed");
+      }
+  }
+
+  void Client::send_rm (const std::string &name)
+  {
+    if (!mpd_send_rm (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_send_rm () failed");
+      }
+  }
+
+  void Client::rm (const std::string &name)
+  {
+    if (!mpd_run_rm (pimpl->connection, name.c_str ()))
+      {
+        throw std::runtime_error ("mpd_run_rm () failed");
+      }
+  }
 }

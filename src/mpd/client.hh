@@ -138,9 +138,9 @@ namespace Mpd
     void send_list_queue_meta ();
     void send_list_queue_range_meta (unsigned start, unsigned end);
     void send_get_queue_song_pos (unsigned pos);
-    Song get_queue_song_pos (unsigned pos);
+    std::unique_ptr<Song> get_queue_song_pos (unsigned pos);
     void send_get_queue_song_id (unsigned id);
-    Song get_queue_song_id (unsigned id);
+    std::unique_ptr<Song> get_queue_song_id (unsigned id);
     void send_queue_changes_meta (unsigned version);
     void send_queue_changes_brief (unsigned version);
     void recv_queue_change_brief (unsigned *position_r, unsigned *id_r);

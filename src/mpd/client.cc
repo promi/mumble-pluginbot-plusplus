@@ -569,14 +569,17 @@ namespace Mpd
       }
   }
 
-  Song Client::get_queue_song_pos (unsigned pos)
+  std::unique_ptr<Song> Client::get_queue_song_pos (unsigned pos)
   {
     auto song_ptr = mpd_run_get_queue_song_pos (pimpl->connection, pos);
     if (!song_ptr)
       {
-        throw std::runtime_error ("mpd_run_get_queue_song_pos () failed");
+        return nullptr;
       }
-    return Song {song_ptr};
+    else
+      {
+        return std::make_unique<Song> (song_ptr);
+      }
   }
 
   void Client::send_get_queue_song_id (unsigned id)
@@ -587,14 +590,17 @@ namespace Mpd
       }
   }
 
-  Song Client::get_queue_song_id (unsigned id)
+  std::unique_ptr<Song> Client::get_queue_song_id (unsigned id)
   {
     auto song_ptr = mpd_run_get_queue_song_id (pimpl->connection, id);
     if (!song_ptr)
       {
-        throw std::runtime_error ("mpd_run_get_queue_song_id () failed");
+        return nullptr;
       }
-    return Song {song_ptr};
+    else
+      {
+        return std::make_unique<Song> (song_ptr);
+      }
   }
 
   void Client::send_queue_changes_meta (unsigned version)

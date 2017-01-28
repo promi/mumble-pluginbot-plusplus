@@ -127,6 +127,7 @@ namespace MumblePluginBot
     std::vector<uint> split_timecode (const std::string &timecode);
     std::unique_ptr<Mpd::Playlist> playlist_by_id (const CommandArgs &ca,
         int playlist_id);
+    std::string song_display_text (Mpd::Song& song);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -244,12 +245,12 @@ namespace MumblePluginBot
 
   void MpdPlugin::Impl::update_song (Mpd::Song &song)
   {
-    auto artist = song.tag (Mpd::TagType::Artist, 0);
-    auto title = song.tag (Mpd::TagType::Title, 0);
-    auto album = song.tag (Mpd::TagType::Album, 0);
-    auto file = song.uri ();
     if (settings.use_comment_for_status_display)
       {
+        auto artist = song.tag (Mpd::TagType::Artist, 0);
+        auto title = song.tag (Mpd::TagType::Title, 0);
+        auto album = song.tag (Mpd::TagType::Album, 0);
+        auto file = song.uri ();
         std::stringstream image {settings.logo};
         /*
           if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
@@ -286,16 +287,7 @@ namespace MumblePluginBot
       {
         if (settings.chan_notify.test (MessageType::State))
           {
-            std::string msg;
-            if (artist == nullptr || title == nullptr || album == nullptr)
-              {
-                msg = file;
-              }
-            else
-              {
-                msg = *artist + " - " + *title + " (" + *album + ")";
-              }
-            channel_message (msg);
+            channel_message (song_display_text (song));
           }
       }
   }
@@ -866,14 +858,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-              current = @@bot[:mpd].current_song
-              if not current.nil? #Would crash if playlist was empty.
-              privatemessage( "#{current.artist} - #{current.title} (#{current.album})")
-              else
-              privatemessage( "No song is played currently.")
-              end
-      */
+      auto song = ca.mpd_client.current_song ();
+      if (song == nullptr)
+        {
+          private_message ("No song is currently playing.");
+        }
+      else
+        {
+          private_message (song_display_text (*song));
+        }
     };
     return {help, invoke};
   }
@@ -1450,6 +1443,26 @@ namespace MumblePluginBot
     else
       {
         return std::move (playlists.at (playlist_id));
+      }
+  }
+
+  std::string MpdPlugin::Impl::song_display_text (Mpd::Song& song)
+  {
+    auto artist = song.tag (Mpd::TagType::Artist, 0);
+    auto title = song.tag (Mpd::TagType::Title, 0);
+    auto album = song.tag (Mpd::TagType::Album, 0);
+
+    if (artist != nullptr && title != nullptr && album != nullptr)
+      {
+        return *artist + " - " + *title + " (" + *album + ")";
+      }
+    else if (artist != nullptr && title != nullptr)
+      {
+        return *artist + " - " + *title;
+      }
+    else
+      {
+        return song.uri ();
       }
   }
 }

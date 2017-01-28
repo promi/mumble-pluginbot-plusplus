@@ -796,7 +796,7 @@ namespace MumblePluginBot
           auto playlists = mpd.playlists ();
           if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
             {
-              private_message ("A playlist with that id could not be found.");
+              private_message ("A playlist with that id does not exist.");
             }
           else
             {
@@ -856,16 +856,28 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        playlist_id = message.match(/^delplaylist ([0-9]{1,3})$/)[1].to_i
-        begin
-        playlist = @@bot[:mpd].playlists[playlist_id]
-        playlist.destroy
-        privatemessage( "The playlist \"#{playlist.name}\" deleted.")
-        rescue
-        privatemessage( "Sorry, the given playlist id does not exist.")
-        end
-      */
+      auto &mpd = ca.mpd_client;
+      auto playlist_id = std::stoi (ca.arguments);
+      try
+        {
+          auto playlists = mpd.playlists ();
+          if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
+            {
+              private_message ("A playlist with that id does not exist.");
+            }
+          else
+            {
+              auto playlist = std::move (playlists.at (playlist_id));
+              auto path = playlist->path ();
+              mpd.rm (path);
+              private_message ("The playlist \"" + path + "\" was deleted.");
+            }
+        }
+      catch (const std::runtime_error &e)
+        {
+          private_message ("A playlist with that id could not be loaded.");
+          AITHER_DEBUG("Error loading playlist: " << playlist_id << ", " << e.what ());
+        }
     };
     return {help, invoke};
   }

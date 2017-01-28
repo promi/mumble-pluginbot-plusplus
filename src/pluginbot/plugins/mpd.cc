@@ -86,7 +86,8 @@ namespace MumblePluginBot
     void status_update (const FlagSet<Mpd::Idle> &idle_flags);
     void status_update (const FlagSet<Mpd::Idle> &idle_flags, Mpd::Status &status);
     void idle_thread_proc ();
-    void update_song (Mpd::Song &song);
+    void update_comment (Mpd::Song *song);
+    void update_song (Mpd::Song *song);
     void song_thread_proc ();
     void init_commands ();
     Command seek ();
@@ -246,15 +247,15 @@ namespace MumblePluginBot
       }
   }
 
-  void MpdPlugin::Impl::update_song (Mpd::Song &song)
+  void MpdPlugin::Impl::update_comment (Mpd::Song *song)
   {
-    if (settings.use_comment_for_status_display)
+    std::stringstream output;
+    if (song != nullptr)
       {
-        auto artist = song.tag (Mpd::TagType::Artist, 0);
-        auto title = song.tag (Mpd::TagType::Title, 0);
-        auto album = song.tag (Mpd::TagType::Album, 0);
-        auto file = song.uri ();
-        std::stringstream image {settings.logo};
+        auto artist = song->tag (Mpd::TagType::Artist, 0);
+        auto title = song->tag (Mpd::TagType::Title, 0);
+        auto album = song->tag (Mpd::TagType::Album, 0);
+        auto file = song->uri ();
         // TODO:
         //
         // 1. Find a better way to get the current song image file that does not require
@@ -267,17 +268,14 @@ namespace MumblePluginBot
         // Either make displaying the image optional or detect the maximum comment size
         // and act accordingly.
         /*
+          std::stringstream image {settings.logo};
           if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
           if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
           image = @@bot[:cli].get_imgmsg(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
-          else
-          image = @@bot[:logo]
           end
-          else
-          image = @@bot[:logo]
-          end
+          output << image << "<br>\n";
         */
-        std::stringstream output {"<br><table>"};
+        output << "<table>\n";
         if (artist != nullptr)
           {
             output << "<tr><td>Artist:</td><td>" << *artist << "</td></tr>";
@@ -294,12 +292,22 @@ namespace MumblePluginBot
           {
             output << "<tr><td>Source:</td><td>" << file << "</td></tr>";
           }
-        output << "</table><br>" + info_template;
-        client.comment (output.str ()); // image.str () + output.str ());
+        output << "</table>\n";
+        output << "<br>\n";
+      }
+    output << info_template;
+    client.comment (output.str ());
+  }
+
+  void MpdPlugin::Impl::update_song (Mpd::Song *song)
+  {
+    if (settings.use_comment_for_status_display)
+      {
+        update_comment (song);
       }
     else
       {
-        if (settings.chan_notify.test (MessageType::State))
+        if (song != nullptr)
           {
             channel_message (song_display_text (song));
           }
@@ -319,20 +327,17 @@ namespace MumblePluginBot
         try
           {
             auto song = client.current_song ();
-            if (song == nullptr)
+            std::string file;
+            if (song != nullptr)
               {
-                // TODO: Clear comment, etc.
+                file = song->uri ();
               }
-            else
+            if (init || file != last_file)
               {
-                auto file = song->uri ();
-                if (init || file != last_file)
-                  {
-                    init = false;
-                    last_file = file;
-                    update_song (*song);
-                    AITHER_DEBUG("[displayinfo] update");
-                  }
+                init = false;
+                last_file = file;
+                update_song (song.get ());
+                AITHER_DEBUG("[displayinfo] update");
               }
           }
         catch(std::runtime_error &e)
@@ -1296,26 +1301,22 @@ namespace MumblePluginBot
   {
     std::vector<CommandHelp> help =
     {
-      {"", "."}
+      {"Toggle sending song info to comment or channel.", "."}
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        if @@bot[:use_comment_for_status_display] == true
-        @@bot[:use_comment_for_status_display] = false
-        privatemessage( "Output is now \"Channel\"")
-        @@bot[:cli].set_comment(@template_if_comment_disabled % [@controlstring])
-        else
-        @@bot[:use_comment_for_status_display] = true
-        privatemessage( "Output is now \"Comment\"")
-        @@bot[:cli].set_comment(@template_if_comment_enabled)
-        end
-        rescue NoMethodError
-        if @@bot[:debug]
-        puts "#{$!}"
-        end
-        end
-      */
+      std::string target;
+      if ((settings.use_comment_for_status_display =
+             !settings.use_comment_for_status_display))
+        {
+          target = "Comment";
+        }
+      else
+        {
+          target = "Channel";
+        }
+      update_comment (nullptr);
+      private_message ("Song info updates are now send to: " + target);
     };
     return {help, invoke};
   }

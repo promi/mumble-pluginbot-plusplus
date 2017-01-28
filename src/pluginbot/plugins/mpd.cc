@@ -311,13 +311,20 @@ namespace MumblePluginBot
         try
           {
             auto song = client.current_song ();
-            auto file = song.uri ();
-            if (init || file != last_file)
+            if (song == nullptr)
               {
-                init = false;
-                last_file = file;
-                update_song (song);
-                AITHER_DEBUG("[displayinfo] update");
+                // TODO: Clear comment, etc.
+              }
+            else
+              {
+                auto file = song->uri ();
+                if (init || file != last_file)
+                  {
+                    init = false;
+                    last_file = file;
+                    update_song (*song);
+                    AITHER_DEBUG("[displayinfo] update");
+                  }
               }
           }
         catch(std::runtime_error &e)
@@ -782,18 +789,31 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      playlist_id = message.match(/^playlist ([0-9]{1,3})$/)[1].to_i
-      begin
-      playlist = @@bot[:mpd].playlists[playlist_id]
-      @@bot[:mpd].clear
-      playlist.load
-      @@bot[:mpd].play
-      privatemessage( "The playlist \"#{playlist.name}\" was loaded and starts now.")
-      rescue
-      privatemessage( "Sorry, the given playlist id does not exist.")
-      end
-      */
+      auto &mpd = ca.mpd_client;
+      auto playlist_id = std::stoi (ca.arguments);
+      try
+        {
+          auto playlists = mpd.playlists ();
+          if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
+            {
+              private_message ("A playlist with that id could not be found.");
+            }
+          else
+            {
+              auto playlist = std::move (playlists.at (playlist_id));
+              auto path = playlist->path ();
+              mpd.clear ();
+              mpd.load (path);
+              mpd.play ();
+              private_message ("The playlist \"" + path +
+                               "\" was loaded and is now playing.");
+            }
+        }
+      catch (const std::runtime_error &e)
+        {
+          private_message ("A playlist with that id could not be loaded.");
+          AITHER_DEBUG("Error loading playlist: " << playlist_id << ", " << e.what ());
+        }
     };
     return {help, invoke};
   }

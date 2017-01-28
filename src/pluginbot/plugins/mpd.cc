@@ -123,11 +123,14 @@ namespace MumblePluginBot
     Command mpddecoders ();
     Command mpdurlhandlers ();
     Command displayinfo ();
-    std::string time_decode (uint time);
-    std::vector<uint> split_timecode (const std::string &timecode);
+    static std::string time_decode (uint time);
+    static std::vector<uint> split_timecode (const std::string &timecode);
     std::unique_ptr<Mpd::Playlist> playlist_by_id (const CommandArgs &ca,
         int playlist_id);
-    std::string song_display_text (Mpd::Song& song);
+    static std::string song_display_text (Mpd::Song &song);
+    static std::string song_display_text (Mpd::Song *song);
+    static std::string on_off (bool b);
+    static std::string state_display_text (Mpd::State state);
   };
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
@@ -188,7 +191,7 @@ namespace MumblePluginBot
         if (chan_notify.test (MessageType::Random))
           {
             channel_message (std::string {"Random mode is now: "} +
-                             (status.random () ? "On" : "Off"));
+                             on_off (status.random ()));
           }
         if (chan_notify.test (MessageType::State))
           {
@@ -215,19 +218,19 @@ namespace MumblePluginBot
         if (chan_notify.test (MessageType::Single))
           {
             channel_message (std::string {"Single mode is now: "} +
-                             (status.single () ? "On" : "Off"));
+                             on_off (status.single ()));
           }
         if (chan_notify.test (MessageType::Consume))
           {
             channel_message (std::string {"Consume mode is now: "} +
-                             (status.consume () ? "On" : "Off"));
+                             on_off (status.consume ()));
           }
         if (chan_notify.test (MessageType::XFade))
           {
             auto xfade = status.crossfade ();
             if (xfade == 0)
               {
-                channel_message ("Crossfade is now: Off");
+                channel_message ("Crossfade is now: " + on_off (false));
               }
             else
               {
@@ -238,7 +241,7 @@ namespace MumblePluginBot
         if (chan_notify.test (MessageType::Repeat))
           {
             channel_message (std::string {"Repeat mode is now: "} +
-                             (status.repeat () ? "On" : "Off"));
+                             on_off (status.repeat ()));
           }
       }
   }
@@ -252,6 +255,17 @@ namespace MumblePluginBot
         auto album = song.tag (Mpd::TagType::Album, 0);
         auto file = song.uri ();
         std::stringstream image {settings.logo};
+        // TODO:
+        //
+        // 1. Find a better way to get the current song image file that does not require
+        // this plugin to know so much about how the youtube, etc. plugins store their
+        // images.
+        //
+        // 2. The image combined with the text may be too big to display if the default
+        // comment size limit is set.
+        //
+        // Either make displaying the image optional or detect the maximum comment size
+        // and act accordingly.
         /*
           if ( @@bot[:youtube_downloadsubdir] != nil ) && ( @@bot[:mpd_musicfolder] != nil )
           if File.exist?(@@bot[:mpd_musicfolder]+current.file.to_s.chomp(File.extname(current.file.to_s))+".jpg")
@@ -879,102 +893,32 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        out = "<table>"
-        @@bot[:mpd].status.each do |key, value|
-
-        case
-        when key.to_s == 'volume'
-        out << "<tr><td>Current volume:</td><td>#{value}%</td></tr>"
-        when key.to_s == 'repeat'
-        if value
-        repeat = "on"
-        else
-        repeat = "off"
-        end
-        out << "<tr><td>Repeat mode:</td><td>#{repeat}</td></tr>"
-        when key.to_s == 'random'
-        if value
-        random = "on"
-        else
-        random = "off"
-        end
-        out << "<tr><td>Random mode:</td><td>#{random}</td></tr>"
-        when key.to_s == 'single'
-        if value
-        single = "on"
-        else
-        single = "off"
-        end
-        out << "<tr><td>Single mode:</td><td>#{single}</td></tr>"
-        when key.to_s == 'consume'
-        if value
-        consume = "on"
-        else
-        consume = "off"
-        end
-        out << "<tr><td>Consume mode:</td><td>#{consume}</td></tr>"
-        when key.to_s == 'playlist'
-        out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
-
-        #FIXME Not possible, because the "value" in this context is random(?) after every playlist loading.
-        #playlist = @@bot[:mpd].playlists[value.to_i]
-        #if not playlist.nil?
-        #  out << "<tr><td>Current playlist:</td><td>#{playlist.name}</td></tr>"
-        #else
-        #  out << "<tr><td>Current playlist:</td><td>#{value}</td></tr>"
-        #end
-        when key.to_s == 'playlistlength'
-        out << "<tr><td>Song count in current queue/playlist:</td><td valign='bottom'>#{timedecode(value)}</td></tr>"
-        when key.to_s == 'mixrampdb'
-        out << "<tr><td>Mixramp db:</td><td>#{value}</td></tr>"
-        when key.to_s == 'state'
-        case
-        when value.to_s == 'play'
-        state = "playing"
-        when value.to_s == 'stop'
-        state = "stopped"
-        when value.to_s == 'pause'
-        state = "paused"
-        else
-        state = "unknown state"
-        end
-        out << "<tr><td>Current state:</td><td>#{state}</td></tr>"
-        when key.to_s == 'song'
-        current = @@bot[:mpd].current_song
-        if not current.nil?
-        out << "<tr><td>Current song:</td><td>#{current.artist} - #{current.title} (#{current.album})</td></tr>"
-        else
-        out << "<tr><td>Current song:</td><td>#{value})</td></tr>"
-        end
-        when key.to_s == 'songid'
-        #queue = Queue.new
-        ##queue = @@bot[:mpd].queue
-        #puts "queue: " + queue.inspect
-        #current_song = queue.song_with_id(value.to_i)
-
-        #out << "<tr><td>Current songid:</td><td>#{current_song}</td></tr>"
-        out << "<tr><td>Current songid:</td><td>#{value}</td></tr>"
-        when key.to_s == 'time'
-        out << "<tr><td>Current position:</td><td>#{timedecode(value[0])}/#{timedecode(value[1])}</td></tr>"
-        when key.to_s == 'elapsed'
-        out << "<tr><td>Elapsed:</td><td>#{timedecode(value)}</td></tr>"
-        when key.to_s == 'bitrate'
-        out << "<tr><td>Current song bitrate:</td><td>#{value}</td></tr>"
-        when key.to_s == 'audio'
-        out << "<tr><td>Audio properties:</td><td>samplerate(#{value[0]}), bitrate(#{value[1]}), channels(#{value[2]})</td></tr>"
-        when key.to_s == 'nextsong'
-        out << "<tr><td>Position ID of next song to play (in the queue):</td><td valign='bottom'>#{value}</td></tr>"
-        when key.to_s == 'nextsongid'
-        out << "<tr><td>Song ID of next song to play:</td><td valign='bottom'>#{value}</td></tr>"
-        else
-        out << "<tr><td>#{key}:</td><td>#{value}</td></tr>"
-        end
-
-        end
-        out << "</table>"
-        privatemessage(out)
-      */
+      auto &mpd = ca.mpd_client;
+      auto status = mpd.status ();
+      std::stringstream out {"<table>\n"};
+      auto row = [&] (const std::string key, const std::string value)
+      {
+        out << tr_tag (td_tag (key) + td_tag (value));
+      };
+      row ("Volume", std::to_string (status.volume ()) + "%");
+      row ("Repeat", on_off (status.repeat ()));
+      row ("Random", on_off (status.random ()));
+      row ("Single", on_off (status.single ()));
+      row ("Consume", on_off (status.consume ()));
+      row ("Queue song count", std::to_string (status.queue_length ()));
+      row ("Mixramp", std::to_string (status.mixrampdb ()) + " dB");
+      row ("State", state_display_text (status.state ()));
+      row ("Song", song_display_text (mpd.current_song ().get ()));
+      row ("Song ID", std::to_string (status.song_id ()));
+      row ("Position", time_decode (status.elapsed_time ()) +
+           "/" + time_decode (status.total_time ()));
+      row ("Bitrate", std::to_string (status.kbit_rate ()) + " kbit");
+      // TODO: status.audio_format => MPD AudioFormat
+      row ("Next song", song_display_text (mpd.get_queue_song_id (
+                                             status.next_song_id ()).get ()));
+      row ("Next song ID", std::to_string (status.next_song_id ()));
+      out << "</table>\n";
+      private_message (out.str ());
     };
     return {help, invoke};
   }
@@ -1463,6 +1407,38 @@ namespace MumblePluginBot
     else
       {
         return song.uri ();
+      }
+  }
+
+  std::string MpdPlugin::Impl::song_display_text (Mpd::Song* song)
+  {
+    if (song == nullptr)
+      {
+        return "";
+      }
+    else
+      {
+        return song_display_text (*song);
+      }
+  }
+
+  std::string MpdPlugin::Impl::on_off (bool b)
+  {
+    return b ? "On" : "Off";
+  }
+
+  std::string MpdPlugin::Impl::state_display_text (Mpd::State state)
+  {
+    switch (state)
+      {
+      case Mpd::State::Stop:
+        return "Stopped";
+      case Mpd::State::Play:
+        return "Playing";
+      case Mpd::State::Pause:
+        return "Paused";
+      default:
+        return "Unknown";
       }
   }
 }

@@ -406,6 +406,10 @@ namespace MumblePluginBot
       {
         reply (std::string ("Value was out of range: ") + e.what ());
       }
+    catch (std::exception &e)
+      {
+        reply (std::string {"Unknown error: "} + e.what ());
+      }
     catch (...)
       {
         reply ("Unknown error");

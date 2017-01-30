@@ -1133,6 +1133,7 @@ namespace Mpd
   {
     if (!mpd_send_list_playlists (pimpl->connection))
       {
+        // throw std::runtime_error (error_message ());
         throw std::runtime_error ("mpd_send_list_playlists () failed");
       }
   }
@@ -1153,7 +1154,6 @@ namespace Mpd
   std::vector<std::unique_ptr<Playlist>> Client::recv_playlists ()
   {
     std::vector<std::unique_ptr<Playlist>> v;
-    send_list_playlists ();
     for (std::unique_ptr<Playlist> playlist;
          (playlist = recv_playlist ()) != nullptr; )
       {

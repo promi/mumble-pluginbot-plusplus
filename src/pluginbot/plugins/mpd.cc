@@ -948,15 +948,16 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        text_out = ""
-        counter = 0
-        @@bot[:mpd].playlists.each do |pl|
-        text_out = text_out + "#{counter} - #{pl.name}<br/>"
-        counter += 1
-        end
-        privatemessage( "I know the following playlists:<br>#{text_out}")
-      */
+      std::stringstream ss {"Playlists<br/>\n<table>\n"};
+      auto &mpd = ca.mpd_client;
+      mpd.send_list_playlists ();
+      auto playlists = mpd.recv_playlists ();
+      for (size_t i = 0; i < playlists.size (); i++)
+        {
+          ss << tr_tag (td_tag (std::to_string (i)) + td_tag (playlists[i]->path ()));
+        }
+      ss << "</table>\n";
+      private_message (ss.str ());
     };
     return {help, invoke};
   }
@@ -1391,6 +1392,7 @@ namespace MumblePluginBot
     int playlist_id)
   {
     auto &mpd = ca.mpd_client;
+    mpd.send_list_playlists ();
     auto playlists = mpd.recv_playlists ();
     if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
       {

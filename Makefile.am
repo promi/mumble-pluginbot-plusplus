@@ -76,6 +76,7 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/user.cc
 
 libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
+	src/mpd/audio-format.cc \
 	src/mpd/client.cc \
 	src/mpd/playlist.cc \
 	src/mpd/song.cc \

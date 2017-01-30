@@ -1,7 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -19,47 +18,22 @@
 */
 #pragma once
 
-#include <mpd/client.h>
-
-#include <cassert>
 #include <memory>
-
-#include "mpd/state.hh"
-#include "mpd/audio-format.hh"
+#include <mpd/client.h>
 
 namespace Mpd
 {
-  class Status
+  class AudioFormat
   {
   private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   public:
-    Status (mpd_status *status);
-    Status (Status &&other);
-    ~Status ();
-    void status_feed (const std::pair<std::string, std::string> &pair);
-    int volume () const;
-    bool repeat () const;
-    bool random () const;
-    bool single () const;
-    bool consume () const;
-    uint queue_length () const;
-    uint queue_version () const;
-    State state () const;
-    uint crossfade () const;
-    float mixrampdb () const;
-    float mixrampdelay () const;
-    int song_pos () const;
-    int song_id () const;
-    int next_song_pos () const;
-    int next_song_id () const;
-    uint elapsed_time () const;
-    uint elapsed_ms () const;
-    uint total_time () const;
-    uint kbit_rate () const;
-    AudioFormat audio_format () const;
-    uint update_id () const;
-    // std::string error () const;
+    AudioFormat (const mpd_audio_format &audio_format);
+    AudioFormat (const AudioFormat &other);
+    ~AudioFormat ();
+    uint32_t sample_rate () const;
+    uint8_t bits () const;
+    uint8_t channels () const;
   };
 }

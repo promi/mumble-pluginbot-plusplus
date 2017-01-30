@@ -146,7 +146,15 @@ namespace Mpd
     return mpd_status_get_kbit_rate (pimpl->status);
   }
 
-  // AudioFormat Status::audio_format () const
+  AudioFormat Status::audio_format () const
+  {
+    auto audio_format_ptr = mpd_status_get_audio_format (pimpl->status);
+    if (audio_format_ptr == nullptr)
+      {
+        throw std::runtime_error {"mpd_status_get_audio_format () failed"};
+      }
+    return AudioFormat {*audio_format_ptr};
+  }
 
   uint Status::update_id () const
   {

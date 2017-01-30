@@ -901,6 +901,15 @@ namespace MumblePluginBot
       auto &mpd = ca.mpd_client;
       auto status = mpd.status ();
       auto audio_format = status.audio_format ();
+      std::string sample_rate;
+      std::string bits;
+      std::string channels;
+      if (audio_format)
+        {
+          sample_rate = std::to_string (audio_format->sample_rate ());
+          bits = std::to_string (audio_format->bits ());
+          channels = std::to_string (audio_format->channels ());
+        }
       std::stringstream out {"<table>\n"};
       auto row = [&] (const std::string key, const std::string value)
       {
@@ -919,9 +928,9 @@ namespace MumblePluginBot
       row ("Position", time_decode (status.elapsed_time ()) +
            "/" + time_decode (status.total_time ()));
       row ("Bitrate", std::to_string (status.kbit_rate ()) + " kbit");
-      row ("Samplerate", std::to_string (audio_format.sample_rate ()));
-      row ("Bits", std::to_string (audio_format.bits ()));
-      row ("Channels", std::to_string (audio_format.channels ()));
+      row ("Samplerate", sample_rate);
+      row ("Bits", bits);
+      row ("Channels", channels);
       row ("Next song", song_display_text (mpd.get_queue_song_id (
                                              status.next_song_id ()).get ()));
       row ("Next song ID", std::to_string (status.next_song_id ()));

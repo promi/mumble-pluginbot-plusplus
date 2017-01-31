@@ -944,25 +944,21 @@ namespace MumblePluginBot
   {
     std::vector<CommandHelp> help =
     {
-      {"searchstring", "Find song(s) by searchstring and print matches."}
+      {"searchstring", "Find songs by searchstring and add them to the queue."}
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        search = (message.gsub("add", "").lstrip).tr('"\\','')
-        text_out = "search is empty"
-        if search != ""
-        text_out ="added:<br/>"
-        count = 0
-        @@bot[:mpd].where(any: "#{search}").each do |song|
-        text_out << "add #{song.file}<br/>"
-        @@bot[:mpd].add(song)
-        count += 1
-        end
-        text_out = "found nothing" if count == 0
-        end
-        privatemessage( text_out)
-      */
+      // TODO:
+      //
+      // The original ruby pluginbot sends a reply which files where found and added.
+      // While the user can test that with the 'where' command, it might be useful
+      // to reimplement that here as well.
+      //
+      // On the other hand search_add_db_songs conveniently auto adds to queue.
+      auto &mpd = ca.mpd_client;
+      mpd.search_add_db_songs (false);
+      mpd.search_add_any_tag_constraint (Mpd::Operator::Default, ca.arguments);
+      mpd.search_commit ();
     };
     return {help, invoke};
   }
@@ -980,13 +976,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        begin
-        @@bot[:mpd].delete message.split(/ /)[1]
-        rescue
-        privatemessage( "Sorry, could not delete.")
-        end
-      */
+      ca.mpd_client.delete_ (std::stoi (ca.arguments));
     };
     return {help, invoke};
   }
@@ -999,17 +989,25 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        search = message.gsub("where", "").lstrip.tr('"\\','')
-        text_out = "you should search not nothing!"
-        if search != ""
-        text_out ="found:<br/>"
-        @@bot[:mpd].where(any: "#{search}").each do |song|
-        text_out << "#{song.file}<br/>"
-        end
-        end
-        privatemessage( text_out)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.search_db_songs (false);
+      mpd.search_add_any_tag_constraint (Mpd::Operator::Default, ca.arguments);
+      mpd.search_commit ();
+      auto songs = mpd.recv_songs ();
+      if (songs.size () == 0)
+        {
+          private_message ("No songs found.");
+        }
+      else
+        {
+          std::stringstream ss {"<ul>\n"};
+          for (auto &song : songs)
+            {
+              ss << li_tag (song->uri ());
+            }
+          ss << "</ul>";
+          private_message (ss.str ());
+        }
     };
     return {help, invoke};
   }

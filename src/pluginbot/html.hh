@@ -28,6 +28,7 @@ namespace MumblePluginBot
   std::string li_tag (const std::string &inner_html);
   std::string tr_tag (const std::string &inner_html);
   std::string td_tag (const std::string &inner_html);
+  std::string th_tag (const std::string &inner_html);
   std::string u_tag (const std::string &inner_html);
   std::string i_tag (const std::string &inner_html);
   std::string b_tag (const std::string &inner_html);

@@ -47,6 +47,11 @@ namespace MumblePluginBot
     return "<td>" + inner_html + "</td>";
   }
 
+  std::string th_tag (const std::string &inner_html)
+  {
+    return "<th>" + inner_html + "</th>";
+  }
+
   std::string u_tag (const std::string &inner_html)
   {
     return "<u>" + inner_html + "</u>";

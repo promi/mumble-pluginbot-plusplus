@@ -1020,24 +1020,22 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      if @@bot[:mpd].queue.length > 0
-      text_out ="<table><th><td>#</td><td>Name</td></th>"
-      songnr = 0
-
-      @@bot[:mpd].queue.each do |song|
-      if song.title.to_s.empty?
-      text_out << "<tr><td>#{songnr}</td><td>No ID / Stream? Source: #{song.file}</td></tr>"
-      else
-      text_out << "<tr><td>#{songnr}</td><td>#{song.title}</td></tr>"
-      end
-      songnr += 1
-      end
-      text_out << "</table>"
-      else
-      text_out = "The queue is empty."
-      privatemessage( text_out)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_list_queue_meta ();
+      auto songs = mpd.recv_songs ();
+      if (songs.empty ())
+        {
+          private_message ("The queue is empty.");
+          return;
+        }
+      std::stringstream ss;
+      ss << th_tag (td_tag ("#") + td_tag ("Name"));
+      for (size_t i = 0; i < songs.size (); i++)
+        {
+          ss << tr_tag (td_tag (std::to_string (i) +
+                                td_tag (song_display_text (songs[i].get ()))));
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }

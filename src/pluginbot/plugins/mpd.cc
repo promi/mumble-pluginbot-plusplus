@@ -1116,40 +1116,31 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
+      auto &mpd = ca.mpd_client;
+      if (ca.arguments.empty ())
+        {
+        }
+      else
+        {
+          if (ca.arguments[0] == '-')
+            {
+              mpd.change_volume ((-5) * ca.arguments.size ());
+            }
+          else if (ca.arguments[0] == '+')
+            {
+              mpd.change_volume (5 * ca.arguments.size ());
+            }
+          else
+            {
+              mpd.volume (std::stoi (ca.arguments));
+            }
+        }
+      auto volume = std::to_string (mpd.status ().volume ());
+      private_message ("Current volume is " + volume + "%.");
       /*
-      if message == 'v'
-      volume = @@bot[:mpd].volume
-      privatemessage( "Current volume is #{volume}%.")
-      end
-
-      if message.match(/^v [0-9]{1,3}$/)
-      volume = message.match(/^v ([0-9]{1,3})$/)[1].to_i
-
       if (volume >=0 ) && (volume <= 100)
-      @@bot[:mpd].volume = volume
       else
       privatemessage( "Volume can be within a range of 0 to 100")
-      end
-      end
-
-      if message.match(/^v[-]+$/)
-      multi = message.match(/^v([-]+)$/)[1].scan(/\-/).length
-      volume = ((@@bot[:mpd].volume).to_i - 5 * multi)
-      if volume < 0
-      channelmessage( "Volume can't be set to &lt; 0.")
-      volume = 0
-      end
-      @@bot[:mpd].volume = volume
-      end
-
-      if message.match(/^v[+]+$/)
-      multi = message.match(/^v([+]+)$/)[1].scan(/\+/).length
-      volume = ((@@bot[:mpd].volume).to_i + 5 * multi)
-      if volume > 100
-      channelmessage( "Volume can't be set to &gt; 100.")
-      volume = 100
-      end
-      @@bot[:mpd].volume = volume
       end
       */
     };

@@ -1076,10 +1076,8 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      @@bot[:mpd].shuffle
-      privatemessage( "Shuffle, shuffle and get a new order. :)")
-       */
+      ca.mpd_client.shuffle ();
+      private_message ("Shuffle, shuffle and get a new order. :)");
     };
     return {help, invoke};
   }

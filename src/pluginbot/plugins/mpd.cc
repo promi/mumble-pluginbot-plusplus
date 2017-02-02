@@ -1095,10 +1095,12 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-         current = @@bot[:mpd].current_song
-         privatemessage( "Filename of currently played song:<br>#{current.file}</span>") if not current.nil?
-      */
+      auto song = ca.mpd_client.current_song ();
+      if (song != nullptr)
+        {
+          private_message ("Filename of the currently playing song:" + br_tag +
+                           song->uri () + "\n");
+        }
     };
     return {help, invoke};
   }

@@ -27,6 +27,8 @@ namespace Mpd
   struct Client::Impl
   {
     mpd_connection *connection;
+    std::unique_ptr<std::pair<std::string, std::string>> recv_pair (
+          std::function<mpd_pair* (mpd_connection*)> f, bool peek);
   };
 
   Client::Client (const std::string& host, uint16_t port, uint timeout_ms)
@@ -114,8 +116,7 @@ namespace Mpd
       }
   }
 
-  Idle Client::idle_parse_pair (std::pair<std::string, std::string>
-                                &pair)
+  Idle Client::idle_parse_pair (const std::pair<std::string, std::string> &pair)
   {
     mpd_pair p;
     p.name = pair.first.c_str ();
@@ -1038,18 +1039,34 @@ namespace Mpd
     mpd_search_cancel (pimpl->connection);
   }
 
-  std::pair<std::string, std::string> Client::recv_pair_tag (TagType type)
+  std::unique_ptr<std::pair<std::string, std::string>> Client::Impl::recv_pair (
+        std::function<mpd_pair* (mpd_connection*)> f, bool peek)
   {
-    auto pair_ptr = mpd_recv_pair_tag (pimpl->connection,
-                                       static_cast<mpd_tag_type> (type));
+    auto pair_ptr = f (connection);
     if (pair_ptr == nullptr)
       {
-        throw std::runtime_error ("mpd_recv_pair_tag () failed");
+        return nullptr;
       }
-    std::pair<std::string, std::string> pair;
-    pair.first = pair_ptr->name;
-    pair.second = pair_ptr->value;
+    auto pair = std::make_unique<std::pair<std::string, std::string>>
+                (pair_ptr->name, pair_ptr->value);
+    if (peek)
+      {
+        mpd_enqueue_pair (connection, pair_ptr);
+      }
+    else
+      {
+        mpd_return_pair (connection, pair_ptr);
+      }
     return pair;
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>> Client::recv_pair_tag (
+        TagType type, bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_pair_tag (c, static_cast<mpd_tag_type> (type));
+    }, peek);
   }
 
   void Client::send_list_all (const std::string &path)
@@ -1333,5 +1350,90 @@ namespace Mpd
       {
         return Stats {stats_ptr};
       }
+  }
+
+  void Client::send_command (const std::string &name)
+  {
+    if (!mpd_send_command (pimpl->connection, name.c_str (), NULL))
+      {
+        throw std::runtime_error ("mpd_send_command () failed");
+      }
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>> Client::recv_pair (
+        bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_pair (c);
+    }, peek);
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>> Client::recv_pair_named (
+        const std::string &name, bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_pair_named (c, name.c_str ());
+    }, peek);
+  }
+
+  void Client::send_allowed_commands ()
+  {
+    if (!mpd_send_allowed_commands (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_allowed_commands () failed");
+      }
+  }
+
+  void Client::send_disallowed_commands ()
+  {
+    if (!mpd_send_disallowed_commands (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_disallowed_commands () failed");
+      }
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>> Client::recv_command_pair (
+        bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_command_pair (c);
+    }, peek);
+  }
+
+  void Client::send_list_url_schemes ()
+  {
+    if (!mpd_send_list_url_schemes (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_list_url_schemes () failed");
+      }
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>>
+      Client::recv_url_scheme_pair (bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_url_scheme_pair (c);
+    }, peek);
+  }
+
+  void Client::send_list_tag_types ()
+  {
+    if (!mpd_send_list_tag_types (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_list_tag_types () failed");
+      }
+  }
+
+  std::unique_ptr<std::pair<std::string, std::string>>
+      Client::recv_tag_type_pair (bool peek)
+  {
+    return pimpl->recv_pair ([&] (auto c)
+    {
+      return mpd_recv_tag_type_pair (c);
+    }, peek);
   }
 }

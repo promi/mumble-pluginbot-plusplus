@@ -79,7 +79,7 @@ namespace Mpd
     void send_idle ();
     void send_idle_mask (FlagSet<Idle> mask);
     void send_noidle ();
-    static Idle idle_parse_pair (std::pair<std::string, std::string> &pair);
+    static Idle idle_parse_pair (const std::pair<std::string, std::string> &pair);
     FlagSet<Idle> recv_idle (bool disable_timeout);
     FlagSet<Idle> idle ();
     FlagSet<Idle> idle_mask (FlagSet<Idle> mask);
@@ -195,7 +195,8 @@ namespace Mpd
     void search_add_window (unsigned start, unsigned end);
     void search_commit ();
     void search_cancel ();
-    std::pair<std::string, std::string> recv_pair_tag (TagType type);
+    std::unique_ptr<std::pair<std::string, std::string>> recv_pair_tag (
+          TagType type, bool peek = false);
     // Database
     void send_list_all (const std::string &path);
     void send_list_all_meta (const std::string &path);
@@ -231,5 +232,23 @@ namespace Mpd
     void send_stats ();
     Stats recv_stats ();
     Stats stats ();
+    // Send
+    void send_command (const std::string &name);
+    // Recv
+    std::unique_ptr<std::pair<std::string, std::string>> recv_pair (
+          bool peek = false);
+    std::unique_ptr<std::pair<std::string, std::string>> recv_pair_named (
+          const std::string &name, bool peek = false);
+    // Capabilities
+    void send_allowed_commands ();
+    void send_disallowed_commands ();
+    std::unique_ptr<std::pair<std::string, std::string>> recv_command_pair (
+          bool peek = false);
+    void send_list_url_schemes ();
+    std::unique_ptr<std::pair<std::string, std::string>> recv_url_scheme_pair (
+          bool peek = false);
+    void send_list_tag_types ();
+    std::unique_ptr<std::pair<std::string, std::string>> recv_tag_type_pair (
+          bool peek = false);
   };
 }

@@ -1176,13 +1176,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        config = @@bot[:mpd].config
-        rescue
-        config = "Configuration only for local clients readable"
-        end
-        privatemessage( config)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_command ("config");
+      decltype(mpd.recv_pair ()) pair;
+      std::stringstream ss;
+      while ((pair = mpd.recv_pair ()) != nullptr)
+        {
+          ss << srow (pair->first, pair->second);
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }
@@ -1195,13 +1197,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        output = ""
-        @@bot[:mpd].commands.each do |command|
-        output << "<br>#{command}"
-        end
-        privatemessage( output)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_allowed_commands ();
+      decltype(mpd.recv_command_pair ()) pair;
+      std::stringstream ss;
+      while ((pair = mpd.recv_command_pair ()) != nullptr)
+        {
+          ss << tr_tag (td_tag (pair->second));
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }
@@ -1214,13 +1218,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        output = ""
-        @@bot[:mpd].notcommands.each do |command|
-        output << "<br\>#{command}"
-        end
-        privatemessage( output)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_disallowed_commands ();
+      decltype(mpd.recv_command_pair ()) pair;
+      std::stringstream ss;
+      while ((pair = mpd.recv_command_pair ()) != nullptr)
+        {
+          ss << tr_tag (td_tag (pair->second));
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }
@@ -1233,25 +1239,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        output = "<table>"
-        @@bot[:mpd].decoders.each do |decoder|
-        output << "<tr>"
-        output << "<td>#{decoder[:plugin]}</td>"
-        output << "<td>"
-        begin
-        decoder[:suffix].each do |suffix|
-        output << "#{suffix} "
-        end
-        output << "</td>"
-        rescue
-        output << "#{decoder[:suffix]}"
-        end
-        end
-        output << "</table>"
-        privatemessage( output)
-        end
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_command ("decoders");
+      decltype(mpd.recv_pair ()) pair;
+      std::stringstream ss;
+      while ((pair = mpd.recv_pair ()) != nullptr)
+        {
+          ss << srow (pair->first, pair->second);
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }
@@ -1264,13 +1260,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-        output = ""
-        @@bot[:mpd].url_handlers.each do |handler|
-        output << "<br\>#{handler}"
-        end
-        privatemessage( output)
-      */
+      auto &mpd = ca.mpd_client;
+      mpd.send_list_url_schemes ();
+      decltype(mpd.recv_url_scheme_pair ()) pair;
+      std::stringstream ss;
+      while ((pair = mpd.recv_url_scheme_pair ()) != nullptr)
+        {
+          ss << tr_tag (td_tag (pair->second));
+        }
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }

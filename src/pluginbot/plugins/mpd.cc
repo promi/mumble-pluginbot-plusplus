@@ -1138,10 +1138,10 @@ namespace MumblePluginBot
       auto volume = std::to_string (mpd.status ().volume ());
       private_message ("Current volume is " + volume + "%.");
       /*
-      if (volume >=0 ) && (volume <= 100)
-      else
-      privatemessage( "Volume can be within a range of 0 to 100")
-      end
+        if (volume >=0 ) && (volume <= 100)
+        else
+        privatemessage( "Volume can be within a range of 0 to 100")
+        end
       */
     };
     return {help, invoke};
@@ -1158,12 +1158,11 @@ namespace MumblePluginBot
       ca.mpd_client.update ("");
       private_message ("Running database update");
       /*
-              @@bot[:mpd].update
-              privatemessage("Running database update...")
-              while @@bot[:mpd].status[:updating_db] != nil do
-              sleep 0.5
-              end
-              privatemessage("Done.")
+        privatemessage("Running database update...")
+        while @@bot[:mpd].status[:updating_db] != nil do
+        sleep 0.5
+        end
+        privatemessage("Done.")
       */
     };
     return {help, invoke};

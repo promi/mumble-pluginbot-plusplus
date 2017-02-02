@@ -122,15 +122,16 @@ namespace MumblePluginBot
     Command mpddecoders ();
     Command mpdurlhandlers ();
     Command displayinfo ();
-    static std::string time_decode (uint time);
-    static std::vector<uint> split_timecode (const std::string &timecode);
-    std::unique_ptr<Mpd::Playlist> playlist_by_id (const CommandArgs &ca,
+    std::unique_ptr<Mpd::Playlist> playlist_by_id (Mpd::Client &mpd,
         int playlist_id);
-    static std::string song_display_text (Mpd::Song &song);
-    static std::string song_display_text (Mpd::Song *song);
-    static std::string on_off (bool b);
-    static std::string state_display_text (Mpd::State state);
   };
+
+  std::string time_decode (uint time);
+  std::vector<uint> split_timecode (const std::string &timecode);
+  std::string song_display_text (Mpd::Song &song);
+  std::string song_display_text (Mpd::Song *song);
+  std::string on_off (bool b);
+  std::string state_display_text (Mpd::State state);
 
   MpdPlugin::MpdPlugin (const Aither::Log &log, Settings &settings,
                         Mumble::Client &cli,
@@ -781,7 +782,7 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist = playlist_by_id (ca, std::stoi (ca.arguments));
+      auto playlist = playlist_by_id (mpd, std::stoi (ca.arguments));
       if (playlist == nullptr)
         {
           return;
@@ -835,7 +836,7 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist = playlist_by_id (ca, std::stoi (ca.arguments));
+      auto playlist = playlist_by_id (mpd, std::stoi (ca.arguments));
       if (playlist == nullptr)
         {
           return;
@@ -1040,6 +1041,11 @@ namespace MumblePluginBot
     return {help, invoke};
   }
 
+  std::string trow (const std::string &key, unsigned long value)
+  {
+    return srow (key, time_decode (value));
+  }
+
   MpdPlugin::Impl::Command MpdPlugin::Impl::stats ()
   {
     std::vector<CommandHelp> help =
@@ -1048,23 +1054,16 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-              out = "<table>"
-              @@bot[:mpd].stats.each do |key, value|
-              case
-              when key.to_s == 'uptime'
-              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-              when key.to_s == 'playtime'
-              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-              when key.to_s == 'db_playtime'
-              out << "<tr><td>#{key}</td><td>#{timedecode(value)}</td></tr>"
-              else
-              out << "<tr><td>#{key}</td><td>#{value}</td></tr>"
-              end
-              end
-              out << "</table>"
-              privatemessage( out)
-      */
+      auto stats = ca.mpd_client.stats ();
+      std::stringstream ss;
+      ss << urow ("Number of artists", stats.number_of_artists ());
+      ss << urow ("Number of albums", stats.number_of_albums ());
+      ss << urow ("Number of songs", stats.number_of_songs ());
+      ss << trow ("Uptime", stats.uptime ());
+      ss << trow ("DB update time", stats.db_update_time ());
+      ss << trow ("Play time", stats.play_time ());
+      ss << trow ("DB play time", stats.db_play_time ());
+      private_message (table_tag (ss.str ()));
     };
     return {help, invoke};
   }
@@ -1292,6 +1291,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
+      (void) ca;
       std::string target;
       if ((settings.use_comment_for_status_display =
              !settings.use_comment_for_status_display))
@@ -1323,7 +1323,7 @@ namespace MumblePluginBot
     // if command == 'mpdhelp' ...
   }
 
-  std::string MpdPlugin::Impl::time_decode (uint time)
+  std::string time_decode (uint time)
   {
     // Code from https://stackoverflow.com/questions/19595840/rails-get-the-time-difference-in-hours-minutes-and-seconds
     auto mm_ss = std::div (time, 60);
@@ -1350,7 +1350,7 @@ namespace MumblePluginBot
     return std::string {data, data + size};
   }
 
-  std::vector<uint> MpdPlugin::Impl::split_timecode (const std::string &timecode)
+  std::vector<uint> split_timecode (const std::string &timecode)
   {
     std::stringstream ss {timecode};
     std::vector<uint> v;
@@ -1362,10 +1362,9 @@ namespace MumblePluginBot
   }
 
   std::unique_ptr<Mpd::Playlist> MpdPlugin::Impl::playlist_by_id (
-    const CommandArgs &ca,
+    Mpd::Client &mpd,
     int playlist_id)
   {
-    auto &mpd = ca.mpd_client;
     mpd.send_list_playlists ();
     auto playlists = mpd.recv_playlists ();
     if (playlist_id < 0 || size_t (playlist_id) >= playlists.size ())
@@ -1379,7 +1378,7 @@ namespace MumblePluginBot
       }
   }
 
-  std::string MpdPlugin::Impl::song_display_text (Mpd::Song& song)
+  std::string song_display_text (Mpd::Song& song)
   {
     auto artist = song.tag (Mpd::TagType::Artist, 0);
     auto title = song.tag (Mpd::TagType::Title, 0);
@@ -1399,7 +1398,7 @@ namespace MumblePluginBot
       }
   }
 
-  std::string MpdPlugin::Impl::song_display_text (Mpd::Song* song)
+  std::string song_display_text (Mpd::Song* song)
   {
     if (song == nullptr)
       {
@@ -1411,12 +1410,12 @@ namespace MumblePluginBot
       }
   }
 
-  std::string MpdPlugin::Impl::on_off (bool b)
+  std::string on_off (bool b)
   {
     return b ? "On" : "Off";
   }
 
-  std::string MpdPlugin::Impl::state_display_text (Mpd::State state)
+  std::string state_display_text (Mpd::State state)
   {
     switch (state)
       {

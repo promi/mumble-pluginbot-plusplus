@@ -1155,6 +1155,8 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
+      ca.mpd_client.update ("");
+      private_message ("Running database update");
       /*
               @@bot[:mpd].update
               privatemessage("Running database update...")

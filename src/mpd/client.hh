@@ -31,6 +31,7 @@
 #include "mpd/song.hh"
 #include "mpd/operator.hh"
 #include "mpd/playlist.hh"
+#include "mpd/stats.hh"
 
 namespace Mpd
 {
@@ -226,5 +227,9 @@ namespace Mpd
     void rename (const std::string &from, const std::string &to);
     void send_rm (const std::string &name);
     void rm (const std::string &name);
+    // Stats
+    void send_stats ();
+    Stats recv_stats ();
+    Stats stats ();
   };
 }

@@ -2,6 +2,7 @@
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -1297,6 +1298,40 @@ namespace Mpd
     if (!mpd_run_rm (pimpl->connection, name.c_str ()))
       {
         throw std::runtime_error ("mpd_run_rm () failed");
+      }
+  }
+
+  void Client::send_stats ()
+  {
+    if (!mpd_send_stats (pimpl->connection))
+      {
+        throw std::runtime_error ("mpd_send_stats () failed");
+      }
+  }
+
+  Stats Client::recv_stats ()
+  {
+    auto stats_ptr = mpd_recv_stats (pimpl->connection);
+    if (stats_ptr == nullptr)
+      {
+        throw std::runtime_error ("mpd_recv_stats () failed");
+      }
+    else
+      {
+        return Stats {stats_ptr};
+      }
+  }
+
+  Stats Client::stats ()
+  {
+    auto stats_ptr = mpd_run_stats (pimpl->connection);
+    if (stats_ptr == nullptr)
+      {
+        throw std::runtime_error ("mpd_run_stats () failed");
+      }
+    else
+      {
+        return Stats {stats_ptr};
       }
   }
 }

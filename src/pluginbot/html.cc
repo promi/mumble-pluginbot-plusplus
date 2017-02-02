@@ -86,4 +86,14 @@ namespace MumblePluginBot
   {
     return "<table>\n" + inner_html + "\n</table>\n";
   }
+
+  std::string srow (const std::string &key, const std::string &value)
+  {
+    return tr_tag (td_tag (key) + td_tag (value));
+  }
+
+  std::string urow (const std::string &key, unsigned value)
+  {
+    return srow (key, std::to_string (value));
+  }
 }

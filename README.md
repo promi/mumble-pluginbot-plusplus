@@ -92,7 +92,7 @@ https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mp
 
 When using `gdb` you should either install first and invoke `gdb` as usual or you can use `libtool`s execute mode to debug without installing:
 
-    $ libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.something.org ...
+    $ libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.example.org ...
 
 ## License
 

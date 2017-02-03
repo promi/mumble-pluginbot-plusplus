@@ -8,7 +8,7 @@ It is a C++ rewrite of several libraries and the original mumble-ruby-pluginbot 
 
 - [opus-ruby] (https://github.com/dafoxia/opus-ruby)
 - [mumble-ruby] (https://github.com/dafoxia/mumble-ruby)
-- [mumble-ruby-pluginbot] (https://github.com/MusicGenerator/mumble-ruby-pluginbot) @0ef9aa585dc83cae337db6e6f36266939d2b410c
+- [mumble-ruby-pluginbot] (https://github.com/MusicGenerator/mumble-ruby-pluginbot) @[0ef9aa585dc83cae337db6e6f36266939d2b410c] (https://github.com/MusicGenerator/mumble-ruby-pluginbot/tree/0ef9aa585dc83cae337db6e6f36266939d2b410c)
 - [ruby-mpd] (https://github.com/archSeer/ruby-mpd)
 
 Thanks to all the original authors! See the source code for copyright information.

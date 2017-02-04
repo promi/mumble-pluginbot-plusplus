@@ -96,4 +96,28 @@ namespace MumblePluginBot
   {
     return srow (key, std::to_string (value));
   }
+
+  std::string strip_tags (const std::string &html)
+  {
+    bool in_tag = false;
+    std::string result;
+    for (auto c : html)
+      {
+        if (!in_tag && c == '<')
+          {
+            in_tag = true;
+          }
+
+        if (!in_tag)
+          {
+            result += c;
+          }
+
+        if (in_tag && c == '>')
+          {
+            in_tag = false;
+          }
+      }
+    return result;
+  }
 }

@@ -22,6 +22,7 @@
 */
 #include "pluginbot/plugins/youtube.hh"
 
+#include "mpd/client.hh"
 #include "pluginbot/html.hh"
 #include "pluginbot/plugins/command-help.hh"
 
@@ -61,9 +62,13 @@ namespace MumblePluginBot
     Command add ();
     Command downloader_version ();
     std::string exec_ytdl (const std::string &arguments);
+    std::string add_exec_ytdl (const std::string &arguments);
+    std::string nice_exec_ytdl (const std::string &arguments);
+    std::string nice_add_exec_ytdl (const std::string &arguments);
     std::vector<std::pair<std::string, std::string>> find_songs (
           const std::string &query);
-    std::vector<std::string> get_song (const std::string &uri);
+    std::pair<std::vector<std::string>, std::vector<std::string>> get_songs (
+          const std::string &uri);
   };
 
   std::string exec (const std::string &cmd);
@@ -177,41 +182,40 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      if message.start_with?("ytlink <a href=") || message.start_with?("<a href=") then
-      link = msg.message.match(/http[s]?:\/\/(.+?)\"/).to_s.chop
-      if ( link.include? "www.youtube.com/" ) || ( link.include? "www.youtu.be/" ) || ( link.include? "m.youtube.com/" ) then
-      workingdownload = Thread.new {
-        #local variables for this thread!
-        actor = msg.actor
-        Thread.current["actor"]=actor
-        Thread.current["process"]="youtube (download)"
+      auto link = strip_tags (ca.arguments);
+      std::thread t {[this, link] ()
+      {
+        private_message ("Inspecting link: " + link + "...");
+        auto pair = get_songs (link);
+        auto &errors = pair.first;
+        auto songs = pair.second;
+        for (auto &error : errors)
+          {
+            private_message (error);
+          }
 
-        messageto(actor, "Youtube is inspecting link: " + link + "...")
-        get_song(link).each do |error|
-          messageto(actor, error)
-        end
-        if ( @songlist.size > 0 ) then
+        /*
+          if ( @songlist.size > 0 ) then
           @@bot[:mpd].update(@@bot[:youtube_downloadsubdir].gsub(/\//,""))
           messageto(actor, "Waiting for database update complete...")
 
           while @@bot[:mpd].status[:updating_db] != nil do
-            sleep 0.5
+          sleep 0.5
           end
 
           messageto(actor, "Update done.")
           while @songlist.size > 0
-            song = @songlist.pop
-            messageto(actor, song)
-            @@bot[:mpd].add(@@bot[:youtube_downloadsubdir]+song)
+          song = @songlist.pop
+          messageto(actor, song)
+          @@bot[:mpd].add(@@bot[:youtube_downloadsubdir]+song)
           end
-        else
+          else
           messageto(actor, "Youtube: The link contains nothing interesting.") if @@bot[:youtube_stream] == nil
-        end
+          end
+        */
       }
-      end
-      end
-      */
+                    };
+      t.detach ();
     };
     return {help, invoke};
   }
@@ -375,39 +379,134 @@ namespace MumblePluginBot
     return result;
   }
 
+  std::string intercalate (const std::vector<std::string> &vector,
+                           const char delimiter = ' ')
+  {
+    std::string result;
+    bool first = true;
+    for (const auto &s : vector)
+      {
+        if (first)
+          {
+            result = s;
+            first = false;
+          }
+        else
+          {
+            result += delimiter + s;
+          }
+      }
+    return result;
+  }
+
+  std::string nice_exec (const std::string &cmd)
+  {
+    return exec (intercalate ({"nice", "-n20", cmd}));
+  }
+
   std::string YoutubePlugin::Impl::exec_ytdl (const std::string &arguments)
   {
-    return exec (settings.youtube.youtubedl + " " + arguments);
+    return exec (intercalate ({settings.youtube.youtubedl, arguments}));
+  }
+
+  std::string YoutubePlugin::Impl::add_exec_ytdl (const std::string &arguments)
+  {
+    return exec (intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
+  }
+
+  std::string YoutubePlugin::Impl::nice_exec_ytdl (const std::string &arguments)
+  {
+    return nice_exec (intercalate ({settings.youtube.youtubedl, arguments}));
+  }
+
+  std::string YoutubePlugin::Impl::nice_add_exec_ytdl (const std::string
+      &arguments)
+  {
+    return nice_exec (intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
   }
 
   std::vector<std::pair<std::string, std::string>>
       YoutubePlugin::Impl::find_songs (const std::string &query)
   {
+    std::vector<std::pair<std::string, std::string>> songlist;
     /*
-    songlist = []
     songs = `nice -n20 #{@@bot[:youtube_youtubedl]} --max-downloads #{@@bot[:youtube_maxresults]} --get-title --get-id "https://www.youtube.com/results?search_query=#{song}"`
     temp = songs.split(/\n/)
     while (temp.length >= 2 )
       songlist << [temp.pop , temp.pop]
     end
-    return songlist
      */
+    return songlist;
   }
 
-  std::vector<std::string> YoutubePlugin::Impl::get_song (const std::string &uri)
+  namespace fs = std::experimental::filesystem;
+
+  std::pair<std::vector<std::string>, std::vector<std::string>>
+      YoutubePlugin::Impl::get_songs (const std::string &uri)
   {
-    /*
-      error = Array.new
-      if ( site.include? "www.youtube.com/" ) || ( site.include? "www.youtu.be/" ) || ( site.include? "m.youtube.com/" ) then
-        site.gsub!(/<\/?[^>]*>/, '')
-        site.gsub!("&amp;", "&")
-        if @@bot[:youtube_stream] == nil
-          filename = `#{@@bot[:youtube_youtubedl]} --get-filename #{@ytdloptions} -i -o \"#{@tempdownloadfoler}%(title)s\" "#{site}"`
-          output =`nice -n20 #{@consoleaddition} #{@@bot[:youtube_youtubedl]} #{@ytdloptions} --write-thumbnail -x --audio-format best -o \"#{@tempyoutubefolder}%(title)s.%(ext)s\" \"#{site}\" `     #get icon
-          output.each_line do |line|
-            error << line if line.include? "ERROR:"
-          end
-          filename.split("\n").each do |name|
+    std::pair<std::vector<std::string>, std::vector<std::string>> pair;
+    std::vector<std::string> &errors = pair.first;
+    std::vector<std::string> &songlist = pair.second;
+    if (settings.youtube.stream)
+      {
+        std::stringstream streams {exec_ytdl ("--get-url " + uri)};
+        Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
+        for (std::string stream; std::getline (streams, stream); )
+          {
+            if (stream.find ("mime=audio/mp4") != std::string::npos)
+              {
+                mpd.add (stream);
+              }
+          }
+      }
+    else
+      {
+        auto squote = [] (const std::string &s)
+        {
+          std::string result = "'";
+          for (const char &c : s)
+            {
+              if (c == '\'')
+                {
+                  result += "''";
+                }
+              else
+                {
+                  result += c;
+                }
+            }
+          return result + "'";
+        };
+        fs::path tempdir = settings.main_tempdir;
+        tempdir /= settings.youtube.temp_subdir;
+        fs::create_directories (tempdir);
+        std::stringstream filenames {exec_ytdl (intercalate ({
+            "--get-filename",
+            settings.youtube.youtubedl_options,
+            "--ignore-errors",
+            "--output " + squote (tempdir.string () + "/%(title)s"),
+            uri
+          }))
+        };
+        std::stringstream output {nice_add_exec_ytdl (intercalate({
+            settings.youtube.youtubedl_options,
+            "--write-thumbnail",
+            "--extract-audio",
+            "--audio-format best",
+            "--output " + squote (tempdir.string () + "/%(title)s.%(ext)s"),
+            uri
+          }))
+        };
+        for (std::string line; std::getline (output, line); )
+          {
+            if (line.find ("ERROR:") != std::string::npos)
+              {
+                errors.push_back (line);
+              }
+          }
+        for (std::string filename; std::getline (filenames, filename); )
+          {
+            /*
             @filetypes.each do |ending|
               if File.exist?("#{@tempyoutubefolder}#{name}.#{ending}")
                 system ("nice -n20 #{@consoleaddition} convert \"#{@tempyoutubefolder}#{name}.jpg\" -resize 320x240 \"#{@youtubefolder}#{name}.jpg\" ")
@@ -422,18 +521,10 @@ namespace MumblePluginBot
                 end
               end
             end
-          end
-        else
-          streams = `#{@@bot[:youtube_youtubedl]} -g "#{site}"`
-          streams.each_line do |line|
-            line.chop!
-            @@bot[:mpd].add line if line.include? "mime=audio/mp4"
-          end
-        end
-      end
-      return error
-    end
-    end
-    */
+            end
+            */
+          }
+      }
+    return pair;
   }
 }

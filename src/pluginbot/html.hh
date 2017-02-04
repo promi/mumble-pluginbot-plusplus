@@ -39,4 +39,5 @@ namespace MumblePluginBot
   std::string table_tag (const std::string &inner_html);
   std::string srow (const std::string &key, const std::string &value);
   std::string urow (const std::string &key, unsigned value);
+  std::string strip_tags (const std::string &html);
 }

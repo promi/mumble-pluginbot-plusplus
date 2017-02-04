@@ -105,17 +105,16 @@ namespace MumblePluginBot
     std::string superpassword;
     struct
     {
+      std::string download_subdir = "downloadedfromyt";
+      std::string temp_subdir = "youtubeplugin";
       std::string youtubedl = "youtube-dl";
+      std::string youtubedl_options = "";
+      std::string command_line_prefixes = "";
+      bool stream = false;
+      bool convert_to_mp3 = false;
+      uint maxresult = 200;
     } youtube;
     /*
-    youtube_downloadsubdir", "downloadedfromyt"},
-    youtube_tempsubdir", "youtubeplugin"},
-    youtube_stream", "nil"},
-    youtube_youtubedl", "youtube-dl"},
-    youtube_to_mp3", "nil"},
-    youtube_youtubedl_options", ""},
-    youtube_commandlineprefixes", ""},
-    youtube_maxresults", "200"},
     soundcloud_downloadsubdir", "downloadedfromsc"},
     soundcloud_tempsubdir", "soundcloudplugin"},
     soundcloud_youtubedl", "youtube-dl"},

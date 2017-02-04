@@ -176,6 +176,7 @@ set_dirs (MumblePluginBot::Settings &settings)
   const std::string &subdir = "mumble-pluginbot-plusplus";
   settings.main_tempdir = xdg_data_home / subdir / "temp";
   settings.mpd.fifopath = xdg_runtime_dir / subdir / "mpd.fifo";
+  settings.mpd.musicdir = home / "mpd" / "music";
   settings.certdir = xdg_config_home / subdir / "cert";
 }
 

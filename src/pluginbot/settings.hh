@@ -94,6 +94,7 @@ namespace MumblePluginBot
       std::experimental::filesystem::path fifopath {"mpd.fifo"};
       std::string host {"localhost"};
       uint16_t port = 7701;
+      std::experimental::filesystem::path musicdir {"mpd/music"};
     } mpd;
     std::experimental::filesystem::path certdir {"certs"};
     uint quality_bitrate = 72000;

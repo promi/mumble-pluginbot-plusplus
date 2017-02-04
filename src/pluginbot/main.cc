@@ -35,6 +35,7 @@
 
 #include "pluginbot/plugins/mpd.hh"
 #include "pluginbot/plugins/version.hh"
+#include "pluginbot/plugins/youtube.hh"
 
 namespace MumblePluginBot
 {
@@ -265,6 +266,8 @@ namespace MumblePluginBot
     m_plugins.push_back (std::move (messages_ptr));
     m_plugins.push_back (std::make_unique<MpdPlugin> (m_log, m_settings, *m_cli,
                          player, messages));
+    m_plugins.push_back (std::make_unique<YoutubePlugin> (m_log, m_settings, *m_cli,
+                         player));
     for (auto &plugin : m_plugins)
       {
         AITHER_VERBOSE("Plugin '" << plugin->name () << "' loaded.");

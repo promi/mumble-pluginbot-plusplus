@@ -103,6 +103,10 @@ namespace MumblePluginBot
     std::string boundto;
     // TODO: Generate random password on startup?
     std::string superpassword;
+    struct
+    {
+      std::string youtubedl = "youtube-dl";
+    } youtube;
     /*
     youtube_downloadsubdir", "downloadedfromyt"},
     youtube_tempsubdir", "youtubeplugin"},

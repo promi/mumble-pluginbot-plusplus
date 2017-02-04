@@ -31,17 +31,12 @@
 #include "mpd/client.hh"
 #include "mpd/status-listener.hh"
 #include "pluginbot/html.hh"
+#include "pluginbot/plugins/command-help.hh"
 
 namespace MumblePluginBot
 {
   struct MpdPlugin::Impl
   {
-    struct CommandHelp
-    {
-      std::string argument;
-      std::string description;
-    };
-
     struct CommandArgs
     {
       const MumbleProto::TextMessage &msg;

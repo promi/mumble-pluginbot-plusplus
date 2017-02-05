@@ -162,7 +162,7 @@ set_dirs (MumblePluginBot::Settings &settings)
   fs::path xdg_runtime_dir = getenv_nullsafe ("XDG_RUNTIME_DIR");
   if (xdg_runtime_dir == "" || !xdg_runtime_dir.is_absolute ())
     {
-      std::cerr << "warning: XDG_RUNTIME_DIR is not set" << std::endl;
+      std::cerr << "warning: XDG_RUNTIME_DIR is not set\n";
       xdg_runtime_dir = home / ".config";
     }
   assert (xdg_runtime_dir != "");
@@ -190,6 +190,7 @@ real_main (int argc, char *argv[])
   // The decimal separator should always be a dot '.'!
   // That fact is used for string to setting and setting to string conversion
   setlocale (LC_NUMERIC, "C");
+  std::ios_base::sync_with_stdio (false);
   OpenSSL::library_init ();
   MumblePluginBot::Settings settings;
   set_dirs (settings);
@@ -252,10 +253,10 @@ main (int argc, char *argv[])
     }
   catch (const std::string &s)
     {
-      std::cerr << "An error occured: " << s << std::endl;
+      std::cerr << "An error occured: " << s << "\n";
     }
   catch (const std::exception &e)
     {
-      std::cerr << "An error occured: " << e.what () << std::endl;
+      std::cerr << "An error occured: " << e.what () << "\n";
     }
 }

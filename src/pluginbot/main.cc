@@ -73,12 +73,12 @@ namespace MumblePluginBot
           require_relative v
           ext_config()
           rescue
-          std::cout << "Your config could not be loaded!" << std::endl;
+          std::cout << "Your config could not be loaded!\n";
           end
           else
-          std::cout << "Config path- and/or filename is wrong!" << std::endl;
-          std::cout << "used //{v}" << std::endl;
-          std::cout << "Config not loaded!" << std::endl;
+          std::cout << "Config path- and/or filename is wrong!\n";
+          std::cout << "used //{v}\n";
+          std::cout << "Config not loaded!\n";
           end
         */
       }
@@ -611,12 +611,12 @@ namespace MumblePluginBot
     std::stringstream header;
     header << br_tag + "Hi, I am a mumble-pluginbot-plusplus bot." << br_tag;
     std::stringstream out;
-    out << li_tag (a_tag (org_source_url, "Get my source code")) << std::endl;
-    out << li_tag (a_tag (org_doc_url, "Read my documentation")) << std::endl;
+    out << li_tag (a_tag (org_source_url, "Get my source code"));
+    out << li_tag (a_tag (org_doc_url, "Read my documentation"));
     out << li_tag ("I am licensed under the " + a_tag (org_license_url,
-                   "AGPLv3 license")) << std::endl;
+                   "AGPLv3 license"));
     out << li_tag ("If you have any issues, bugs or ideas please tell us on " +
-                   a_tag (org_issues_url, org_issues_url)) << std::endl;
+                   a_tag (org_issues_url, org_issues_url));
     ca.reply (header.str () + ul_tag (out.str ()));
   }
 

@@ -61,12 +61,12 @@ namespace OpenSSL::SSL
       }
     else
       {
-        //std::cout << "SSL_read (" << len << ") returned " << bytes_read << " bytes: " << std::endl;
+        //std::cout << "SSL_read (" << len << ") returned " << bytes_read << " bytes: \n";
         //for (const auto &it : buf)
         //  {
         //    std::cout << (int) it << " ";
         //  }
-        //std::cout << std::endl;
+        //std::cout << "\n";
       }
     return buf;
   }

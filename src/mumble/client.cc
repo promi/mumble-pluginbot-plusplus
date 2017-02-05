@@ -377,7 +377,7 @@ namespace Mumble
           }
         catch (const std::string &s)
           {
-            std::cerr << "Could not read message from server: " << s << std::endl;
+            std::cerr << "Could not read message from server: " << s << "\n";
           }
       }
   }

@@ -53,7 +53,7 @@ namespace Mumble
       }
     catch (const std::string &s)
       {
-        std::cerr << "Could not connect to " << m_host << ":" << m_port << std::endl;
+        std::cerr << "Could not connect to " << m_host << ":" << m_port << "\n";
       }
     catch (...)
       {

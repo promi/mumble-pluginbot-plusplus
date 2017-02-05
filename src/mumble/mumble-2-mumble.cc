@@ -165,7 +165,7 @@ m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].
           }
         catch (...)
           {
-            std::cout << "could not write (fatal!)" << std::endl;
+            std::cout << "could not write (fatal!)\n";
           }
       }
     else

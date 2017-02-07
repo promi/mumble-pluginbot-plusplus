@@ -83,8 +83,13 @@ namespace MumblePluginBot
     fs::path m_tempdir;
     fs::path m_targetdir;
     std::vector<std::string> m_filetypes;
+    std::map<uint32_t, std::vector<std::pair<std::string, std::string>>>
+    m_user_search_results;
+    std::mutex m_user_search_results_mutex;
     void init_commands ();
     void link_thread_proc (const std::string &uri);
+    void search_thread_proc (uint32_t user_id,
+                             std::function<void (const std::string &)> reply, const std::string &search);
     Command link ();
     Command search ();
     Command add ();
@@ -201,7 +206,6 @@ namespace MumblePluginBot
     };
   }
 
-
   void YoutubePlugin::Impl::link_thread_proc (const std::string &uri)
   {
     Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
@@ -274,6 +278,32 @@ namespace MumblePluginBot
     return {help, invoke};
   }
 
+  void YoutubePlugin::Impl::search_thread_proc (uint32_t user_id,
+      std::function<void (const std::string &)> reply, const std::string &search)
+  {
+    reply ("searching for \"" + search + "\", please be patient...");
+    auto songs = find_songs (squote (search));
+    std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
+    m_user_search_results[user_id] = songs;
+    std::stringstream out;
+    for (size_t i = 0; i < songs.size (); i++)
+      {
+        auto &song = songs[i];
+        if ((i % 30) == 0)
+          {
+            if (i != 0)
+              {
+                reply (out.str () + "</table>");
+              }
+            out.str ("<table><tr><td><b>Index</b></td><td>Title</td></tr>");
+          }
+        out << "<tr><td><b>" << song.first << "</b></td><td>" << song.second <<
+            "</td></tr>";
+      }
+    out << "</table>";
+    reply (out.str ());
+  }
+
   YoutubePlugin::Impl::Command YoutubePlugin::Impl::search ()
   {
     std::vector<CommandHelp> help =
@@ -282,35 +312,20 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      if message.split[0] == 'yts'
-      search = message[4..-1]
-      if !(( search == nil ) || ( search == "" ))
-      Thread.new do
-        Thread.current["user"]=msg.actor
-        Thread.current["process"]="youtube (yts)"
-
-        messageto(msg.actor, "searching for \"#{search}\", please be patient...")
-        songs = find_youtube_song(CGI.escape(search))
-        @keylist[msg.actor] = songs
-        index = 0
-        out = ""
-        @keylist[msg.actor].each do |id , title|
-          if ( ( index % 30 ) == 0 )
-            messageto(msg.actor, out + "</table>") if index != 0
-            out = "<table><tr><td><b>Index</b></td><td>Title</td></tr>"
-          end
-          out << "<tr><td><b>#{index}</b></td><td>#{title}</td></tr>"
-          index += 1
-        end
-        out << "</table>"
-        messageto(msg.actor, out)
-      end
-      else
-      messageto(msg.actor, "won't search for nothing!")
-      end
-      end
-       */
+      auto &actor = ca.actor;
+      auto &search = ca.arguments;
+      auto reply = ca.reply;
+      if (search == "")
+        {
+          reply ("Please enter a search string.");
+          return;
+        }
+      std::thread t { [this, actor, reply, search] ()
+      {
+        search_thread_proc (actor, reply, search);
+      }
+                    };
+      t.detach ();
     };
     return {help, invoke};
   }
@@ -487,15 +502,22 @@ namespace MumblePluginBot
   std::vector<std::pair<std::string, std::string>>
       YoutubePlugin::Impl::find_songs (const std::string &query)
   {
-    std::vector<std::pair<std::string, std::string>> songlist;
-    /*
-    songs = `nice -n20 #{@@bot[:youtube_youtubedl]} --max-downloads #{@@bot[:youtube_maxresults]} --get-title --get-id "https://www.youtube.com/results?search_query=#{song}"`
-    temp = songs.split(/\n/)
-    while (temp.length >= 2 )
-      songlist << [temp.pop , temp.pop]
-    end
-     */
-    return songlist;
+    std::vector<std::pair<std::string, std::string>> v;
+    std::stringstream output {nice_exec_ytdl (intercalate (
+      {
+        "--max-downloads " + std::to_string (settings.youtube.max_results),
+        "--get-id",
+        "--get-title",
+        "https://www.youtube.com/results?search_query=" + query
+      }))
+    };
+    std::string title;
+    for (std::string id; std::getline (output, id); )
+      {
+        std::getline (output, title);
+        v.push_back (std::make_pair (id, title));
+      }
+    return v;
   }
 
   void YoutubePlugin::Impl::resize_thumbnail (const fs::path &from,

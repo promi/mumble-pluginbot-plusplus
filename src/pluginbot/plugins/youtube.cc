@@ -32,6 +32,23 @@ namespace fs = std::experimental::filesystem;
 
 namespace MumblePluginBot
 {
+  std::string squote (const std::string &s)
+  {
+    std::string result = "'";
+    for (const char &c : s)
+      {
+        if (c == '\'')
+          {
+            result += "''";
+          }
+        else
+          {
+            result += c;
+          }
+      }
+    return result + "'";
+  };
+
   struct YoutubePlugin::Impl
   {
     struct CommandArgs
@@ -423,23 +440,6 @@ namespace MumblePluginBot
       }
     return result;
   }
-
-  std::string squote (const std::string &s)
-  {
-    std::string result = "'";
-    for (const char &c : s)
-      {
-        if (c == '\'')
-          {
-            result += "''";
-          }
-        else
-          {
-            result += c;
-          }
-      }
-    return result + "'";
-  };
 
   std::string nice_exec (const std::string &cmd)
   {

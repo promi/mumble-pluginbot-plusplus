@@ -54,8 +54,10 @@ namespace MumblePluginBot
     struct CommandArgs
     {
       const MumbleProto::TextMessage &msg;
+      uint32_t actor;
       const std::string &command;
       const std::string &arguments;
+      std::function<void (const std::string&)> reply;
     };
 
     struct Command
@@ -152,7 +154,12 @@ namespace MumblePluginBot
       {
         return;
       }
-    Impl::CommandArgs ca {msg, command, arguments};
+    auto actor = msg.actor ();
+    auto reply = [this, actor] (const std::string &m)
+      {
+        message_to (actor, m);
+      };
+    Impl::CommandArgs ca {msg, actor, command, arguments, reply};
     cmd->second.invoke (ca);
   }
 

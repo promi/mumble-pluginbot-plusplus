@@ -113,7 +113,7 @@ namespace MumblePluginBot
       std::string command_line_prefixes = "";
       bool stream = false;
       bool convert_to_mp3 = false;
-      uint maxresult = 200;
+      uint max_results = 200;
     } youtube;
     /*
     soundcloud_downloadsubdir", "downloadedfromsc"},

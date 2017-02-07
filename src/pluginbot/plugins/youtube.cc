@@ -78,6 +78,7 @@ namespace MumblePluginBot
     Mumble::AudioPlayer &player;
     std::function<void (const std::string &)> channel_message;
     std::function<void (const std::string &)> private_message;
+    std::function<void (uint32_t, const std::string &)> message_to;
     std::map<std::string, Command> m_commands;
     fs::path m_tempdir;
     fs::path m_targetdir;
@@ -135,6 +136,10 @@ namespace MumblePluginBot
     {
       private_message (m);
     };
+    pimpl->message_to = [this] (uint32_t user_id, const std::string &m)
+    {
+      message_to (user_id, m);
+    };
     pimpl->m_tempdir = pimpl->settings.main_tempdir /
                        pimpl->settings.youtube.temp_subdir;
     fs::create_directories (pimpl->m_tempdir);
@@ -156,9 +161,9 @@ namespace MumblePluginBot
       }
     auto actor = msg.actor ();
     auto reply = [this, actor] (const std::string &m)
-      {
-        message_to (actor, m);
-      };
+    {
+      message_to (actor, m);
+    };
     Impl::CommandArgs ca {msg, actor, command, arguments, reply};
     cmd->second.invoke (ca);
   }

@@ -87,9 +87,12 @@ namespace MumblePluginBot
     m_user_search_results;
     std::mutex m_user_search_results_mutex;
     void init_commands ();
-    void link_thread_proc (const std::string &uri);
+    void link_thread_proc (std::function<void (const std::string &)> reply,
+                           const std::string &uri);
     void search_thread_proc (uint32_t user_id,
                              std::function<void (const std::string &)> reply, const std::string &search);
+    void download_songs_thread (std::function<void (const std::string &)> reply,
+                                const std::vector<std::string> &links);
     Command link ();
     Command search ();
     Command add ();
@@ -206,10 +209,11 @@ namespace MumblePluginBot
     };
   }
 
-  void YoutubePlugin::Impl::link_thread_proc (const std::string &uri)
+  void YoutubePlugin::Impl::link_thread_proc (
+    std::function<void (const std::string &)> reply, const std::string &uri)
   {
     Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
-    private_message ("Inspecting uri: " + uri + "...");
+    reply ("Inspecting uri: " + uri + "...");
     if (settings.youtube.stream)
       {
         for (auto &url : get_urls (uri))
@@ -224,26 +228,26 @@ namespace MumblePluginBot
         auto &songs = pair.second;
         for (auto &error : errors)
           {
-            private_message (error);
+            reply (error);
           }
         if (songs.empty ())
           {
-            private_message ("youtube-dl could not download anything from the given uri");
+            reply ("youtube-dl could not download anything from the given uri");
           }
         else
           {
             auto &subdir = settings.youtube.download_subdir;
             mpd.update (subdir);
-            private_message ("Waiting for database update complete...");
+            reply ("Waiting for database update complete...");
             while (mpd.status ().updating_db ())
               {
                 using namespace std::chrono_literals;
                 std::this_thread::sleep_for (500ms);
               }
-            private_message ("Update done.");
+            reply ("Update done.");
             for (const auto &song : songs)
               {
-                private_message (song);
+                reply (song);
                 mpd.add (subdir + "/" + song);
               }
           }
@@ -259,17 +263,18 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto uri = strip_tags (ca.arguments);
+      auto &reply = ca.reply;
       std::thread t
       {
-        [this, uri] ()
+        [this, uri, reply] ()
         {
           try
             {
-              link_thread_proc (uri);
+              link_thread_proc (reply, uri);
             }
           catch (const std::exception &e)
             {
-              private_message (e.what ());
+              reply (e.what ());
             }
         }
       };
@@ -297,7 +302,7 @@ namespace MumblePluginBot
               }
             out.str ("<table><tr><td><b>Index</b></td><td>Title</td></tr>");
           }
-        out << "<tr><td><b>" << song.first << "</b></td><td>" << song.second <<
+        out << "<tr><td><b>" << i + 1 << "</b></td><td>" << song.second <<
             "</td></tr>";
       }
     out << "</table>";
@@ -330,6 +335,48 @@ namespace MumblePluginBot
     return {help, invoke};
   }
 
+  void YoutubePlugin::Impl::download_songs_thread (
+    std::function<void (const std::string &)> reply,
+    const std::vector<std::string> &links)
+  {
+    reply ("Downloading " + std::to_string (links.size ()) + " song(s)");
+    std::vector<std::string> songs;
+    for (auto &link : links)
+      {
+        reply ("fetch and convert");
+        auto pair = get_songs (link);
+        auto &errors = pair.first;
+        std::move (std::begin (pair.second), std::end (pair.second),
+                   std::back_inserter (songs));
+        for (auto &error : errors)
+          {
+            reply (error);
+          }
+      }
+    if (songs.empty ())
+      {
+        reply ("youtube-dl could not download anything from the given uris.");
+      }
+    else
+      {
+        auto &subdir = settings.youtube.download_subdir;
+        Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
+        mpd.update (subdir);
+        reply ("Waiting for database update complete...");
+        while (mpd.status ().updating_db ())
+          {
+            using namespace std::chrono_literals;
+            std::this_thread::sleep_for (500ms);
+          }
+        reply ("Update done.");
+        for (const auto &song : songs)
+          {
+            reply (song);
+            mpd.add (subdir + "/" + song);
+          }
+      }
+  }
+
   YoutubePlugin::Impl::Command YoutubePlugin::Impl::add ()
   {
     const std::string &controlstring = settings.controlstring;
@@ -343,77 +390,39 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      /*
-      if message.split[0] == 'yta'
-      begin
-      out = "<br>Going to download the following songs:<br />"
-      msg_parameters = message.split[1..-1].join(" ")
-      link = []
-
-      if msg_parameters.match(/(?:[\d{1,3}\ ?])+/) # User gave us at least one id or multiple ids to download.
-        id_list = msg_parameters.match(/(?:[\d{1,3}\ ?])+/)[0].split
-        id_list.each do |id|
-          downloadid = @keylist[msg.actor][id.to_i]
-          puts downloadid.inspect
-          out << "ID: #{id}, Name: \"#{downloadid[1]}\"<br>"
-          link << "https://www.youtube.com/watch?v="+downloadid[0]
-        end
-
-        messageto(msg.actor, out)
-      end
-
-      if msg_parameters == "all"
-        @keylist[msg.actor].each do |downloadid|
-          out << "Name: \"#{downloadid[1]}\"<br>"
-          link << "https://www.youtube.com/watch?v="+downloadid[0]
-        end
-        messageto(msg.actor, out)
-      end
-      rescue
-      messageto(msg.actor, "[error](youtube-plugin)- index number is out of bounds!")
-      end
-
-      workingdownload = Thread.new {
-      #local variables for this thread!
-      actor = msg.actor
-      Thread.current["user"]=actor
-      Thread.current["process"]="youtube (yta)"
-
-      messageto(actor, "do #{link.length.to_s} time(s)...")
-      link.each do |l|
-          messageto(actor, "fetch and convert")
-          get_song(l).each do |error|
-              @@bot[:messages.text(actor, error)]
-          end
-      end
-      if ( @songlist.size > 0 ) then
-        @@bot[:mpd].update(@@bot[:youtube_downloadsubdir].gsub(/\//,""))
-        messageto(actor, "Waiting for database update complete...")
-
-        while @@bot[:mpd].status[:updating_db] != nil do
-          sleep 0.5
-        end
-
-        messageto(actor, "Update done.")
-        out = "<b>Added:</b><br>"
-
-        while @songlist.size > 0
-          song = @songlist.pop
-          begin
-            @@bot[:mpd].add(@@bot[:youtube_downloadsubdir]+song)
-            out << song + "<br>"
-          rescue
-            out << "fixme: " + song + " not found!<br>"
-          end
-        end
-        messageto(actor, out)
+      std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
+      std::stringstream out;
+      std::vector<std::string> links;
+      auto &reply = ca.reply;
+      auto &songs = m_user_search_results.at (ca.actor);
+      out << "<br>Going to download the following songs:<br />";
+      if (ca.arguments == "all")
+        {
+          for (size_t i = 0; i < songs.size (); i++)
+            {
+              auto &song = songs[i];
+              out << "ID: " << i + 1 << ", Name: " << song.second << "<br/>";
+              links.push_back ("https://www.youtube.com/watch?v=" + song.first);
+            }
+        }
       else
-        messageto(actor, "Youtube: The link contains nothing interesting.") if @@bot[:youtube_stream] == nil
-      end
+        {
+          std::stringstream argstream {ca.arguments};
+          for (std::string number; std::getline (argstream, number, ' '); )
+            {
+              int num = std::stoi (number) - 1;
+              auto &song = songs.at (num);
+              out << "ID: " << num << ", Name: " << song.second << "<br/>";
+              links.push_back ("https://www.youtube.com/watch?v=" + song.first);
+            }
+        }
+      reply (out.str ());
+      std::thread t { [this, reply, links] ()
+      {
+        download_songs_thread (reply, links);
       }
-      end
-      end
-      */
+                    };
+      t.detach ();
     };
     return {help, invoke};
   }
@@ -426,8 +435,7 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      (void) ca;
-      private_message ("youtube-dl version: " + exec_ytdl ("--version"));
+      ca.reply ("youtube-dl version: " + exec_ytdl ("--version"));
     };
     return {help, invoke};
   }
@@ -506,15 +514,15 @@ namespace MumblePluginBot
     std::stringstream output {nice_exec_ytdl (intercalate (
       {
         "--max-downloads " + std::to_string (settings.youtube.max_results),
-        "--get-id",
         "--get-title",
+        "--get-id",
         "https://www.youtube.com/results?search_query=" + query
       }))
     };
-    std::string title;
-    for (std::string id; std::getline (output, id); )
+    std::string id;
+    for (std::string title; std::getline (output, title); )
       {
-        std::getline (output, title);
+        std::getline (output, id);
         v.push_back (std::make_pair (id, title));
       }
     return v;

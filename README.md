@@ -29,11 +29,11 @@ What works:
 - MPD plugin
 - Version plugin
 - Messages plugin
+- YouTube plugin
 
 What doesn't work:
 
 - Some chat commands don't work
-- YouTube plugin
 - Soundcloud plugin
 - Bandcamp plugin
 - Ektoplazm plugin

@@ -54,19 +54,15 @@ namespace OpenSSL::SSL
   std::vector<uint8_t> Socket::read (size_t len)
   {
     std::vector<uint8_t> buf (len, 0);
-    size_t bytes_read = SSL_read (m_ssl, buf.data (), buf.size ());
-    if (bytes_read <= 0)
+    size_t bytes_read = 0;
+    while (bytes_read < len)
       {
-        throw std::runtime_error ("SSL_read () failed");
-      }
-    else
-      {
-        //std::cout << "SSL_read (" << len << ") returned " << bytes_read << " bytes: \n";
-        //for (const auto &it : buf)
-        //  {
-        //    std::cout << (int) it << " ";
-        //  }
-        //std::cout << "\n";
+        size_t n = SSL_read (m_ssl, buf.data () + bytes_read, len - bytes_read);
+        if (n <= 0)
+          {
+            throw std::runtime_error ("SSL_read () failed");
+          }
+        bytes_read += n;
       }
     return buf;
   }

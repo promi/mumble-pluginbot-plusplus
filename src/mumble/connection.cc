@@ -31,10 +31,11 @@
 
 namespace Mumble
 {
-  Connection::Connection (const std::string &host, uint16_t port,
-                          const CertManager &cert_manager) : m_host (host),  m_port (port),
-    m_cert_manager (cert_manager), m_connected (false)
+  Connection::Connection (const Aither::Log &log, const std::string &host, uint16_t port,
+                          const CertManager &cert_manager)
+    : m_log (log), m_host (host), m_port (port), m_cert_manager (cert_manager), m_connected (false)
   {
+    (void) m_log;
   }
 
   void Connection::connect ()

@@ -37,13 +37,14 @@
 #include "openssl/ssl/socket.hh"
 #include "mumble/messages.hh"
 #include "Mumble.pb.h"
+#include "aither/log.hh"
 
 namespace Mumble
 {
   class Connection
   {
   public:
-    Connection (const std::string &host, uint16_t port,
+    Connection (const Aither::Log &log, const std::string &host, uint16_t port,
                 const CertManager &cert_manager);
     void connect ();
     void disconnect ();
@@ -55,6 +56,7 @@ namespace Mumble
       return m_connected;
     }
   private:
+    const Aither::Log &m_log;
     std::string m_host;
     uint16_t m_port;
     const CertManager &m_cert_manager;

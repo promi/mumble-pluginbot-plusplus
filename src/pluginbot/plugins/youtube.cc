@@ -39,7 +39,7 @@ namespace MumblePluginBot
       {
         if (c == '\'')
           {
-            result += "''";
+            result += "'\\''";
           }
         else
           {

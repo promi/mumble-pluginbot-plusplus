@@ -74,13 +74,7 @@ namespace Mumble
   std::pair<int, std::shared_ptr<::google::protobuf::Message>>
       Connection::read_message ()
   {
-    std::vector<uint8_t> prefix;
-    while (prefix.size () == 0)
-      {
-        prefix = read_data (6);
-      }
-    assert (prefix.size () == 6);
-
+    auto prefix = read_data (6);
     uint16_t type = EndianUtils::value_from_u16be (prefix, 0);
     uint32_t len = EndianUtils::value_from_u32be (prefix, 2);
 

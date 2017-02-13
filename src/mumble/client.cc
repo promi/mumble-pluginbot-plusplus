@@ -31,27 +31,15 @@
 #include <iostream>
 #include <openssl/sha.h>
 
-#include "mumble/mumble.hh"
 #include "mumble/client.hh"
 #include "mumble/img-reader.hh"
 
 namespace Mumble
 {
-  Client::Client (const Aither::Log &log, const std::string &host, int port,
-                  const std::string &username, const std::string password,
-                  const std::string &client_identification,
-                  std::function <void(Mumble::Configuration&)> conf_func)
-    : m_log (log), m_client_identification (client_identification)
+  Client::Client (const Aither::Log &log, const Configuration &config,
+                  const std::string &client_identification)
+    : m_log (log), m_config (config),  m_client_identification (client_identification)
   {
-    m_config = Mumble::configuration;
-    m_config.host = host;
-    m_config.port = port;
-    m_config.username = username;
-    m_config.password = password;
-    if (conf_func)
-      {
-        conf_func (m_config);
-      }
   }
 
   bool Client::connect ()
@@ -119,7 +107,7 @@ namespace Mumble
         return;
       }
     m_m2m = std::make_unique<Mumble2Mumble> (m_log, m_codec, *m_conn,
-            m_config.sample_rate, m_config.sample_rate / 100, 1, m_config.bitrate);
+            m_config.sample_rate, m_config.sample_rate / 100, 1, m_bitrate);
     if (rec)
       {
         on<MumbleProto::UDPTunnel> ([this] (auto m)
@@ -188,7 +176,7 @@ namespace Mumble
     if (!m_audio_streamer)
       {
         m_audio_streamer = std::make_unique<AudioPlayer> (m_log, m_codec, *m_conn,
-                           m_config.sample_rate, m_config.bitrate);
+                           m_config.sample_rate, m_bitrate);
       }
     return *m_audio_streamer;
   }
@@ -421,7 +409,7 @@ namespace Mumble
       if (msg.has_max_bandwidth ())
         {
           m_max_bandwidth = msg.max_bandwidth ();
-          m_config.bitrate = clamp (m_config.bitrate, 0, m_max_bandwidth - 32000);
+          m_bitrate = clamp (m_config.bitrate, 0, m_max_bandwidth - 32000);
         }
       m_session = msg.session ();
       m_synced = true;

@@ -13,6 +13,7 @@
     Copyright (c) 2015 dafoxia
     Copyright (c) 2015 loscoala
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -59,6 +60,7 @@ namespace Mumble
   {
   private:
     const Aither::Log &m_log;
+    const Configuration &m_config;
     const std::string m_client_identification;
     std::map<uint32_t, User> m_users;
     std::map<uint32_t, Channel> m_channels;
@@ -70,7 +72,7 @@ namespace Mumble
     int m_pingtime = 0;
     bool m_connected = false;
     bool m_synced = false;
-    Configuration m_config;
+    uint m_bitrate = 0;
     std::unique_ptr<Mumble2Mumble> m_m2m;
     std::unique_ptr<CertManager> m_cert_manager;
     std::unique_ptr<AudioRecorder> m_recorder;
@@ -86,10 +88,8 @@ namespace Mumble
     bool m_ping_thread_running;
     uint32_t m_session;
   public:
-    Client (const Aither::Log &log, const std::string &host, int port = 64738,
-            const std::string &username = "RubyClient", const std::string password = "",
-            const std::string &client_identification = "Unknown 0.1",
-            std::function <void(Mumble::Configuration&)> conf_func = nullptr);
+    Client (const Aither::Log &log, const Configuration &config,
+            const std::string &client_identification = "Unknown 0.1");
     inline ~Client ()
     {
       m_read_thread_running = false;

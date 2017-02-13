@@ -69,6 +69,8 @@ namespace OpenSSL::SSL
 
   void Socket::write (const std::vector<uint8_t> &data)
   {
+    // TODO: Is it possible that SSL_write only writes partial data?
+    // If yes: Run it in a loop like in SSL::Socket::read () !
     if (SSL_write (m_ssl, data.data (), data.size ()) <= 0)
       {
         throw std::runtime_error ("SSL_write () failed");

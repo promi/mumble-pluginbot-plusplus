@@ -8,6 +8,7 @@
     Copyright (c) 2014 niko20010
     Copyright (c) 2015 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -24,50 +25,33 @@
 */
 #pragma once
 
+#include <cstdint>
+#include <google/protobuf/message.h>
+#include <memory>
 #include <string>
 #include <utility>
-#include <memory>
-#include <mutex>
 #include <vector>
-#include <google/protobuf/message.h>
 
-#include "mumble/certificate.hh"
-#include "network/tcp-socket.hh"
-#include "openssl/ssl/context.hh"
-#include "openssl/ssl/socket.hh"
-#include "mumble/messages.hh"
-#include "Mumble.pb.h"
 #include "aither/log.hh"
+#include "mumble/certificate.hh"
 
 namespace Mumble
 {
   class Connection
   {
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
   public:
     Connection (const Aither::Log &log, const std::string &host, uint16_t port,
                 const Certificate &cert);
+    ~Connection ();
+    bool connected () const;
     void connect ();
     void disconnect ();
     std::pair<int, std::shared_ptr<::google::protobuf::Message>> read_message ();
-    void send_udp_packet (const std::vector<uint8_t> &packet);
+    void send_udp_tunnel_message (const std::vector<uint8_t> &packet);
     void send_message (uint16_t type, const ::google::protobuf::Message &msg);
-    inline auto connected () const
-    {
-      return m_connected;
-    }
-  private:
-    const Aither::Log &m_log;
-    std::string m_host;
-    uint16_t m_port;
-    const Certificate &m_cert;
-    bool m_connected;
-    std::mutex m_write_lock;
-    std::unique_ptr<TCPSocket> m_tcp_socket;
-    std::unique_ptr<OpenSSL::SSL::Context> m_context;
-    std::unique_ptr<OpenSSL::SSL::Socket> m_socket;
-    void send_data (uint16_t type, const std::vector<uint8_t> &data);
-    std::vector<uint8_t> read_data (uint32_t len);
-    static std::vector<uint8_t> make_prefix (uint16_t type, uint32_t len);
   };
 }
 

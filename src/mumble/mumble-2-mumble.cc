@@ -161,7 +161,7 @@ m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].
             packet.target = 0;
             packet.sequence_number = m_seq;
             packet.payload = frame;
-            m_conn.send_udp_packet (packet.data (m_sendpds));
+            m_conn.send_udp_tunnel_message (packet.data (m_sendpds));
           }
         catch (...)
           {

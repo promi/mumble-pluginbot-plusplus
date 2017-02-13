@@ -8,6 +8,7 @@
     Copyright (c) 2014 niko20010
     Copyright (c) 2015 dafoxia
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -23,29 +24,71 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <iostream>
+#include <mutex>
 #include <sstream>
 
-#include "openssl/ssl/method.hh"
+#include "Mumble.pb.h"
 #include "mumble/connection.hh"
+#include "mumble/messages.hh"
+#include "network/tcp-socket.hh"
+#include "openssl/ssl/context.hh"
+#include "openssl/ssl/method.hh"
+#include "openssl/ssl/socket.hh"
 #include "util/endian.hh"
 
 namespace Mumble
 {
-  Connection::Connection (const Aither::Log &log, const std::string &host,
-                          uint16_t port,
-                          const Certificate &cert)
-    : m_log (log), m_host (host), m_port (port), m_cert (cert), m_connected (false)
+  struct Connection::Impl
+  {
+    const Aither::Log &m_log;
+    std::string m_host;
+    uint16_t m_port;
+    const Certificate &m_cert;
+    bool m_connected = false;
+    std::mutex m_write_lock;
+    std::unique_ptr<TCPSocket> m_tcp_socket;
+    std::unique_ptr<OpenSSL::SSL::Context> m_context;
+    std::unique_ptr<OpenSSL::SSL::Socket> m_socket;
+    Impl (const Aither::Log &log, const std::string &host, uint16_t port,
+          const Certificate &cert);
+    void connect ();
+    void disconnect ();
+    void send_data (uint16_t type, const std::vector<uint8_t> &data);
+    std::vector<uint8_t> read_data (uint32_t len);
+    static std::vector<uint8_t> make_prefix (uint16_t type, uint32_t len);
+  };
+
+  Connection::Impl::Impl (const Aither::Log &log, const std::string &host,
+                          uint16_t port, const Certificate &cert)
+    : m_log (log), m_host (host), m_port (port), m_cert (cert)
   {
     (void) m_log;
   }
 
-  void Connection::connect ()
+  Connection::Connection (const Aither::Log &log, const std::string &host,
+                          uint16_t port,
+                          const Certificate &cert)
+    : pimpl (std::make_unique<Impl> (log, host, port, cert))
+  {
+  }
+
+  Connection::~Connection ()
+  {
+  }
+
+  bool Connection::connected () const
+  {
+    return pimpl->m_connected;
+  }
+
+  void Connection::Impl::connect ()
   {
     using namespace OpenSSL::SSL;
     m_context = std::make_unique<Context> (Method::sslv23 ());
-    m_context->verify_none ();
-    m_context->key (*m_cert.key);
-    m_context->cert (*m_cert.cert);
+    auto &context = *m_context;
+    context.verify_none ();
+    context.key (*m_cert.key);
+    context.cert (*m_cert.cert);
     try
       {
         m_tcp_socket = std::make_unique<TCPSocket> (m_host, m_port);
@@ -63,7 +106,12 @@ namespace Mumble
       }
   }
 
-  void Connection::disconnect ()
+  void Connection::connect ()
+  {
+    pimpl->connect();
+  }
+
+  void Connection::Impl::disconnect ()
   {
     m_connected = false;
     if (m_socket != nullptr)
@@ -72,14 +120,19 @@ namespace Mumble
       }
   }
 
+  void Connection::disconnect ()
+  {
+    pimpl->disconnect ();
+  }
+
   std::pair<int, std::shared_ptr<::google::protobuf::Message>>
       Connection::read_message ()
   {
-    auto prefix = read_data (6);
+    auto prefix = pimpl->read_data (6);
     uint16_t type = EndianUtils::value_from_u16be (prefix, 0);
     uint32_t len = EndianUtils::value_from_u32be (prefix, 2);
 
-    auto data = read_data (len);
+    auto data = pimpl->read_data (len);
     auto msg = Messages::msg_from_type (type);
     if (type == Messages::sym_to_type.at (std::type_index (typeid (
                                             MumbleProto::UDPTunnel))))
@@ -96,7 +149,7 @@ namespace Mumble
     return std::make_pair (type, std::move (msg));
   }
 
-  std::vector<uint8_t> Connection::make_prefix (uint16_t type, uint32_t len)
+  std::vector<uint8_t> Connection::Impl::make_prefix (uint16_t type, uint32_t len)
   {
     std::vector<uint8_t> prefix;
     EndianUtils::add_to_u16be (prefix, type);
@@ -104,11 +157,11 @@ namespace Mumble
     return prefix;
   }
 
-  void Connection::send_udp_packet (const std::vector<uint8_t> &packet)
+  void Connection::send_udp_tunnel_message (const std::vector<uint8_t> &packet)
   {
     uint16_t type = Messages::sym_to_type.at (std::type_index (typeid (
                       MumbleProto::UDPTunnel)));
-    send_data (type, packet);
+    pimpl->send_data (type, packet);
   }
 
   void Connection::send_message (uint16_t type,
@@ -117,10 +170,12 @@ namespace Mumble
     std::stringstream os;
     msg.SerializeToOstream (&os);
     std::string os_str = os.str ();
-    send_data (type, std::vector<uint8_t> (std::begin (os_str), std::end (os_str)));
+    pimpl->send_data (type, std::vector<uint8_t> (std::begin (os_str),
+                      std::end (os_str)));
   }
 
-  void Connection::send_data (uint16_t type, const std::vector<uint8_t> &data)
+  void Connection::Impl::send_data (uint16_t type,
+                                    const std::vector<uint8_t> &data)
   {
     uint32_t len = data.size ();
     auto prefix = make_prefix (type, len);
@@ -132,7 +187,7 @@ namespace Mumble
       }
   }
 
-  std::vector<uint8_t> Connection::read_data (uint32_t len)
+  std::vector<uint8_t> Connection::Impl::read_data (uint32_t len)
   {
     if (m_connected)
       {

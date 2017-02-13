@@ -26,6 +26,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "git-info.hh"
 #include "mumble/configuration.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"
@@ -58,6 +59,7 @@ namespace MumblePluginBot
     m_cli = std::make_unique<Mumble::Client>
             (m_log, m_settings.connection.host, m_settings.connection.port,
              m_settings.connection.username, m_settings.connection.userpassword,
+             std::string ("mumble-pluginbot-plusplus ") + GIT_DESCRIBE,
              [&] (auto &conf)
     {
       conf.bitrate = m_settings.quality_bitrate;

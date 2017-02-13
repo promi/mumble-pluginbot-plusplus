@@ -34,14 +34,14 @@
 #include "mumble/mumble.hh"
 #include "mumble/client.hh"
 #include "mumble/img-reader.hh"
-#include "mumble/version.hh"
 
 namespace Mumble
 {
   Client::Client (const Aither::Log &log, const std::string &host, int port,
                   const std::string &username, const std::string password,
+                  const std::string &client_identification,
                   std::function <void(Mumble::Configuration&)> conf_func)
-    : m_log (log)
+    : m_log (log), m_client_identification (client_identification)
   {
     m_config = Mumble::configuration;
     m_config.host = host;
@@ -501,7 +501,7 @@ namespace Mumble
   {
     MumbleProto::Version msg;
     msg.set_version (encode_version (1, 3, 0));
-    msg.set_release (std::string ("mumble-pluginbot-plusplus ") + Mumble::_VERSION);
+    msg.set_release (m_client_identification);
     msg.set_os ("Unknown");
     msg.set_os_version ("Unknown");
     // os: %x{uname -s -m}.strip,

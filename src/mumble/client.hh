@@ -59,6 +59,7 @@ namespace Mumble
   {
   private:
     const Aither::Log &m_log;
+    const std::string m_client_identification;
     std::map<uint32_t, User> m_users;
     std::map<uint32_t, Channel> m_channels;
     bool m_ready = false;
@@ -87,6 +88,7 @@ namespace Mumble
   public:
     Client (const Aither::Log &log, const std::string &host, int port = 64738,
             const std::string &username = "RubyClient", const std::string password = "",
+            const std::string &client_identification = "Unknown 0.1",
             std::function <void(Mumble::Configuration&)> conf_func = nullptr);
     inline ~Client ()
     {

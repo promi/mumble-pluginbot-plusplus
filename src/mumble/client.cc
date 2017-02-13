@@ -44,7 +44,7 @@ namespace Mumble
 
   bool Client::connect ()
   {
-    const auto &cert = cert_manager ().certi ();
+    const auto &cert = cert_manager ().cert ();
     m_conn = std::make_unique<Connection> (m_log, m_config.host, m_config.port, cert);
     m_conn->connect ();
     if (!m_conn->connected ())

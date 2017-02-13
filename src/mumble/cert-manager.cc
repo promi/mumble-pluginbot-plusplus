@@ -31,22 +31,70 @@ namespace fs = std::experimental::filesystem;
 
 namespace Mumble
 {
-  CertManager::CertManager (const std::string &username, SSLCertOpts opts)
-    : m_username (username), m_opts (opts), m_cert_dir (opts.cert_dir)
+  struct CertManager::Impl
   {
-    std::string username_lower;
-    std::transform (std::begin (username), std::end (username),
-                    std::back_inserter (username_lower), ::tolower);
-    m_cert_dir /= username_lower;
-    fs::create_directories (m_cert_dir);
-    m_private_key_path = m_cert_dir / "private_key.pem";
-    m_public_key_path = m_cert_dir / "public_key.pem";
-    m_cert_path = m_cert_dir / "cert.pem";
-    setup_key ();
-    setup_cert ();
+    std::string m_username;
+    SSLCertOpts m_opts;
+    Certificate m_certi;
+    fs::path m_cert_dir;
+    fs::path m_private_key_path;
+    fs::path m_public_key_path;
+    fs::path m_cert_path;
+    Impl (const std::string &username, SSLCertOpts opts);
+    void setup_key ();
+    void setup_cert ();
+  };
+
+  CertManager::CertManager (const std::string &username, SSLCertOpts opts)
+    : pimpl (std::make_unique<Impl> (username, opts))
+  {
   }
 
-  void CertManager::setup_key ()
+  CertManager::~CertManager ()
+  {
+  }
+  
+  const Certificate& CertManager::cert () const
+  {
+    return pimpl->m_certi;
+  }
+
+  const fs::path& CertManager::cert_dir_path () const
+  {
+    return pimpl->m_cert_dir;
+  }
+  
+  const fs::path& CertManager::private_key_path () const
+  {
+    return pimpl->m_private_key_path;
+  }
+
+  const fs::path& CertManager::public_key_path () const
+  {
+    return pimpl->m_public_key_path;
+  }
+
+  const fs::path& CertManager::cert_path () const
+  {
+    return pimpl->m_cert_path;
+  }
+
+  CertManager::Impl::Impl (const std::string &username, SSLCertOpts opts)
+      : m_username (username), m_opts (opts), m_cert_dir (opts.cert_dir)
+    {
+      std::string username_lower;
+      std::transform (std::begin (username), std::end (username),
+                      std::back_inserter (username_lower), ::tolower);
+      m_cert_dir /= username_lower;
+      fs::create_directories (m_cert_dir);
+      m_private_key_path = m_cert_dir / "private_key.pem";
+      m_public_key_path = m_cert_dir / "public_key.pem";
+      m_cert_path = m_cert_dir / "cert.pem";
+      setup_key ();
+      setup_cert ();
+    }
+
+  void CertManager::Impl::setup_key ()
   {
     if (fs::exists (m_private_key_path))
       {
@@ -64,7 +112,7 @@ namespace Mumble
       }
   }
 
-  void CertManager::setup_cert ()
+  void CertManager::Impl::setup_cert ()
   {
     if (fs::exists (m_cert_path))
       {

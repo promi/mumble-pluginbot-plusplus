@@ -9,6 +9,7 @@
     Copyright (c) 2014 dafoxia
     Copyright (c) 2014 niko20010
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -33,21 +34,20 @@ namespace Mumble
   struct SSLCertOpts
   {
     std::experimental::filesystem::path cert_dir;
-    std::string country_code;
-    std::string organization;
-    std::string organization_unit;
+    std::string country_code = "US";
+    std::string organization = "github.com";
+    std::string organization_unit = "Engineering";
   };
 
   struct Configuration
   {
     std::string host;
-    int port;
+    int port = 64738;
     std::string username;
     std::string password;
-    int sample_rate;
-    int bitrate;
-    bool vbr_rate;
+    int sample_rate = 48000;
+    int bitrate = 32000;
+    bool vbr_rate = false;
     SSLCertOpts ssl_cert_opts;
   };
-
 }

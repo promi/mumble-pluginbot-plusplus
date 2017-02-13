@@ -24,8 +24,7 @@
 #include <string>
 #include <experimental/filesystem>
 
-#include "openssl/pkey/rsa.hh"
-#include "openssl/x509/certificate.hh"
+#include "mumble/certificate.hh"
 #include "mumble/configuration.hh"
 
 namespace Mumble
@@ -35,9 +34,8 @@ namespace Mumble
   private:
     std::string m_username;
     SSLCertOpts m_opts;
+    Certificate m_certi;
     std::experimental::filesystem::path m_cert_dir;
-    std::unique_ptr<OpenSSL::PKey::RSA> m_key;
-    std::unique_ptr<OpenSSL::X509::Certificate> m_cert;
     std::experimental::filesystem::path m_private_key_path;
     std::experimental::filesystem::path m_public_key_path;
     std::experimental::filesystem::path m_cert_path;
@@ -45,19 +43,23 @@ namespace Mumble
     CertManager (const std::string &username, SSLCertOpts opts);
     inline const OpenSSL::PKey::RSA& key () const
     {
-      if (m_key == nullptr)
+      if (m_certi.key == nullptr)
         {
           throw std::string ("key not initialized");
         }
-      return *m_key;
+      return *m_certi.key;
     }
     inline const OpenSSL::X509::Certificate& cert () const
     {
-      if (m_cert == nullptr)
+      if (m_certi.cert == nullptr)
         {
           throw std::string ("cert not initialized");
         }
-      return *m_cert;
+      return *m_certi.cert;
+    }
+    inline const Certificate& certi () const
+    {
+      return m_certi;
     }
     inline const std::experimental::filesystem::path& private_key_path () const
     {

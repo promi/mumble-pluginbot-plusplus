@@ -32,8 +32,8 @@
 namespace Mumble
 {
   Connection::Connection (const Aither::Log &log, const std::string &host, uint16_t port,
-                          const CertManager &cert_manager)
-    : m_log (log), m_host (host), m_port (port), m_cert_manager (cert_manager), m_connected (false)
+                          const Certificate &cert)
+    : m_log (log), m_host (host), m_port (port), m_cert (cert), m_connected (false)
   {
     (void) m_log;
   }
@@ -43,8 +43,8 @@ namespace Mumble
     using namespace OpenSSL::SSL;
     m_context = std::make_unique<Context> (Method::sslv23 ());
     m_context->verify_none ();
-    m_context->key (m_cert_manager.key ());
-    m_context->cert (m_cert_manager.cert());
+    m_context->key (*m_cert.key);
+    m_context->cert (*m_cert.cert);
     try
       {
         m_tcp_socket = std::make_unique<TCPSocket> (m_host, m_port);

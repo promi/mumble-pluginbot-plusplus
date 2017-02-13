@@ -50,16 +50,17 @@ namespace Mumble
   {
     if (fs::exists (m_private_key_path))
       {
-        m_key = std::make_unique<OpenSSL::PKey::RSA> (
-                  OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (m_private_key_path)));
+        m_certi.key = std::make_unique<OpenSSL::PKey::RSA> (
+                      OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (m_private_key_path)));
       }
     else
       {
-        m_key = std::make_unique<OpenSSL::PKey::RSA> (2048);
+        m_certi.key = std::make_unique<OpenSSL::PKey::RSA> (2048);
+        auto &key = *m_certi.key;
         IO::File::write_all_text (m_private_key_path,
-                                  OpenSSL::PEM::rsa_private_key (*m_key));
+                                  OpenSSL::PEM::rsa_private_key (key));
         IO::File::write_all_text (m_public_key_path,
-                                  OpenSSL::PEM::rsa_public_key (*m_key));
+                                  OpenSSL::PEM::rsa_public_key (key));
       }
   }
 
@@ -67,7 +68,7 @@ namespace Mumble
   {
     if (fs::exists (m_cert_path))
       {
-        m_cert = std::make_unique<OpenSSL::X509::Certificate> (OpenSSL::PEM::x509 (
+        m_certi.cert = std::make_unique<OpenSSL::X509::Certificate> (OpenSSL::PEM::x509 (
                    IO::File::read_all_text (m_cert_path)));
       }
     else
@@ -77,29 +78,31 @@ namespace Mumble
         issuer.add_entry ("O", m_opts.organization);
         issuer.add_entry ("OU", m_opts.organization_unit);
         issuer.add_entry ("CN", m_username);
-        m_cert = std::make_unique<OpenSSL::X509::Certificate> ();
-        m_cert->issuer (issuer);
-        m_cert->subject (issuer);
-        m_cert->not_before (0);
-        m_cert->not_after (5 * 365 * 24 * 60 * 60);
-        m_cert->public_key (OpenSSL::PKey::Envelope (m_key->public_key ()));
+        m_certi.cert = std::make_unique<OpenSSL::X509::Certificate> ();
+        auto &cert = *m_certi.cert;
+        auto &key = *m_certi.key;
+        cert.issuer (issuer);
+        cert.subject (issuer);
+        cert.not_before (0);
+        cert.not_after (5 * 365 * 24 * 60 * 60);
+        cert.public_key (OpenSSL::PKey::Envelope (key.public_key ()));
         srand (time(0));
-        m_cert->serial (rand() % 65536 + 1);
-        m_cert->version (2);
+        cert.serial (rand() % 65536 + 1);
+        cert.version (2);
 
-        OpenSSL::X509::ExtensionFactory ef { *m_cert, *m_cert };
+        OpenSSL::X509::ExtensionFactory ef { cert, cert };
 
-        m_cert->add_extension (ef.create_extension ("basicConstraints", "CA:TRUE",
+        cert.add_extension (ef.create_extension ("basicConstraints", "CA:TRUE",
                                true));
-        m_cert->add_extension (ef.create_extension ("keyUsage", "keyCertSign, cRLSign",
+        cert.add_extension (ef.create_extension ("keyUsage", "keyCertSign, cRLSign",
                                true));
-        m_cert->add_extension (ef.create_extension ("subjectKeyIdentifier", "hash",
+        cert.add_extension (ef.create_extension ("subjectKeyIdentifier", "hash",
                                false));
-        m_cert->add_extension (ef.create_extension ("authorityKeyIdentifier",
+        cert.add_extension (ef.create_extension ("authorityKeyIdentifier",
                                "keyid:always", false));
 
-        m_cert->sign (*m_key, OpenSSL::PKey::EnvelopeMessageDigest::sha256 ());
-        IO::File::write_all_text (m_cert_path, OpenSSL::PEM::x509 (*m_cert));
+        cert.sign (key, OpenSSL::PKey::EnvelopeMessageDigest::sha256 ());
+        IO::File::write_all_text (m_cert_path, OpenSSL::PEM::x509 (cert));
       }
   }
 }

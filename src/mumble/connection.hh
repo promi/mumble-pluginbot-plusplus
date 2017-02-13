@@ -31,7 +31,7 @@
 #include <vector>
 #include <google/protobuf/message.h>
 
-#include "mumble/cert-manager.hh"
+#include "mumble/certificate.hh"
 #include "network/tcp-socket.hh"
 #include "openssl/ssl/context.hh"
 #include "openssl/ssl/socket.hh"
@@ -45,7 +45,7 @@ namespace Mumble
   {
   public:
     Connection (const Aither::Log &log, const std::string &host, uint16_t port,
-                const CertManager &cert_manager);
+                const Certificate &cert);
     void connect ();
     void disconnect ();
     std::pair<int, std::shared_ptr<::google::protobuf::Message>> read_message ();
@@ -59,7 +59,7 @@ namespace Mumble
     const Aither::Log &m_log;
     std::string m_host;
     uint16_t m_port;
-    const CertManager &m_cert_manager;
+    const Certificate &m_cert;
     bool m_connected;
     std::mutex m_write_lock;
     std::unique_ptr<TCPSocket> m_tcp_socket;

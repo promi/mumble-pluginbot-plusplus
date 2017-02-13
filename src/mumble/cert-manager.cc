@@ -54,7 +54,7 @@ namespace Mumble
   CertManager::~CertManager ()
   {
   }
-  
+
   const Certificate& CertManager::cert () const
   {
     return pimpl->m_certi;
@@ -64,7 +64,7 @@ namespace Mumble
   {
     return pimpl->m_cert_dir;
   }
-  
+
   const fs::path& CertManager::private_key_path () const
   {
     return pimpl->m_private_key_path;
@@ -81,26 +81,26 @@ namespace Mumble
   }
 
   CertManager::Impl::Impl (const std::string &username, SSLCertOpts opts)
-      : m_username (username), m_opts (opts), m_cert_dir (opts.cert_dir)
-    {
-      std::string username_lower;
-      std::transform (std::begin (username), std::end (username),
-                      std::back_inserter (username_lower), ::tolower);
-      m_cert_dir /= username_lower;
-      fs::create_directories (m_cert_dir);
-      m_private_key_path = m_cert_dir / "private_key.pem";
-      m_public_key_path = m_cert_dir / "public_key.pem";
-      m_cert_path = m_cert_dir / "cert.pem";
-      setup_key ();
-      setup_cert ();
-    }
+    : m_username (username), m_opts (opts), m_cert_dir (opts.cert_dir)
+  {
+    std::string username_lower;
+    std::transform (std::begin (username), std::end (username),
+                    std::back_inserter (username_lower), ::tolower);
+    m_cert_dir /= username_lower;
+    fs::create_directories (m_cert_dir);
+    m_private_key_path = m_cert_dir / "private_key.pem";
+    m_public_key_path = m_cert_dir / "public_key.pem";
+    m_cert_path = m_cert_dir / "cert.pem";
+    setup_key ();
+    setup_cert ();
+  }
 
   void CertManager::Impl::setup_key ()
   {
     if (fs::exists (m_private_key_path))
       {
         m_certi.key = std::make_unique<OpenSSL::PKey::RSA> (
-                      OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (m_private_key_path)));
+                        OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (m_private_key_path)));
       }
     else
       {
@@ -117,8 +117,9 @@ namespace Mumble
   {
     if (fs::exists (m_cert_path))
       {
-        m_certi.cert = std::make_unique<OpenSSL::X509::Certificate> (OpenSSL::PEM::x509 (
-                   IO::File::read_all_text (m_cert_path)));
+        m_certi.cert = std::make_unique<OpenSSL::X509::Certificate>
+                       (OpenSSL::PEM::x509 (
+                          IO::File::read_all_text (m_cert_path)));
       }
     else
       {
@@ -142,13 +143,13 @@ namespace Mumble
         OpenSSL::X509::ExtensionFactory ef { cert, cert };
 
         cert.add_extension (ef.create_extension ("basicConstraints", "CA:TRUE",
-                               true));
+                            true));
         cert.add_extension (ef.create_extension ("keyUsage", "keyCertSign, cRLSign",
-                               true));
+                            true));
         cert.add_extension (ef.create_extension ("subjectKeyIdentifier", "hash",
-                               false));
+                            false));
         cert.add_extension (ef.create_extension ("authorityKeyIdentifier",
-                               "keyid:always", false));
+                            "keyid:always", false));
 
         cert.sign (key, OpenSSL::PKey::EnvelopeMessageDigest::sha256 ());
         IO::File::write_all_text (m_cert_path, OpenSSL::PEM::x509 (cert));

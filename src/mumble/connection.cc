@@ -31,7 +31,8 @@
 
 namespace Mumble
 {
-  Connection::Connection (const Aither::Log &log, const std::string &host, uint16_t port,
+  Connection::Connection (const Aither::Log &log, const std::string &host,
+                          uint16_t port,
                           const Certificate &cert)
     : m_log (log), m_host (host), m_port (port), m_cert (cert), m_connected (false)
   {

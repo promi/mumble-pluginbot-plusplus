@@ -63,7 +63,8 @@ namespace MumblePluginBot
     m_config.bitrate = m_settings.quality_bitrate;
     m_config.vbr_rate = m_settings.use_vbr;
     m_config.ssl_cert_opts.cert_dir = m_settings.certdir;
-    m_cli = std::make_unique<Mumble::Client> (m_log, m_config, std::string ("mumble-pluginbot-plusplus ") + GIT_DESCRIBE);
+    m_cli = std::make_unique<Mumble::Client> (m_log, m_config,
+            std::string ("mumble-pluginbot-plusplus ") + GIT_DESCRIBE);
     if (config_filename != "")
       {
         AITHER_VERBOSE("parse extra config");

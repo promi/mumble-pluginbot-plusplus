@@ -38,14 +38,16 @@ namespace Mumble
 {
   Client::Client (const Aither::Log &log, const Configuration &config,
                   const std::string &client_identification)
-    : m_log (log), m_config (config),  m_client_identification (client_identification)
+    : m_log (log), m_config (config),
+      m_client_identification (client_identification)
   {
   }
 
   bool Client::connect ()
   {
     const auto &cert = cert_manager ().cert ();
-    m_conn = std::make_unique<Connection> (m_log, m_config.host, m_config.port, cert);
+    m_conn = std::make_unique<Connection> (m_log, m_config.host, m_config.port,
+                                           cert);
     m_conn->connect ();
     if (!m_conn->connected ())
       {

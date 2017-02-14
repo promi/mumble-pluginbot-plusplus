@@ -397,9 +397,15 @@ namespace MumblePluginBot
       reply (out.str ());
       std::thread t { [this, reply, links] ()
       {
-        download_songs_thread (reply, links);
-      }
-                    };
+          try
+            {
+              download_songs_thread (reply, links);
+            }
+          catch (const std::exception &e)
+            {
+              reply (e.what ());
+            }
+      }};
       t.detach ();
     };
     return {help, invoke};

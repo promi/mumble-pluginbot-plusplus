@@ -18,6 +18,7 @@
 */
 #pragma once
 
+#include <experimental/filesystem>
 #include <memory>
 
 #include "openssl/pkey/rsa.hh"
@@ -29,5 +30,12 @@ namespace Mumble
   {
     std::unique_ptr<OpenSSL::PKey::RSA> key;
     std::unique_ptr<OpenSSL::X509::Certificate> cert;
+  };
+
+  struct CertificatePaths
+  {
+    std::experimental::filesystem::path dir;
+    std::experimental::filesystem::path key;
+    std::experimental::filesystem::path cert;
   };
 }

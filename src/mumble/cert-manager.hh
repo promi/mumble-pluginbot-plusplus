@@ -34,14 +34,8 @@ namespace Mumble
   {
   private:
     struct Impl;
-    std::unique_ptr<Impl> pimpl;
   public:
-    CertManager (const std::string &username, SSLCertOpts opts);
-    ~CertManager ();
-    const Certificate& cert () const;
-    const std::experimental::filesystem::path& cert_dir_path () const;
-    const std::experimental::filesystem::path& private_key_path () const;
-    const std::experimental::filesystem::path& public_key_path () const;
-    const std::experimental::filesystem::path& cert_path () const;
+    static std::pair<CertificatePaths, Certificate> get_certificate (
+      SSLCertOpts opts, const std::string &username);
   };
 }

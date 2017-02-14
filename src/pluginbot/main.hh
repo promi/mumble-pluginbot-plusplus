@@ -75,6 +75,7 @@ namespace MumblePluginBot
     std::thread m_duckthread;
     std::thread m_ticktimer;
     Mumble::Configuration m_config;
+    std::pair<Mumble::CertificatePaths, Mumble::Certificate> m_cert;
     std::unique_ptr<Mumble::Client> m_cli;
     Settings m_settings;
     Settings m_configured_settings;

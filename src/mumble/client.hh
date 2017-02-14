@@ -61,6 +61,7 @@ namespace Mumble
   private:
     const Aither::Log &m_log;
     const Configuration &m_config;
+    const Certificate &m_cert;
     const std::string m_client_identification;
     std::map<uint32_t, User> m_users;
     std::map<uint32_t, Channel> m_channels;
@@ -74,7 +75,6 @@ namespace Mumble
     bool m_synced = false;
     uint m_bitrate = 0;
     std::unique_ptr<Mumble2Mumble> m_m2m;
-    std::unique_ptr<CertManager> m_cert_manager;
     std::unique_ptr<AudioRecorder> m_recorder;
     std::unique_ptr<Connection> m_conn;
     std::map<int,
@@ -89,6 +89,7 @@ namespace Mumble
     uint32_t m_session;
   public:
     Client (const Aither::Log &log, const Configuration &config,
+            const Certificate &cert,
             const std::string &client_identification = "Unknown 0.1");
     inline ~Client ()
     {

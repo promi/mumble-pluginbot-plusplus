@@ -37,17 +37,16 @@
 namespace Mumble
 {
   Client::Client (const Aither::Log &log, const Configuration &config,
-                  const std::string &client_identification)
-    : m_log (log), m_config (config),
+                  const Certificate &cert, const std::string &client_identification)
+    : m_log (log), m_config (config), m_cert (cert),
       m_client_identification (client_identification)
   {
   }
 
   bool Client::connect ()
   {
-    const auto &cert = cert_manager ().cert ();
     m_conn = std::make_unique<Connection> (m_log, m_config.host, m_config.port,
-                                           cert);
+                                           m_cert);
     m_conn->connect ();
     if (!m_conn->connected ())
       {
@@ -76,16 +75,6 @@ namespace Mumble
     m_read_thread.join ();
     m_ping_thread_running = false;
     m_ping_thread.join ();
-  }
-
-  const CertManager& Client::cert_manager ()
-  {
-    if (m_cert_manager == nullptr)
-      {
-        m_cert_manager = std::make_unique<CertManager> (m_config.username,
-                         m_config.ssl_cert_opts);
-      }
-    return *m_cert_manager;
   }
 
   const AudioRecorder& Client::recorder ()

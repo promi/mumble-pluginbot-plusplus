@@ -248,7 +248,7 @@ namespace MumblePluginBot
         {
           try
             {
-              link_thread_proc (reply, uri);
+              this->link_thread_proc (reply, uri);
             }
           catch (const std::exception &e)
             {
@@ -305,7 +305,7 @@ namespace MumblePluginBot
         }
       std::thread t { [this, actor, reply, search] ()
       {
-        search_thread_proc (actor, reply, search);
+        this->search_thread_proc (actor, reply, search);
       }
                     };
       t.detach ();
@@ -399,7 +399,7 @@ namespace MumblePluginBot
       {
           try
             {
-              download_songs_thread (reply, links);
+              this->download_songs_thread (reply, links);
             }
           catch (const std::exception &e)
             {

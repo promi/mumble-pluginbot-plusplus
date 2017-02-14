@@ -21,9 +21,9 @@
 */
 #pragma once
 
-#include <memory>
-#include <string>
 #include <experimental/filesystem>
+#include <string>
+#include <utility>
 
 #include "mumble/certificate.hh"
 #include "mumble/configuration.hh"

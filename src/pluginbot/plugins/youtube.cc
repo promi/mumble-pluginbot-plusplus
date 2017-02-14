@@ -341,6 +341,16 @@ namespace MumblePluginBot
         Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
         mpd.update (subdir);
         reply ("Waiting for database update complete...");
+        // TODO: Both methods do not work reliably.
+        //
+        // 1. idle_mask may wait for the *next* database update to complete
+        //    when the current update is already done (race condition)
+        //
+        // 2. mpd.status () loop sometimes returns premature?!
+        //    At least mpd_run_add sometimes fails, needs investigation
+        //
+        
+        // mpd.idle_mask (FlagSet<Mpd::Idle> (Mpd::Idle::Database));
         while (mpd.status ().updating_db ())
           {
             using namespace std::chrono_literals;

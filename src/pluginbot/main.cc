@@ -26,6 +26,7 @@
 #include <functional>
 #include <algorithm>
 
+#include "git-info.hh"
 #include "mumble/configuration.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"
@@ -55,15 +56,17 @@ namespace MumblePluginBot
               const Aither::Log &log) : m_settings (settings), m_log (log)
   {
     m_run = false;
-    m_cli = std::make_unique<Mumble::Client>
-            (m_log, m_settings.connection.host, m_settings.connection.port,
-             m_settings.connection.username, m_settings.connection.userpassword,
-             [&] (auto &conf)
-    {
-      conf.bitrate = m_settings.quality_bitrate;
-      conf.vbr_rate = m_settings.use_vbr;
-      conf.ssl_cert_opts.cert_dir = m_settings.certdir;
-    });
+    m_config.host = m_settings.connection.host;
+    m_config.port = m_settings.connection.port;
+    m_config.username = m_settings.connection.username;
+    m_config.password = m_settings.connection.userpassword;
+    m_config.bitrate = m_settings.quality_bitrate;
+    m_config.vbr_rate = m_settings.use_vbr;
+    m_config.ssl_cert_opts.cert_dir = m_settings.certdir;
+    m_cert = Mumble::CertManager::get_certificate (m_config.ssl_cert_opts,
+             m_config.username);
+    m_cli = std::make_unique<Mumble::Client> (m_log, m_config, m_cert.second,
+            std::string ("mumble-pluginbot-plusplus ") + GIT_DESCRIBE);
     if (config_filename != "")
       {
         AITHER_VERBOSE("parse extra config");

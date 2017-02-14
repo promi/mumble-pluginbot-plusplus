@@ -29,6 +29,7 @@
 #include <string>
 #include <queue>
 #include <thread>
+#include <mutex>
 
 #include "aither/log.hh"
 #include "mumble/Mumble.pb.h"

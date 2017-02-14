@@ -1,13 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2012 Matthew Perry (mattvperry)
-    Copyright (c) 2012 Iván Eixarch (joker-x)
-    Copyright (c) 2014 Matthew Perry (mattvperry)
-    Copyright (c) 2014 dafoxia
-    Copyright (c) 2014 niko20010
     Copyright (c) 2015 dafoxia
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -25,33 +22,23 @@
 */
 #pragma once
 
-#include <cstdint>
-#include <google/protobuf/message.h>
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include "aither/log.hh"
-#include "mumble/certificate.hh"
-
-namespace Mumble
+namespace Util
 {
-  class Connection
+  class Ffmpeg
   {
   private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   public:
-    Connection (const Aither::Log &log, const std::string &host, uint16_t port,
-                const Certificate &cert);
-    ~Connection ();
-    bool connected () const;
-    void connect ();
-    void disconnect ();
-    std::pair<int, std::shared_ptr<::google::protobuf::Message>> read_message ();
-    void send_udp_tunnel_message (const std::vector<uint8_t> &packet);
-    void send_message (uint16_t type, const ::google::protobuf::Message &msg);
+    Ffmpeg (const std::string &executable = "ffmpeg");
+    ~Ffmpeg ();
+    std::vector<std::string> convert_to_mp3 (const std::string &from,
+        const std::string &to, const std::string &title);
+    std::vector<std::string> tag (const std::string &from, const std::string &to,
+                                  const std::string &title);
   };
 }
-

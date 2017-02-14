@@ -4,6 +4,7 @@
     Copyright (c) 2014 Matthew Perry (mattvperry)
     Copyright (c) 2014 niko20010
     Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -31,75 +32,93 @@ namespace fs = std::experimental::filesystem;
 
 namespace Mumble
 {
-  CertManager::CertManager (const std::string &username, SSLCertOpts opts)
-    : m_username (username), m_opts (opts), m_cert_dir (opts.cert_dir)
+  struct CertManager::Impl
+  {
+    static CertificatePaths get_paths (const fs::path base_dir,
+                                       const std::string &username);
+    static Certificate load (const CertificatePaths &paths);
+    static Certificate create (const CertificatePaths &paths,
+                               const SSLCertOpts &opts, const std::string &username);
+  };
+
+  CertificatePaths CertManager::Impl::get_paths (const fs::path base_dir,
+      const std::string &username)
   {
     std::string username_lower;
     std::transform (std::begin (username), std::end (username),
                     std::back_inserter (username_lower), ::tolower);
-    m_cert_dir /= username_lower;
-    fs::create_directories (m_cert_dir);
-    m_private_key_path = m_cert_dir / "private_key.pem";
-    m_public_key_path = m_cert_dir / "public_key.pem";
-    m_cert_path = m_cert_dir / "cert.pem";
-    setup_key ();
-    setup_cert ();
+
+    CertificatePaths paths;
+    paths.dir = base_dir / username_lower;
+    auto &dir = paths.dir;
+    fs::create_directories (dir);
+    paths.key = dir / "private_key.pem";
+    paths.cert = dir / "cert.pem";
+    return paths;
   }
 
-  void CertManager::setup_key ()
+  Certificate CertManager::Impl::load (const CertificatePaths &paths)
   {
-    if (fs::exists (m_private_key_path))
+    Certificate container;
+    container.key = std::make_unique<OpenSSL::PKey::RSA>
+                    (OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (paths.key)));
+    container.cert = std::make_unique<OpenSSL::X509::Certificate>
+                     (OpenSSL::PEM::x509 (IO::File::read_all_text (paths.cert)));
+    return container;;
+  }
+
+  Certificate CertManager::Impl::create (const CertificatePaths &paths,
+                                         const SSLCertOpts &opts, const std::string &username)
+  {
+    Certificate container;
+    container.key = std::make_unique<OpenSSL::PKey::RSA> (2048);
+    auto &key = *container.key;
+
+    IO::File::write_all_text (paths.key, OpenSSL::PEM::rsa_private_key (key));
+
+    container.cert = std::make_unique<OpenSSL::X509::Certificate> ();
+    auto &cert = *container.cert;
+
+    OpenSSL::X509::Name issuer;
+    issuer.add_entry ("C", opts.country_code);
+    issuer.add_entry ("O", opts.organization);
+    issuer.add_entry ("OU", opts.organization_unit);
+    issuer.add_entry ("CN", username);
+
+    cert.issuer (issuer);
+    cert.subject (issuer);
+    cert.not_before (0);
+    cert.not_after (5 * 365 * 24 * 60 * 60);
+    cert.public_key (OpenSSL::PKey::Envelope (key.public_key ()));
+    srand (time(0));
+    cert.serial (rand() % 65536 + 1);
+    cert.version (2);
+
+    OpenSSL::X509::ExtensionFactory ef { cert, cert };
+    cert.add_extension (ef.create_extension ("basicConstraints", "CA:TRUE", true));
+    cert.add_extension (ef.create_extension ("keyUsage", "keyCertSign, cRLSign",
+                        true));
+    cert.add_extension (ef.create_extension ("subjectKeyIdentifier", "hash",
+                        false));
+    cert.add_extension (ef.create_extension ("authorityKeyIdentifier",
+                        "keyid:always", false));
+
+    cert.sign (key, OpenSSL::PKey::EnvelopeMessageDigest::sha256 ());
+    IO::File::write_all_text (paths.cert, OpenSSL::PEM::x509 (cert));
+    return container;
+  }
+
+  std::pair<CertificatePaths, Certificate> CertManager::get_certificate (
+    SSLCertOpts opts, const std::string &username)
+  {
+    auto paths = Impl::get_paths (opts.cert_dir, username);
+    if (fs::exists (paths.key) && fs::exists (paths.cert))
       {
-        m_key = std::make_unique<OpenSSL::PKey::RSA> (
-                  OpenSSL::PEM::rsa_private_key (IO::File::read_all_text (m_private_key_path)));
+        return std::make_pair (paths, Impl::load (paths));
       }
     else
       {
-        m_key = std::make_unique<OpenSSL::PKey::RSA> (2048);
-        IO::File::write_all_text (m_private_key_path,
-                                  OpenSSL::PEM::rsa_private_key (*m_key));
-        IO::File::write_all_text (m_public_key_path,
-                                  OpenSSL::PEM::rsa_public_key (*m_key));
-      }
-  }
-
-  void CertManager::setup_cert ()
-  {
-    if (fs::exists (m_cert_path))
-      {
-        m_cert = std::make_unique<OpenSSL::X509::Certificate> (OpenSSL::PEM::x509 (
-                   IO::File::read_all_text (m_cert_path)));
-      }
-    else
-      {
-        OpenSSL::X509::Name issuer;
-        issuer.add_entry ("C", m_opts.country_code);
-        issuer.add_entry ("O", m_opts.organization);
-        issuer.add_entry ("OU", m_opts.organization_unit);
-        issuer.add_entry ("CN", m_username);
-        m_cert = std::make_unique<OpenSSL::X509::Certificate> ();
-        m_cert->issuer (issuer);
-        m_cert->subject (issuer);
-        m_cert->not_before (0);
-        m_cert->not_after (5 * 365 * 24 * 60 * 60);
-        m_cert->public_key (OpenSSL::PKey::Envelope (m_key->public_key ()));
-        srand (time(0));
-        m_cert->serial (rand() % 65536 + 1);
-        m_cert->version (2);
-
-        OpenSSL::X509::ExtensionFactory ef { *m_cert, *m_cert };
-
-        m_cert->add_extension (ef.create_extension ("basicConstraints", "CA:TRUE",
-                               true));
-        m_cert->add_extension (ef.create_extension ("keyUsage", "keyCertSign, cRLSign",
-                               true));
-        m_cert->add_extension (ef.create_extension ("subjectKeyIdentifier", "hash",
-                               false));
-        m_cert->add_extension (ef.create_extension ("authorityKeyIdentifier",
-                               "keyid:always", false));
-
-        m_cert->sign (*m_key, OpenSSL::PKey::EnvelopeMessageDigest::sha256 ());
-        IO::File::write_all_text (m_cert_path, OpenSSL::PEM::x509 (*m_cert));
+        return std::make_pair (paths, Impl::create (paths, opts, username));
       }
   }
 }

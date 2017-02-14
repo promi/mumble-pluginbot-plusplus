@@ -1,9 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2014 Matthew Perry (mattvperry)
-    Copyright (c) 2014 niko20010
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -22,20 +19,23 @@
 #pragma once
 
 #include <experimental/filesystem>
-#include <string>
-#include <utility>
+#include <memory>
 
-#include "mumble/certificate.hh"
-#include "mumble/configuration.hh"
+#include "openssl/pkey/rsa.hh"
+#include "openssl/x509/certificate.hh"
 
 namespace Mumble
 {
-  class CertManager
+  struct Certificate
   {
-  private:
-    struct Impl;
-  public:
-    static std::pair<CertificatePaths, Certificate> get_certificate (
-      SSLCertOpts opts, const std::string &username);
+    std::unique_ptr<OpenSSL::PKey::RSA> key;
+    std::unique_ptr<OpenSSL::X509::Certificate> cert;
+  };
+
+  struct CertificatePaths
+  {
+    std::experimental::filesystem::path dir;
+    std::experimental::filesystem::path key;
+    std::experimental::filesystem::path cert;
   };
 }

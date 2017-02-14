@@ -109,8 +109,6 @@ namespace MumblePluginBot
       std::string download_subdir = "downloadedfromyt";
       std::string temp_subdir = "youtubeplugin";
       std::string youtubedl = "youtube-dl";
-      std::string youtubedl_options = "";
-      std::string command_line_prefixes = "";
       bool stream = false;
       bool convert_to_mp3 = false;
       uint max_results = 200;

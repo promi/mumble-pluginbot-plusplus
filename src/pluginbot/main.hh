@@ -5,6 +5,7 @@
     Copyright (c) 2015 netinetwalker
     Copyright (c) 2015 Natenom
     Copyright (c) 2016 Promi <prometheus@unterderbruecke.de>
+    Copyright (c) 2017 Promi <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published by
@@ -73,6 +74,8 @@ namespace MumblePluginBot
     bool m_ticktimer_running = false;
     std::thread m_duckthread;
     std::thread m_ticktimer;
+    Mumble::Configuration m_config;
+    std::pair<Mumble::CertificatePaths, Mumble::Certificate> m_cert;
     std::unique_ptr<Mumble::Client> m_cli;
     Settings m_settings;
     Settings m_configured_settings;

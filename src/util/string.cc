@@ -1,9 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2014 Matthew Perry (mattvperry)
-    Copyright (c) 2014 niko20010
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -19,23 +16,26 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "util/string.hh"
 
-#include <experimental/filesystem>
-#include <string>
-#include <utility>
-
-#include "mumble/certificate.hh"
-#include "mumble/configuration.hh"
-
-namespace Mumble
+namespace Util::String
 {
-  class CertManager
+  std::string intercalate (const std::vector<std::string> &vector, char delimiter)
   {
-  private:
-    struct Impl;
-  public:
-    static std::pair<CertificatePaths, Certificate> get_certificate (
-      SSLCertOpts opts, const std::string &username);
-  };
+    std::string result;
+    bool first = true;
+    for (const auto &s : vector)
+      {
+        if (first)
+          {
+            result = s;
+            first = false;
+          }
+        else
+          {
+            result += delimiter + s;
+          }
+      }
+    return result;
+  }
 }

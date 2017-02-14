@@ -1,9 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2014 Matthew Perry (mattvperry)
-    Copyright (c) 2014 niko20010
-    Copyright (c) 2016 Phobos (promi) <prometheus@unterderbruecke.de>
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -21,21 +22,13 @@
 */
 #pragma once
 
-#include <experimental/filesystem>
+#include <array>
+#include <memory>
 #include <string>
-#include <utility>
 
-#include "mumble/certificate.hh"
-#include "mumble/configuration.hh"
-
-namespace Mumble
+namespace Util::Shell
 {
-  class CertManager
-  {
-  private:
-    struct Impl;
-  public:
-    static std::pair<CertificatePaths, Certificate> get_certificate (
-      SSLCertOpts opts, const std::string &username);
-  };
+  std::string squote (const std::string &s);
+  std::string exec (const std::string &cmd);
+  std::string nice_exec (const std::string &cmd);
 }

@@ -27,28 +27,13 @@
 #include "mpd/client.hh"
 #include "pluginbot/html.hh"
 #include "pluginbot/plugins/command-help.hh"
+#include "shell/shell.hh"
+#include "util/string.hh"
 
 namespace fs = std::experimental::filesystem;
 
 namespace MumblePluginBot
 {
-  std::string squote (const std::string &s)
-  {
-    std::string result = "'";
-    for (const char &c : s)
-      {
-        if (c == '\'')
-          {
-            result += "'\\''";
-          }
-        else
-          {
-            result += c;
-          }
-      }
-    return result + "'";
-  };
-
   struct YoutubePlugin::Impl
   {
     struct CommandArgs
@@ -287,7 +272,7 @@ namespace MumblePluginBot
       std::function<void (const std::string &)> reply, const std::string &search)
   {
     reply ("searching for \"" + search + "\", please be patient...");
-    auto songs = find_songs (squote (search));
+    auto songs = find_songs (Shell::squote (search));
     std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
     m_user_search_results[user_id] = songs;
     std::stringstream out;
@@ -440,78 +425,42 @@ namespace MumblePluginBot
     return {help, invoke};
   }
 
-  std::string exec (const std::string &cmd)
-  {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, int(*)(FILE*)> pipe (popen (cmd.c_str (), "r"), pclose);
-    if (pipe == nullptr)
-      {
-        throw std::runtime_error ("popen() failed");
-      }
-    while ((fgets (buffer.data (), buffer.size (), pipe.get ())) != nullptr)
-      {
-        result += buffer.data ();
-      }
-    return result;
-  }
-
-  std::string intercalate (const std::vector<std::string> &vector,
-                           const char delimiter = ' ')
-  {
-    std::string result;
-    bool first = true;
-    for (const auto &s : vector)
-      {
-        if (first)
-          {
-            result = s;
-            first = false;
-          }
-        else
-          {
-            result += delimiter + s;
-          }
-      }
-    return result;
-  }
-
   std::string nice_exec (const std::string &cmd)
   {
-    return exec (intercalate ({"nice", "-n20", cmd}));
+    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", cmd}));
   }
 
   std::string YoutubePlugin::Impl::nice_add_exec (const std::string &cmd)
   {
-    return exec (intercalate ({"nice", "-n20", settings.youtube.command_line_prefixes, cmd}));
+    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", settings.youtube.command_line_prefixes, cmd}));
   }
 
   std::string YoutubePlugin::Impl::exec_ytdl (const std::string &arguments)
   {
-    return exec (intercalate ({settings.youtube.youtubedl, arguments}));
+    return Shell::exec (StringUtils::intercalate ({settings.youtube.youtubedl, arguments}));
   }
 
   std::string YoutubePlugin::Impl::add_exec_ytdl (const std::string &arguments)
   {
-    return exec (intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
+    return Shell::exec (StringUtils::intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
   }
 
   std::string YoutubePlugin::Impl::nice_exec_ytdl (const std::string &arguments)
   {
-    return nice_exec (intercalate ({settings.youtube.youtubedl, arguments}));
+    return nice_exec (StringUtils::intercalate ({settings.youtube.youtubedl, arguments}));
   }
 
   std::string YoutubePlugin::Impl::nice_add_exec_ytdl (const std::string
       &arguments)
   {
-    return nice_exec (intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
+    return nice_exec (StringUtils::intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
   }
 
   std::vector<std::pair<std::string, std::string>>
       YoutubePlugin::Impl::find_songs (const std::string &query)
   {
     std::vector<std::pair<std::string, std::string>> v;
-    std::stringstream output {nice_exec_ytdl (intercalate (
+    std::stringstream output {nice_exec_ytdl (StringUtils::intercalate (
       {
         "--max-downloads " + std::to_string (settings.youtube.max_results),
         "--get-title",
@@ -531,12 +480,12 @@ namespace MumblePluginBot
   void YoutubePlugin::Impl::resize_thumbnail (const fs::path &from,
       const fs::path &to)
   {
-    nice_add_exec (intercalate (
+    nice_add_exec (StringUtils::intercalate (
     {
       "convert",
-      squote (from),
+      Shell::squote (from),
       "-resize 320x240",
-      squote (to)
+      Shell::squote (to)
     }));
   }
 
@@ -544,7 +493,7 @@ namespace MumblePluginBot
     const std::string &uri)
   {
     std::vector<std::string> v;
-    std::stringstream output {exec_ytdl (intercalate ({
+    std::stringstream output {exec_ytdl (StringUtils::intercalate ({
         "--get-filename",
         settings.youtube.youtubedl_options,
         "--ignore-errors",
@@ -562,12 +511,12 @@ namespace MumblePluginBot
   std::vector<std::string> YoutubePlugin::Impl::download (const std::string &uri)
   {
     std::vector<std::string> v;
-    std::stringstream output {nice_add_exec_ytdl (intercalate({
+    std::stringstream output {nice_add_exec_ytdl (StringUtils::intercalate({
         settings.youtube.youtubedl_options,
         "--write-thumbnail",
         "--extract-audio",
         "--audio-format best",
-        "--output " + squote (m_tempdir.string () + "/%(title)s.%(ext)s"),
+        "--output " + Shell::squote (m_tempdir.string () + "/%(title)s.%(ext)s"),
         uri,
         "2>&1"
       }))
@@ -583,14 +532,14 @@ namespace MumblePluginBot
     const std::string &from, const std::string &to, const std::string &title)
   {
     std::vector<std::string> v;
-    std::stringstream output {nice_add_exec (intercalate ({
+    std::stringstream output {nice_add_exec (StringUtils::intercalate ({
         "ffmpeg",
         "-n",
-        "-i " + squote (from),
+        "-i " + Shell::squote (from),
         "-codec:a libmp3lame",
         "-qscale:a 2",
-        "-metadata title=" + squote (title),
-        squote (to),
+        "-metadata title=" + Shell::squote (title),
+        Shell::squote (to),
         "2>&1"
       }))
     };
@@ -605,14 +554,14 @@ namespace MumblePluginBot
       const std::string &to, const std::string &title)
   {
     std::vector<std::string> v;
-    std::stringstream output {nice_add_exec (intercalate (
+    std::stringstream output {nice_add_exec (StringUtils::intercalate (
       {
         "ffmpeg",
         "-n",
-        "-i " + squote (from),
+        "-i " + Shell::squote (from),
         "-codec:a copy",
-        "-metadata title=" + squote (title),
-        squote (to),
+        "-metadata title=" + Shell::squote (title),
+        Shell::squote (to),
         "2>&1"
       }))
     };

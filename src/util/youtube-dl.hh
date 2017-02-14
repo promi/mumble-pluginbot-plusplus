@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -18,12 +22,27 @@
 */
 #pragma once
 
-#include <array>
+#include <experimental/filesystem>
 #include <memory>
 #include <string>
+#include <vector>
 
-namespace Shell
+namespace Util
 {
-  std::string squote (const std::string &s);
-  std::string exec (const std::string &cmd);
+  class YoutubeDl
+  {
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
+  public:
+    YoutubeDl (const std::string &executable = "youtube-dl");
+    ~YoutubeDl ();
+    std::string version () const;
+    std::vector<std::pair<std::string, std::string>> find_songs (
+          const std::string &query, size_t max_results);
+    std::vector<std::string> get_urls (const std::string &uri);
+    std::vector<std::string> get_titles (const std::string &uri);
+    std::vector<std::string> download (const std::string &uri,
+                                       const std::experimental::filesystem::path &dir);
+  };
 }

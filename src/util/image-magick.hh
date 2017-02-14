@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -16,42 +20,17 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "shell/shell.hh"
+#pragma once
 
-#include <cstdio>
+#include <experimental/filesystem>
+#include <string>
 
-namespace Shell
+namespace Util
 {
-  std::string squote (const std::string &s)
+  class ImageMagick
   {
-    std::string result = "'";
-    for (const char &c : s)
-      {
-        if (c == '\'')
-          {
-            result += "'\\''";
-          }
-        else
-          {
-            result += c;
-          }
-      }
-    return result + "'";
+  public:
+    static void resize (const std::experimental::filesystem::path &from,
+                        const std::string &size, const std::experimental::filesystem::path &to);
   };
-
-  std::string exec (const std::string &cmd)
-  {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, int(*)(FILE*)> pipe (popen (cmd.c_str (), "r"), pclose);
-    if (pipe == nullptr)
-      {
-        throw std::runtime_error ("popen() failed");
-      }
-    while ((fgets (buffer.data (), buffer.size (), pipe.get ())) != nullptr)
-      {
-        result += buffer.data ();
-      }
-    return result;
-  }
 }

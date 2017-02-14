@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -18,11 +22,23 @@
 */
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
-namespace Util::String
+namespace Util
 {
-  std::string intercalate (const std::vector<std::string> &vector,
-                           char delimiter = ' ');
+  class Ffmpeg
+  {
+  private:
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
+  public:
+    Ffmpeg (const std::string &executable = "ffmpeg");
+    ~Ffmpeg ();
+    std::vector<std::string> convert_to_mp3 (const std::string &from,
+        const std::string &to, const std::string &title);
+    std::vector<std::string> tag (const std::string &from, const std::string &to,
+                                  const std::string &title);
+  };
 }

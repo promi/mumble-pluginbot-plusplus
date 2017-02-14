@@ -27,10 +27,14 @@
 #include "mpd/client.hh"
 #include "pluginbot/html.hh"
 #include "pluginbot/plugins/command-help.hh"
-#include "shell/shell.hh"
+#include "util/ffmpeg.hh"
+#include "util/image-magick.hh"
+#include "util/shell.hh"
 #include "util/string.hh"
+#include "util/youtube-dl.hh"
 
 namespace fs = std::experimental::filesystem;
+namespace Shell = Util::Shell;
 
 namespace MumblePluginBot
 {
@@ -53,7 +57,8 @@ namespace MumblePluginBot
 
     inline Impl (const Aither::Log &log, Settings &settings, Mumble::Client &client,
                  Mumble::AudioPlayer &player)
-      : m_log (log), settings (settings), client (client), player (player)
+      : m_log (log), settings (settings), client (client), player (player),
+        m_ytdl (settings.youtube.youtubedl)
     {
       init_commands ();
     }
@@ -61,6 +66,8 @@ namespace MumblePluginBot
     Settings &settings;
     Mumble::Client &client;
     Mumble::AudioPlayer &player;
+    Util::YoutubeDl m_ytdl;
+    Util::Ffmpeg m_ffmpeg;
     std::function<void (const std::string &)> channel_message;
     std::function<void (const std::string &)> private_message;
     std::function<void (uint32_t, const std::string &)> message_to;
@@ -82,21 +89,7 @@ namespace MumblePluginBot
     Command search ();
     Command add ();
     Command downloader_version ();
-    std::string nice_add_exec (const std::string &cmd);
-    std::string exec_ytdl (const std::string &arguments);
-    std::string add_exec_ytdl (const std::string &arguments);
-    std::string nice_exec_ytdl (const std::string &arguments);
-    std::string nice_add_exec_ytdl (const std::string &arguments);
-    std::vector<std::string> get_urls (const std::string &uri);
-    std::vector<std::string> get_titles (const std::string &uri);
-    std::vector<std::string> download (const std::string &uri);
     void resize_thumbnail (const fs::path &from, const fs::path &to);
-    std::vector<std::string> convert_to_mp3 (const std::string &from,
-        const std::string &to, const std::string &title);
-    std::vector<std::string> tag (const std::string &from, const std::string &to,
-                                  const std::string &title);
-    std::vector<std::pair<std::string, std::string>> find_songs (
-          const std::string &query);
     std::pair<std::vector<std::string>, std::vector<std::string>> get_songs (
           const std::string &uri);
   };
@@ -201,7 +194,7 @@ namespace MumblePluginBot
     reply ("Inspecting uri: " + uri + "...");
     if (settings.youtube.stream)
       {
-        for (auto &url : get_urls (uri))
+        for (auto &url : m_ytdl.get_urls (uri))
           {
             mpd.add (url);
           }
@@ -272,7 +265,7 @@ namespace MumblePluginBot
       std::function<void (const std::string &)> reply, const std::string &search)
   {
     reply ("searching for \"" + search + "\", please be patient...");
-    auto songs = find_songs (Shell::squote (search));
+    auto songs = m_ytdl.find_songs (search, settings.youtube.max_results);
     std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
     m_user_search_results[user_id] = songs;
     std::stringstream out;
@@ -420,170 +413,15 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      ca.reply ("youtube-dl version: " + exec_ytdl ("--version"));
+      ca.reply ("youtube-dl version: " + m_ytdl.version ());
     };
     return {help, invoke};
-  }
-
-  std::string nice_exec (const std::string &cmd)
-  {
-    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", cmd}));
-  }
-
-  std::string YoutubePlugin::Impl::nice_add_exec (const std::string &cmd)
-  {
-    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", settings.youtube.command_line_prefixes, cmd}));
-  }
-
-  std::string YoutubePlugin::Impl::exec_ytdl (const std::string &arguments)
-  {
-    return Shell::exec (StringUtils::intercalate ({settings.youtube.youtubedl, arguments}));
-  }
-
-  std::string YoutubePlugin::Impl::add_exec_ytdl (const std::string &arguments)
-  {
-    return Shell::exec (StringUtils::intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
-  }
-
-  std::string YoutubePlugin::Impl::nice_exec_ytdl (const std::string &arguments)
-  {
-    return nice_exec (StringUtils::intercalate ({settings.youtube.youtubedl, arguments}));
-  }
-
-  std::string YoutubePlugin::Impl::nice_add_exec_ytdl (const std::string
-      &arguments)
-  {
-    return nice_exec (StringUtils::intercalate ({settings.youtube.command_line_prefixes, settings.youtube.youtubedl, arguments}));
-  }
-
-  std::vector<std::pair<std::string, std::string>>
-      YoutubePlugin::Impl::find_songs (const std::string &query)
-  {
-    std::vector<std::pair<std::string, std::string>> v;
-    std::stringstream output {nice_exec_ytdl (StringUtils::intercalate (
-      {
-        "--max-downloads " + std::to_string (settings.youtube.max_results),
-        "--get-title",
-        "--get-id",
-        "https://www.youtube.com/results?search_query=" + query
-      }))
-    };
-    std::string id;
-    for (std::string title; std::getline (output, title); )
-      {
-        std::getline (output, id);
-        v.push_back (std::make_pair (id, title));
-      }
-    return v;
   }
 
   void YoutubePlugin::Impl::resize_thumbnail (const fs::path &from,
       const fs::path &to)
   {
-    nice_add_exec (StringUtils::intercalate (
-    {
-      "convert",
-      Shell::squote (from),
-      "-resize 320x240",
-      Shell::squote (to)
-    }));
-  }
-
-  std::vector<std::string> YoutubePlugin::Impl::get_titles (
-    const std::string &uri)
-  {
-    std::vector<std::string> v;
-    std::stringstream output {exec_ytdl (StringUtils::intercalate ({
-        "--get-filename",
-        settings.youtube.youtubedl_options,
-        "--ignore-errors",
-        "--output '%(title)s'",
-        uri
-      }))
-    };
-    for (std::string line; std::getline (output, line); )
-      {
-        v.push_back (line);
-      }
-    return v;
-  }
-
-  std::vector<std::string> YoutubePlugin::Impl::download (const std::string &uri)
-  {
-    std::vector<std::string> v;
-    std::stringstream output {nice_add_exec_ytdl (StringUtils::intercalate({
-        settings.youtube.youtubedl_options,
-        "--write-thumbnail",
-        "--extract-audio",
-        "--audio-format best",
-        "--output " + Shell::squote (m_tempdir.string () + "/%(title)s.%(ext)s"),
-        uri,
-        "2>&1"
-      }))
-    };
-    for (std::string line; std::getline (output, line); )
-      {
-        v.push_back (line);
-      }
-    return v;
-  }
-
-  std::vector<std::string> YoutubePlugin::Impl::convert_to_mp3 (
-    const std::string &from, const std::string &to, const std::string &title)
-  {
-    std::vector<std::string> v;
-    std::stringstream output {nice_add_exec (StringUtils::intercalate ({
-        "ffmpeg",
-        "-n",
-        "-i " + Shell::squote (from),
-        "-codec:a libmp3lame",
-        "-qscale:a 2",
-        "-metadata title=" + Shell::squote (title),
-        Shell::squote (to),
-        "2>&1"
-      }))
-    };
-    for (std::string line; std::getline (output, line); )
-      {
-        v.push_back (line);
-      }
-    return v;
-  }
-
-  std::vector<std::string> YoutubePlugin::Impl::tag (const std::string &from,
-      const std::string &to, const std::string &title)
-  {
-    std::vector<std::string> v;
-    std::stringstream output {nice_add_exec (StringUtils::intercalate (
-      {
-        "ffmpeg",
-        "-n",
-        "-i " + Shell::squote (from),
-        "-codec:a copy",
-        "-metadata title=" + Shell::squote (title),
-        Shell::squote (to),
-        "2>&1"
-      }))
-    };
-    for (std::string line; std::getline (output, line); )
-      {
-        v.push_back (line);
-      }
-    return v;
-  }
-
-  std::vector<std::string> YoutubePlugin::Impl::get_urls (const std::string &uri)
-  {
-    std::vector<std::string> urls;
-    std::stringstream streams {exec_ytdl ("--get-url " + uri)};
-    for (std::string stream; std::getline (streams, stream); )
-      {
-        if (stream.find ("mime=audio/mp4") != std::string::npos)
-          {
-            urls.push_back (stream);
-          }
-      }
-    return urls;
+    Util::ImageMagick::resize (from, "320x240", to);
   }
 
   std::pair<std::vector<std::string>, std::vector<std::string>>
@@ -592,8 +430,8 @@ namespace MumblePluginBot
     std::pair<std::vector<std::string>, std::vector<std::string>> pair;
     std::vector<std::string> &errors = pair.first;
     std::vector<std::string> &songs = pair.second;
-    auto titles = get_titles (uri);
-    auto output = download (uri);
+    auto titles = m_ytdl.get_titles (uri);
+    auto output = m_ytdl.download (uri, m_tempdir);
     for (const auto &line : output)
       {
         if (line.find ("ERROR:") != std::string::npos)
@@ -616,13 +454,13 @@ namespace MumblePluginBot
                 if (settings.youtube.convert_to_mp3)
                   {
                     // Mixin tags and recode it to mp3 (vbr 190kBit)
-                    convert_to_mp3 (audio_temp_path, mp3_target_path, title);
+                    m_ffmpeg.convert_to_mp3 (audio_temp_path, mp3_target_path, title);
                     songs.push_back (mp3_target_path.filename ().string ());
                   }
                 else
                   {
                     // Mixin tags without recode on standard
-                    tag (audio_temp_path, audio_target_path, title);
+                    m_ffmpeg.tag (audio_temp_path, audio_target_path, title);
                     songs.push_back (audio_target_path.filename ().string ());
                   }
               }

@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -16,26 +20,51 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include "util/shell.hh"
+
+#include <cstdio>
+
 #include "util/string.hh"
 
-namespace Util::String
+namespace StringUtils = Util::String;
+
+namespace Util::Shell
 {
-  std::string intercalate (const std::vector<std::string> &vector, char delimiter)
+  std::string squote (const std::string &s)
   {
-    std::string result;
-    bool first = true;
-    for (const auto &s : vector)
+    std::string result = "'";
+    for (const char &c : s)
       {
-        if (first)
+        if (c == '\'')
           {
-            result = s;
-            first = false;
+            result += "'\\''";
           }
         else
           {
-            result += delimiter + s;
+            result += c;
           }
       }
+    return result + "'";
+  };
+
+  std::string exec (const std::string &cmd)
+  {
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, int(*)(FILE*)> pipe (popen (cmd.c_str (), "r"), pclose);
+    if (pipe == nullptr)
+      {
+        throw std::runtime_error ("popen() failed");
+      }
+    while ((fgets (buffer.data (), buffer.size (), pipe.get ())) != nullptr)
+      {
+        result += buffer.data ();
+      }
     return result;
+  }
+
+  std::string nice_exec (const std::string &cmd)
+  {
+    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", cmd}));
   }
 }

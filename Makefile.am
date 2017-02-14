@@ -95,8 +95,11 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/pluginbot/plugins/mpd.cc \
 	src/pluginbot/plugins/version.cc \
 	src/pluginbot/plugins/youtube.cc \
-	src/shell/shell.cc \
-	src/util/string.cc
+	src/util/ffmpeg.cc \
+	src/util/image-magick.cc \
+	src/util/shell.cc \
+	src/util/string.cc \
+	src/util/youtube-dl.cc
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
 	libmumble-pluginbot-plusplus-io.la \

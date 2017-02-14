@@ -1,6 +1,10 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
+    Copyright (c) 2015 dafoxia
+    Copyright (c) 2015 Natenom
+    Copyright (c) 2015 netinetwalker
+    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -16,13 +20,25 @@
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#pragma once
+#include "util/image-magick.hh"
 
-#include <string>
-#include <vector>
+#include "util/shell.hh"
+#include "util/string.hh"
 
-namespace Util::String
+namespace Shell = Util::Shell;
+namespace StringUtils = Util::String;
+
+namespace Util
 {
-  std::string intercalate (const std::vector<std::string> &vector,
-                           char delimiter = ' ');
+  void ImageMagick::resize (const std::experimental::filesystem::path &from,
+                            const std::string &size, const std::experimental::filesystem::path &to)
+  {
+    Shell::nice_exec (StringUtils::intercalate (
+    {
+      "convert",
+      Shell::squote (from),
+      "-resize " + Shell::squote (size),
+      Shell::squote (to)
+    }));
+  }
 }

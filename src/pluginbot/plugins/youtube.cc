@@ -79,11 +79,13 @@ namespace MumblePluginBot
     m_user_search_results;
     std::mutex m_user_search_results_mutex;
     void init_commands ();
-    void link_thread_proc (std::function<void (const std::string &)> reply,
-                           const std::string &uri);
-    void search_thread_proc (uint32_t user_id,
-                             std::function<void (const std::string &)> reply, const std::string &search);
-    void download_songs_thread (std::function<void (const std::string &)> reply,
+    // WARNING: Do not pass the reply closure to functions running in a thread
+    // The wrong user might get the reply messages (race condition)!
+    void mpd_update_sync (uint32_t user_id, Mpd::Client &mpd,
+                          const std::string &subdir);
+    void link_thread_proc (uint32_t user_id, const std::string &uri);
+    void search_thread_proc (uint32_t user_id, const std::string &search);
+    void download_songs_thread (uint32_t user_id,
                                 const std::vector<std::string> &links);
     Command link ();
     Command search ();
@@ -187,11 +189,28 @@ namespace MumblePluginBot
     };
   }
 
-  void YoutubePlugin::Impl::link_thread_proc (
-    std::function<void (const std::string &)> reply, const std::string &uri)
+  void YoutubePlugin::Impl::mpd_update_sync (uint32_t user_id, Mpd::Client &mpd,
+      const std::string &subdir)
+  {
+    message_to (user_id, "Waiting for database update complete...");
+    auto update_id = mpd.update (subdir);
+    // Polling is a bit ugly here, but it is reliable.
+    decltype(update_id) current_update_id;
+    // Note: The "comma operator" is used here!
+    while (current_update_id = mpd.status ().update_id (),
+           current_update_id != 0 && current_update_id <= update_id)
+      {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for (500ms);
+      }
+    message_to (user_id, "Update done.");
+  }
+
+  void YoutubePlugin::Impl::link_thread_proc (uint32_t user_id,
+      const std::string &uri)
   {
     Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
-    reply ("Inspecting uri: " + uri + "...");
+    message_to (user_id, "Inspecting uri: " + uri + "...");
     if (settings.youtube.stream)
       {
         for (auto &url : m_ytdl.get_urls (uri))
@@ -206,26 +225,20 @@ namespace MumblePluginBot
         auto &songs = pair.second;
         for (auto &error : errors)
           {
-            reply (error);
+            message_to (user_id, error);
           }
         if (songs.empty ())
           {
-            reply ("youtube-dl could not download anything from the given uri");
+            message_to (user_id,
+                        "youtube-dl could not download anything from the given uri.");
           }
         else
           {
             auto &subdir = settings.youtube.download_subdir;
-            mpd.update (subdir);
-            reply ("Waiting for database update complete...");
-            while (mpd.status ().updating_db ())
-              {
-                using namespace std::chrono_literals;
-                std::this_thread::sleep_for (500ms);
-              }
-            reply ("Update done.");
+            mpd_update_sync (user_id, mpd, subdir);
             for (const auto &song : songs)
               {
-                reply (song);
+                message_to (user_id, song);
                 mpd.add (subdir + "/" + song);
               }
           }
@@ -241,18 +254,18 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto uri = strip_tags (ca.arguments);
-      auto &reply = ca.reply;
+      auto &user_id = ca.actor;
       std::thread t
       {
-        [this, uri, reply] ()
+        [this, uri, user_id] ()
         {
           try
             {
-              this->link_thread_proc (reply, uri);
+              this->link_thread_proc (user_id, uri);
             }
           catch (const std::exception &e)
             {
-              reply (e.what ());
+              message_to (user_id, e.what ());
             }
         }
       };
@@ -262,13 +275,18 @@ namespace MumblePluginBot
   }
 
   void YoutubePlugin::Impl::search_thread_proc (uint32_t user_id,
-      std::function<void (const std::string &)> reply, const std::string &search)
+      const std::string &search)
   {
-    reply ("searching for \"" + search + "\", please be patient...");
+    message_to (user_id, "searching for \"" + search + "\", please be patient...");
     auto songs = m_ytdl.find_songs (search, settings.youtube.max_results);
     std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
     m_user_search_results[user_id] = songs;
     std::stringstream out;
+    if (songs.empty ())
+      {
+        message_to (user_id, "no matching videos found");
+        return;
+      }
     for (size_t i = 0; i < songs.size (); i++)
       {
         auto &song = songs[i];
@@ -276,7 +294,7 @@ namespace MumblePluginBot
           {
             if (i != 0)
               {
-                reply (out.str () + "</table>");
+                message_to (user_id, out.str () + "</table>");
               }
             out.str ("<table><tr><td><b>Index</b></td><td>Title</td></tr>");
           }
@@ -284,7 +302,7 @@ namespace MumblePluginBot
             "</td></tr>";
       }
     out << "</table>";
-    reply (out.str ());
+    message_to (user_id, out.str ());
   }
 
   YoutubePlugin::Impl::Command YoutubePlugin::Impl::search ()
@@ -295,17 +313,16 @@ namespace MumblePluginBot
     };
     auto invoke = [this] (auto ca)
     {
-      auto &actor = ca.actor;
+      auto user_id = ca.actor;
       auto &search = ca.arguments;
-      auto reply = ca.reply;
       if (search == "")
         {
-          reply ("Please enter a search string.");
+          ca.reply ("Please enter a search string.");
           return;
         }
-      std::thread t { [this, actor, reply, search] ()
+      std::thread t { [this, user_id, search] ()
       {
-        this->search_thread_proc (actor, reply, search);
+        this->search_thread_proc (user_id, search);
       }
                     };
       t.detach ();
@@ -313,53 +330,37 @@ namespace MumblePluginBot
     return {help, invoke};
   }
 
-  void YoutubePlugin::Impl::download_songs_thread (
-    std::function<void (const std::string &)> reply,
-    const std::vector<std::string> &links)
+  void YoutubePlugin::Impl::download_songs_thread (uint32_t user_id,
+      const std::vector<std::string> &links)
   {
-    reply ("Downloading " + std::to_string (links.size ()) + " song(s)");
+    message_to (user_id, "Downloading " + std::to_string (links.size ()) +
+                " song(s)");
     std::vector<std::string> songs;
     for (auto &link : links)
       {
-        reply ("fetch and convert");
+        message_to (user_id, "fetch and convert");
         auto pair = get_songs (link);
         auto &errors = pair.first;
         std::move (std::begin (pair.second), std::end (pair.second),
                    std::back_inserter (songs));
         for (auto &error : errors)
           {
-            reply (error);
+            message_to (user_id, error);
           }
       }
     if (songs.empty ())
       {
-        reply ("youtube-dl could not download anything from the given uris.");
+        message_to (user_id,
+                    "youtube-dl could not download anything from the given uris.");
       }
     else
       {
         auto &subdir = settings.youtube.download_subdir;
         Mpd::Client mpd {settings.mpd.host, settings.mpd.port};
-        mpd.update (subdir);
-        reply ("Waiting for database update complete...");
-        // TODO: Both methods do not work reliably.
-        //
-        // 1. idle_mask may wait for the *next* database update to complete
-        //    when the current update is already done (race condition)
-        //
-        // 2. mpd.status () loop sometimes returns premature?!
-        //    At least mpd_run_add sometimes fails, needs investigation
-        //
-        
-        // mpd.idle_mask (FlagSet<Mpd::Idle> (Mpd::Idle::Database));
-        while (mpd.status ().updating_db ())
-          {
-            using namespace std::chrono_literals;
-            std::this_thread::sleep_for (500ms);
-          }
-        reply ("Update done.");
+        mpd_update_sync (user_id, mpd, subdir);
         for (const auto &song : songs)
           {
-            reply (song);
+            message_to (user_id, song);
             mpd.add (subdir + "/" + song);
           }
       }
@@ -381,6 +382,7 @@ namespace MumblePluginBot
       std::lock_guard<std::mutex> lock (m_user_search_results_mutex);
       std::stringstream out;
       std::vector<std::string> links;
+      auto user_id = ca.actor;
       auto &reply = ca.reply;
       auto &songs = m_user_search_results.at (ca.actor);
       out << "<br>Going to download the following songs:<br />";
@@ -400,22 +402,23 @@ namespace MumblePluginBot
             {
               int num = std::stoi (number) - 1;
               auto &song = songs.at (num);
-              out << "ID: " << num << ", Name: " << song.second << "<br/>";
+              out << "ID: " << num + 1 << ", Name: " << song.second << "<br/>";
               links.push_back ("https://www.youtube.com/watch?v=" + song.first);
             }
         }
       reply (out.str ());
-      std::thread t { [this, reply, links] ()
+      std::thread t { [this, user_id, links] ()
       {
-          try
-            {
-              this->download_songs_thread (reply, links);
-            }
-          catch (const std::exception &e)
-            {
-              reply (e.what ());
-            }
-      }};
+        try
+          {
+            this->download_songs_thread (user_id, links);
+          }
+        catch (const std::exception &e)
+          {
+            message_to (user_id, e.what ());
+          }
+      }
+                    };
       t.detach ();
     };
     return {help, invoke};

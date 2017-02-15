@@ -59,7 +59,7 @@ namespace Mpd
     uint total_time () const;
     uint kbit_rate () const;
     std::unique_ptr<AudioFormat> audio_format () const;
-    bool updating_db () const;
+    uint update_id () const;
     // std::string error () const;
   };
 }

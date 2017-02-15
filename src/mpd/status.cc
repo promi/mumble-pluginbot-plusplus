@@ -159,9 +159,9 @@ namespace Mpd
       }
   }
 
-  bool Status::updating_db () const
+  uint Status::update_id () const
   {
-    return (mpd_status_get_update_id (pimpl->status) == 1);
+    return mpd_status_get_update_id (pimpl->status);
   }
 
   // std::string Status::error () const

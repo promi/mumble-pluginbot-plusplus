@@ -312,7 +312,7 @@ namespace MumblePluginBot
 
   void Main::handle_text_message (const MumbleProto::TextMessage &msg)
   {
-    AITHER_DEBUG("text message: " << msg.message ());
+    std::string text = msg.message ();
     if (!msg.has_actor ())
       {
         AITHER_DEBUG("no actor");
@@ -326,10 +326,12 @@ namespace MumblePluginBot
     uint32_t msg_userid = (uint32_t) -1;
     bool sender_is_registered = false;
     auto &user = m_cli->users ().at (actor);
+    std::string user_name = "?";
     if (user.has_user_id ())
       {
         msg_userid = user.user_id ();
         sender_is_registered = true;
+        user_name = user.name ();
       }
     // user on a blacklist?
     if (m_settings.blacklist.find (user.hash ()) != std::end (m_settings.blacklist))
@@ -338,9 +340,17 @@ namespace MumblePluginBot
         sender_is_registered = false;
         AITHER_DEBUG("user in blacklist!");
       }
+    if (text.find ("<img src=") != std::string::npos)
+      {
+        AITHER_DEBUG("> " << user_name << ": " << text.substr (0, 50) << "...");
+      }
+    else
+      {
+        AITHER_DEBUG("> " << user_name << ": " << text);
+      }
     if (m_settings.superpassword != "")
       {
-        if (msg.message () == m_settings.superpassword + "restart")
+        if (text == m_settings.superpassword + "restart")
           {
             m_settings = m_configured_settings;
             m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
@@ -348,7 +358,7 @@ namespace MumblePluginBot
             m_cli->disconnect ();
           }
 
-        if (msg.message () == m_settings.superpassword + "reset")
+        if (text == m_settings.superpassword + "reset")
           {
             m_settings = m_configured_settings;
             m_cli->text_channel (m_cli->me ().channel_id (), m_settings.superanswer);
@@ -378,23 +388,22 @@ namespace MumblePluginBot
         return;
       }
     // message consists of: control_string + command [+ space + arguments]
-    std::string message = msg.message ();
     const std::string &cs = m_settings.controlstring;
     auto cs_size = cs.size ();
     // Check whether we have a command after the controlstring.
-    if (message.size () <= cs_size || message.compare (0, cs_size, cs))
+    if (text.size () <= cs_size || text.compare (0, cs_size, cs))
       {
-        AITHER_DEBUG("no control string in text message");
+        // AITHER_DEBUG("no control string in text message");
         return;
       }
     // remove control string
-    message = message.substr (cs_size);
-    auto space_pos = message.find (' ');
-    const std::string command = message.substr (0, space_pos);
+    text = text.substr (cs_size);
+    auto space_pos = text.find (' ');
+    const std::string command = text.substr (0, space_pos);
     std::string arguments;
-    if (space_pos != std::string::npos && space_pos + 1 < message.size ())
+    if (space_pos != std::string::npos && space_pos + 1 < text.size ())
       {
-        arguments = message.substr (space_pos + 1);
+        arguments = text.substr (space_pos + 1);
       }
     auto reply = [&] (auto msg)
     {

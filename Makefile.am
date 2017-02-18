@@ -2,7 +2,6 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = \
-	-std=c++1z \
 	-Wall \
 	-Wextra \
 	-pedantic \

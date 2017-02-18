@@ -21,6 +21,7 @@
 #include <string>
 #include <fstream>
 
+#include "filesystem/filesystem.hh"
 #include "io/sample-reader.hh"
 
 class RawFileReader : public SampleReader
@@ -33,5 +34,5 @@ protected:
                              std::function<bool(const std::vector<int16_t>&)> f) override;
   void internal_close () override;
 public:
-  RawFileReader (const std::string &file);
+  RawFileReader (const FileSystem::path &file);
 };

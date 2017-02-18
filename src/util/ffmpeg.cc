@@ -51,17 +51,18 @@ namespace Util
   }
 
   std::vector<std::string> Ffmpeg::convert_to_mp3 (
-    const std::string &from, const std::string &to, const std::string &title)
+    const FileSystem::path &from, const FileSystem::path &to,
+    const std::string &title)
   {
     std::vector<std::string> v;
     std::stringstream output {Shell::nice_exec (StringUtils::intercalate ({
         pimpl->m_executable,
         "-n",
-        "-i " + Shell::squote (from),
+        "-i " + Shell::squote (from.string ()),
         "-codec:a libmp3lame",
         "-qscale:a 2",
         "-metadata title=" + Shell::squote (title),
-        Shell::squote (to),
+        Shell::squote (to.string ()),
         "2>&1"
       }))
     };
@@ -72,18 +73,18 @@ namespace Util
     return v;
   }
 
-  std::vector<std::string> Ffmpeg::tag (const std::string &from,
-                                        const std::string &to, const std::string &title)
+  std::vector<std::string> Ffmpeg::tag (const FileSystem::path &from,
+                                        const FileSystem::path &to, const std::string &title)
   {
     std::vector<std::string> v;
     std::stringstream output {Shell::nice_exec (StringUtils::intercalate (
       {
         pimpl->m_executable,
         "-n",
-        "-i " + Shell::squote (from),
+        "-i " + Shell::squote (from.string ()),
         "-codec:a copy",
         "-metadata title=" + Shell::squote (title),
-        Shell::squote (to),
+        Shell::squote (to.string ()),
         "2>&1"
       }))
     };

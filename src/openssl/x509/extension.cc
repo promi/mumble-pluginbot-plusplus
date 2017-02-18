@@ -18,14 +18,17 @@
 */
 #include "openssl/x509/extension.hh"
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  Extension::Extension (X509_EXTENSION *ext) : m_ext (ext)
+  namespace X509
   {
-  }
+    Extension::Extension (X509_EXTENSION *ext) : m_ext (ext)
+    {
+    }
 
-  Extension::~Extension ()
-  {
-    X509_EXTENSION_free (m_ext);
+    Extension::~Extension ()
+    {
+      X509_EXTENSION_free (m_ext);
+    }
   }
 }

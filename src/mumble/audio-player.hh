@@ -32,6 +32,7 @@
 #include <queue>
 
 #include "aither/log.hh"
+#include "filesystem/filesystem.hh"
 #include "io/sample-reader.hh"
 #include "io/raw-s16le-file-sample-reader.hh"
 #include "mumble/connection.hh"
@@ -80,7 +81,7 @@ namespace Mumble
       return m_playing;
     }
     void play_file (const std::string &file);
-    void stream_named_pipe (const std::string &pipe);
+    void stream_named_pipe (const FileSystem::path &pipe);
     bool stream_portaudio ();
     void stop ();
     void bitrate (size_t bitrate);

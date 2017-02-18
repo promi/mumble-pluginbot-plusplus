@@ -22,23 +22,26 @@
 #include "openssl/x509/certificate.hh"
 #include "openssl/ssl/method.hh"
 
-namespace OpenSSL::SSL
+namespace OpenSSL
 {
-  class Context
+  namespace SSL
   {
-  private:
-    SSL_CTX *m_ssl_ctx;
-    std::unique_ptr<OpenSSL::PKey::RSA> m_key;
-    std::unique_ptr<OpenSSL::X509::Certificate> m_cert;
-  public:
-    Context (Method method);
-    ~Context ();
-    void verify_none ();
-    void key (const OpenSSL::PKey::RSA &key);
-    void cert (const OpenSSL::X509::Certificate &cert);
-    inline auto data () const
+    class Context
     {
-      return m_ssl_ctx;
-    }
-  };
+    private:
+      SSL_CTX *m_ssl_ctx;
+      std::unique_ptr<OpenSSL::PKey::RSA> m_key;
+      std::unique_ptr<OpenSSL::X509::Certificate> m_cert;
+    public:
+      Context (Method method);
+      ~Context ();
+      void verify_none ();
+      void key (const OpenSSL::PKey::RSA &key);
+      void cert (const OpenSSL::X509::Certificate &cert);
+      inline auto data () const
+      {
+        return m_ssl_ctx;
+      }
+    };
+  }
 }

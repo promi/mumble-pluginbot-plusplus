@@ -30,6 +30,8 @@
 */
 #include "mumble/udp-packet.hh"
 
+#include <stdexcept>
+
 namespace Mumble
 {
   std::vector<uint8_t> UDPPacket::data (PacketDataStream &pds)

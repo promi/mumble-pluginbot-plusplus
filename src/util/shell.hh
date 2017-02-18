@@ -26,9 +26,12 @@
 #include <memory>
 #include <string>
 
-namespace Util::Shell
+namespace Util
 {
-  std::string squote (const std::string &s);
-  std::string exec (const std::string &cmd);
-  std::string nice_exec (const std::string &cmd);
+  namespace Shell
+  {
+    std::string squote (const std::string &s);
+    std::string exec (const std::string &cmd);
+    std::string nice_exec (const std::string &cmd);
+  }
 }

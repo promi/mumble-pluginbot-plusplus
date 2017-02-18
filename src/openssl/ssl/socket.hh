@@ -24,19 +24,22 @@
 #include "network/tcp-socket.hh"
 #include "openssl/ssl/context.hh"
 
-namespace OpenSSL::SSL
+namespace OpenSSL
 {
-  class Socket
+  namespace SSL
   {
-  private:
-    TCPSocket &m_socket;
-    ::SSL *m_ssl;
-  public:
-    Socket (TCPSocket &socket, Context &context);
-    ~Socket ();
-    void connect ();
-    void close ();
-    std::vector<uint8_t> read (size_t len);
-    void write (const std::vector<uint8_t> &data);
-  };
+    class Socket
+    {
+    private:
+      TCPSocket &m_socket;
+      ::SSL *m_ssl;
+    public:
+      Socket (TCPSocket &socket, Context &context);
+      ~Socket ();
+      void connect ();
+      void close ();
+      std::vector<uint8_t> read (size_t len);
+      void write (const std::vector<uint8_t> &data);
+    };
+  }
 }

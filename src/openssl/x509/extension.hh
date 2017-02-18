@@ -20,18 +20,21 @@
 
 #include <openssl/x509.h>
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  class Extension
+  namespace X509
   {
-  private:
-    X509_EXTENSION *m_ext;
-  public:
-    Extension (X509_EXTENSION *ext);
-    ~Extension ();
-    inline const X509_EXTENSION* data () const
+    class Extension
     {
-      return m_ext;
-    }
-  };
+    private:
+      X509_EXTENSION *m_ext;
+    public:
+      Extension (X509_EXTENSION *ext);
+      ~Extension ();
+      inline const X509_EXTENSION* data () const
+      {
+        return m_ext;
+      }
+    };
+  }
 }

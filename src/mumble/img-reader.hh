@@ -22,7 +22,8 @@
 
 #include <string>
 #include <list>
-#include <experimental/filesystem>
+
+#include "filesystem/filesystem.hh"
 
 namespace Mumble
 {
@@ -30,8 +31,7 @@ namespace Mumble
   {
   public:
     static const std::list<std::string> FORMATS;
-    static std::string msg_from_file (const std::experimental::filesystem::path
-                                      &file);
+    static std::string msg_from_file (const FileSystem::path &file);
   private:
     static std::pair<bool, std::string> extension_valid (const std::string
         &extension);

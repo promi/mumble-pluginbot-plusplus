@@ -76,7 +76,7 @@
 
 #define BOOL(setting) BOOL_GETTER(setting), BOOL_SETTER(setting)
 #define STRING(setting) STRING_GETTER(setting), STRING_SETTER(setting)
-#define PATH(setting) STRING(setting)
+#define PATH(setting) STRING_GETTER(setting.string ()), STRING_SETTER(FileSystem::path {setting})
 #define UINT_PERCENTAGE(setting) TO_STRING_SUFFIX_GETTER(setting,"%"), \
     UINT_RANGE_SETTER(setting,100)
 #define UINT16(setting) TO_STRING_GETTER(setting), UINT_RANGE_SETTER(setting,UINT16_MAX)
@@ -127,11 +127,11 @@ namespace MumblePluginBot
     std::string superanswer;
     struct
     {
-      std::experimental::filesystem::path fifopath {"mpd.fifo"};
+      FileSystem::path fifopath {"mpd.fifo"};
       std::string host {"localhost"};
       uint16_t port = 7701;
     } mpd;
-    std::experimental::filesystem::path certdir {"certs"};
+    FileSystem::path certdir {"certs"};
     uint quality_bitrate = 72000;
     uint initial_volume = 65;
     bool controllable = true;

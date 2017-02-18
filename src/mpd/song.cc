@@ -72,10 +72,12 @@ namespace Mpd
     return mpd_song_get_duration (m_ptr);
   }
 
+  /*
   unsigned Song::duration_ms () const
   {
     return mpd_song_get_duration_ms (m_ptr);
   }
+  */
 
   unsigned Song::start () const
   {

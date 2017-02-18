@@ -18,15 +18,18 @@
 */
 #include "openssl/pkey/envelope-message-digest.hh"
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
-  EnvelopeMessageDigest::EnvelopeMessageDigest (const EVP_MD *evp_md) : m_evp_md (
-      evp_md)
+  namespace PKey
   {
-  }
+    EnvelopeMessageDigest::EnvelopeMessageDigest (const EVP_MD *evp_md) : m_evp_md (
+        evp_md)
+    {
+    }
 
-  EnvelopeMessageDigest EnvelopeMessageDigest::sha256 ()
-  {
-    return EnvelopeMessageDigest (EVP_sha256 ());
+    EnvelopeMessageDigest EnvelopeMessageDigest::sha256 ()
+    {
+      return EnvelopeMessageDigest (EVP_sha256 ());
+    }
   }
 }

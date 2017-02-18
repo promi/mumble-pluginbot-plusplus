@@ -30,15 +30,15 @@ namespace StringUtils = Util::String;
 
 namespace Util
 {
-  void ImageMagick::resize (const std::experimental::filesystem::path &from,
-                            const std::string &size, const std::experimental::filesystem::path &to)
+  void ImageMagick::resize (const FileSystem::path &from, const std::string &size,
+                            const FileSystem::path &to)
   {
     Shell::nice_exec (StringUtils::intercalate (
     {
       "convert",
-      Shell::squote (from),
+      Shell::squote (from.string ()),
       "-resize " + Shell::squote (size),
-      Shell::squote (to)
+      Shell::squote (to.string ())
     }));
   }
 }

@@ -1,10 +1,6 @@
 /* -*- Mode: C++; indent-tabs-mode: nil; c-basic-offset: 2; tab-width: 2 -*-  */
 /*
     mumble-pluginbot-plusplus - An extensible Mumble bot
-    Copyright (c) 2015 dafoxia
-    Copyright (c) 2015 Natenom
-    Copyright (c) 2015 netinetwalker
-    Copyright (c) 2015 loscoala
     Copyright (c) 2017 Phobos (promi) <prometheus@unterderbruecke.de>
 
     This program is free software: you can redistribute it and/or modify
@@ -22,26 +18,33 @@
 */
 #pragma once
 
-#include <memory>
 #include <string>
-#include <vector>
+#include <memory>
 
-#include "filesystem/filesystem.hh"
-
-namespace Util
+namespace FileSystem
 {
-  class Ffmpeg
+  class path
   {
   private:
     struct Impl;
     std::unique_ptr<Impl> pimpl;
   public:
-    Ffmpeg (const std::string &executable = "ffmpeg");
-    ~Ffmpeg ();
-    std::vector<std::string> convert_to_mp3 (const FileSystem::path &from,
-        const FileSystem::path &to, const std::string &title);
-    std::vector<std::string> tag (const FileSystem::path &from,
-                                  const FileSystem::path &to,
-                                  const std::string &title);
+    path ();
+    path (const std::string &s);
+    path (const path &other);
+    path (path &&other);
+    ~path ();
+    path filename () const;
+    std::string extension () const;
+    std::string string () const;
+    bool is_absolute () const;
+    path& operator=(const path& p);
+    path& operator=(path& p);
   };
+
+  path operator/(const path &lhs, const path &rhs);
+  path operator/(const path &lhs, const std::string &rhs);
+
+  void create_directories (const path &dir);
+  bool exists (const path &path);
 }

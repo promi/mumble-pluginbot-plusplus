@@ -777,7 +777,7 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist = playlist_by_id (mpd, std::stoi (ca.arguments));
+      auto playlist = this->playlist_by_id (mpd, std::stoi (ca.arguments));
       if (playlist == nullptr)
         {
           return;
@@ -831,7 +831,7 @@ namespace MumblePluginBot
     auto invoke = [this] (auto ca)
     {
       auto &mpd = ca.mpd_client;
-      auto playlist = playlist_by_id (mpd, std::stoi (ca.arguments));
+      auto playlist = this->playlist_by_id (mpd, std::stoi (ca.arguments));
       if (playlist == nullptr)
         {
           return;
@@ -1287,7 +1287,7 @@ namespace MumblePluginBot
         {
           target = "Channel";
         }
-      update_comment (nullptr);
+      this->update_comment (nullptr);
       private_message ("Song info updates are now send to: " + target);
     };
     return {help, invoke};

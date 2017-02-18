@@ -26,32 +26,35 @@
 #include "openssl/x509/name.hh"
 #include "openssl/x509/extension.hh"
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  class Certificate
+  namespace X509
   {
-  private:
-    ::X509 *m_x509;
-    OpenSSL::PKey::Envelope m_public_key;
-  public:
-    Certificate ();
-    Certificate (::X509 *x509);
-    Certificate (const Certificate &other);
-    ~Certificate ();
-    void issuer (const Name &issuer);
-    Name issuer (void) const;
-    void subject (const Name &subject);
-    void not_before (long not_before);
-    void not_after (long not_after);
-    void public_key (OpenSSL::PKey::Envelope &&public_key);
-    void serial (int serial);
-    void version (long version);
-    void add_extension (const Extension &extension);
-    void sign (const OpenSSL::PKey::Envelope &key,
-               const OpenSSL::PKey::EnvelopeMessageDigest &digest);
-    inline const ::X509* data () const
+    class Certificate
     {
-      return m_x509;
-    }
-  };
+    private:
+      ::X509 *m_x509;
+      OpenSSL::PKey::Envelope m_public_key;
+    public:
+      Certificate ();
+      Certificate (::X509 *x509);
+      Certificate (const Certificate &other);
+      ~Certificate ();
+      void issuer (const Name &issuer);
+      Name issuer (void) const;
+      void subject (const Name &subject);
+      void not_before (long not_before);
+      void not_after (long not_after);
+      void public_key (OpenSSL::PKey::Envelope &&public_key);
+      void serial (int serial);
+      void version (long version);
+      void add_extension (const Extension &extension);
+      void sign (const OpenSSL::PKey::Envelope &key,
+                 const OpenSSL::PKey::EnvelopeMessageDigest &digest);
+      inline const ::X509* data () const
+      {
+        return m_x509;
+      }
+    };
+  }
 }

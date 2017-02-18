@@ -18,9 +18,9 @@
 */
 #pragma once
 
-#include <experimental/filesystem>
 #include <memory>
 
+#include "filesystem/filesystem.hh"
 #include "openssl/pkey/rsa.hh"
 #include "openssl/x509/certificate.hh"
 
@@ -34,8 +34,8 @@ namespace Mumble
 
   struct CertificatePaths
   {
-    std::experimental::filesystem::path dir;
-    std::experimental::filesystem::path key;
-    std::experimental::filesystem::path cert;
+    FileSystem::path dir;
+    FileSystem::path key;
+    FileSystem::path cert;
   };
 }

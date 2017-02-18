@@ -19,41 +19,44 @@
 */
 #include "openssl/ssl/context.hh"
 
-namespace OpenSSL::SSL
+namespace OpenSSL
 {
-  Context::Context (Method method)
+  namespace SSL
   {
-    m_ssl_ctx = SSL_CTX_new (method.data ());
-    if (m_ssl_ctx == nullptr)
-      {
-        throw std::runtime_error ("SSL_CTX_new () failed");
-      }
-  }
+    Context::Context (Method method)
+    {
+      m_ssl_ctx = SSL_CTX_new (method.data ());
+      if (m_ssl_ctx == nullptr)
+        {
+          throw std::runtime_error ("SSL_CTX_new () failed");
+        }
+    }
 
-  Context::~Context ()
-  {
-    SSL_CTX_free (m_ssl_ctx);
-  }
+    Context::~Context ()
+    {
+      SSL_CTX_free (m_ssl_ctx);
+    }
 
-  void Context::verify_none ()
-  {
-    SSL_CTX_set_verify (m_ssl_ctx, SSL_VERIFY_NONE, nullptr);
-  }
+    void Context::verify_none ()
+    {
+      SSL_CTX_set_verify (m_ssl_ctx, SSL_VERIFY_NONE, nullptr);
+    }
 
-  void Context::key (const OpenSSL::PKey::RSA &key)
-  {
-    if (SSL_CTX_use_RSAPrivateKey (m_ssl_ctx, const_cast<RSA*> (key.data ())) != 1)
-      {
-        throw std::runtime_error ("SSL_CTX_use_RSAPrivateKey () failed");
-      }
-  }
+    void Context::key (const OpenSSL::PKey::RSA &key)
+    {
+      if (SSL_CTX_use_RSAPrivateKey (m_ssl_ctx, const_cast<RSA*> (key.data ())) != 1)
+        {
+          throw std::runtime_error ("SSL_CTX_use_RSAPrivateKey () failed");
+        }
+    }
 
-  void Context::cert (const OpenSSL::X509::Certificate &cert)
-  {
-    if (SSL_CTX_use_certificate (m_ssl_ctx,
-                                 const_cast<::X509*> (cert.data ())) != 1)
-      {
-        throw std::runtime_error ("SSL_CTX_use_certificate () failed");
-      }
+    void Context::cert (const OpenSSL::X509::Certificate &cert)
+    {
+      if (SSL_CTX_use_certificate (m_ssl_ctx,
+                                   const_cast<::X509*> (cert.data ())) != 1)
+        {
+          throw std::runtime_error ("SSL_CTX_use_certificate () failed");
+        }
+    }
   }
 }

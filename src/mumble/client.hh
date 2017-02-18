@@ -42,6 +42,7 @@
 #include <google/protobuf/message.h>
 
 #include "aither/log.hh"
+#include "filesystem/filesystem.hh"
 #include "Mumble.pb.h"
 #include "mumble/cert-manager.hh"
 #include "mumble/mumble-2-mumble.hh"
@@ -131,7 +132,7 @@ namespace Mumble
     void mute (bool b = true);
     AudioPlayer& player ();
     User& me ();
-    std::string imgmsg (const std::string &file);
+    std::string imgmsg (const FileSystem::path &file);
     void comment (const std::string &newcomment);
     Channel& join_channel (const std::string &channel);
     template <class T>
@@ -140,7 +141,7 @@ namespace Mumble
       return text_user_internal (user_session (user), message);
     }
     template<class T>
-    inline User& text_user_img (const T &user, const std::string &file)
+    inline User& text_user_img (const T &user, const FileSystem::path &file)
     {
       return text_user_img_internal (user_session (user), file);
     }
@@ -150,7 +151,8 @@ namespace Mumble
       return text_channel_internal (channel_id (channel), message);
     }
     template<class T>
-    inline Channel& text_channel_img (const T &channel, const std::string &file)
+    inline Channel& text_channel_img (const T &channel,
+                                      const FileSystem::path &file)
     {
       return text_channel_img_internal (channel_id (channel),  file);
     }
@@ -218,10 +220,10 @@ namespace Mumble
     }
   private:
     User& text_user_internal (uint32_t session_id, const std::string &message_text);
-    User& text_user_img (uint32_t session_id, const std::string &file);
+    User& text_user_img (uint32_t session_id, const FileSystem::path &file);
     Channel& text_channel_internal (uint32_t channel_id,
                                     const std::string &message_text);
-    Channel& text_channel_img (uint32_t channel_id, const std::string &file);
+    Channel& text_channel_img (uint32_t channel_id, const FileSystem::path &file);
     void send_internal (int type, const ::google::protobuf::Message& msg);
     void read ();
     void ping ();

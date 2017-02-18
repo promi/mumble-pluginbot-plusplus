@@ -22,10 +22,11 @@
 */
 #pragma once
 
+#include <chrono>
 #include <string>
 #include <map>
-#include <experimental/filesystem>
 
+#include "filesystem/filesystem.hh"
 #include "mpd/flag-set.hh"
 
 namespace MumblePluginBot
@@ -49,7 +50,7 @@ namespace MumblePluginBot
     Settings ();
 
     std::string version {"0.1"};
-    std::experimental::filesystem::path main_tempdir {"temp"};
+    FileSystem::path main_tempdir {"temp"};
     bool ducking = false;
     uint ducking_vol = 20;
     bool control_automute = true;
@@ -91,12 +92,12 @@ namespace MumblePluginBot
     std::string superanswer;
     struct
     {
-      std::experimental::filesystem::path fifopath {"mpd.fifo"};
+      FileSystem::path fifopath {"mpd.fifo"};
       std::string host {"localhost"};
       uint16_t port = 7701;
-      std::experimental::filesystem::path musicdir {"mpd/music"};
+      FileSystem::path musicdir {"mpd/music"};
     } mpd;
-    std::experimental::filesystem::path certdir {"certs"};
+    FileSystem::path certdir {"certs"};
     uint quality_bitrate = 72000;
     uint initial_volume = 65;
     bool controllable = true;

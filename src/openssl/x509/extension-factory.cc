@@ -22,49 +22,52 @@
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  ExtensionFactory::ExtensionFactory (const OpenSSL::X509::Certificate
-                                      &issuer_certificate,
-                                      const OpenSSL::X509::Certificate &subject_certificate)
-    : m_issuer_certificate (issuer_certificate),
-      m_subject_certificate (subject_certificate)
+  namespace X509
   {
-  }
+    ExtensionFactory::ExtensionFactory (const OpenSSL::X509::Certificate
+                                        &issuer_certificate,
+                                        const OpenSSL::X509::Certificate &subject_certificate)
+      : m_issuer_certificate (issuer_certificate),
+        m_subject_certificate (subject_certificate)
+    {
+    }
 
-  Extension ExtensionFactory::create_extension (const std::string &oid,
-      const std::string &value,
-      bool critical)
-  {
-    // Is name a long name?
-    int nid = OBJ_ln2nid (oid.c_str ());
-    if (nid == 0)
-      {
-        // Is it a short name?
-        nid = OBJ_sn2nid (oid.c_str ());
-        if (nid == 0)
-          {
-            throw std::runtime_error ("unknown OID: " + oid);
-          }
-      }
-    std::string combined_value;
-    if (critical)
-      {
-        combined_value = "critical,";
-      }
-    combined_value += value;
-    X509_EXTENSION *ext = nullptr;
-    X509V3_CTX ctx;
-    X509V3_set_ctx_nodb (&ctx);
-    X509V3_set_ctx (&ctx, const_cast<::X509*> (m_issuer_certificate.data ()),
-                    const_cast<::X509*> (m_subject_certificate.data ()), nullptr, nullptr,
-                    0);
-    ext = X509V3_EXT_conf_nid (nullptr, &ctx, nid,
-                               const_cast<char*> (combined_value.c_str ()));
-    if (ext == nullptr)
-      {
-        throw std::runtime_error ("X509V3_EXT_conf_nid () failed");
-      }
-    return Extension (ext);
+    Extension ExtensionFactory::create_extension (const std::string &oid,
+        const std::string &value,
+        bool critical)
+    {
+      // Is name a long name?
+      int nid = OBJ_ln2nid (oid.c_str ());
+      if (nid == 0)
+        {
+          // Is it a short name?
+          nid = OBJ_sn2nid (oid.c_str ());
+          if (nid == 0)
+            {
+              throw std::runtime_error ("unknown OID: " + oid);
+            }
+        }
+      std::string combined_value;
+      if (critical)
+        {
+          combined_value = "critical,";
+        }
+      combined_value += value;
+      X509_EXTENSION *ext = nullptr;
+      X509V3_CTX ctx;
+      X509V3_set_ctx_nodb (&ctx);
+      X509V3_set_ctx (&ctx, const_cast<::X509*> (m_issuer_certificate.data ()),
+                      const_cast<::X509*> (m_subject_certificate.data ()), nullptr, nullptr,
+                      0);
+      ext = X509V3_EXT_conf_nid (nullptr, &ctx, nid,
+                                 const_cast<char*> (combined_value.c_str ()));
+      if (ext == nullptr)
+        {
+          throw std::runtime_error ("X509V3_EXT_conf_nid () failed");
+        }
+      return Extension (ext);
+    }
   }
 }

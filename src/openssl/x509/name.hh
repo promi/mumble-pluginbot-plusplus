@@ -21,20 +21,23 @@
 #include <string>
 #include <openssl/x509.h>
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  class Name
+  namespace X509
   {
-  private:
-    X509_NAME *m_name;
-  public:
-    Name ();
-    Name (X509_NAME *name);
-    ~Name ();
-    void add_entry (const std::string &field, const std::string &text);
-    inline const X509_NAME* data () const
+    class Name
     {
-      return m_name;
-    }
-  };
+    private:
+      X509_NAME *m_name;
+    public:
+      Name ();
+      Name (X509_NAME *name);
+      ~Name ();
+      void add_entry (const std::string &field, const std::string &text);
+      inline const X509_NAME* data () const
+      {
+        return m_name;
+      }
+    };
+  }
 }

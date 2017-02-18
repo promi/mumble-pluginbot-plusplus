@@ -25,26 +25,29 @@
 // RSA algorithm
 #include "openssl/rsa.h"
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
-  class RSA
+  namespace PKey
   {
-  private:
-    bool m_has_private = true;
-    ::RSA *m_rsa = nullptr;
-  public:
-    RSA ();
-    RSA (::RSA *rsa, bool has_private);
-    RSA (size_t size);
-    RSA (const RSA &other);
-    RSA (RSA &&other);
-    RSA& operator= (RSA other);
-    friend void swap (RSA &first, RSA &second); // nothrow
-    ~RSA ();
-    RSA public_key ();
-    inline const ::RSA* data () const
+    class RSA
     {
-      return m_rsa;
-    }
-  };
+    private:
+      bool m_has_private = true;
+      ::RSA *m_rsa = nullptr;
+    public:
+      RSA ();
+      RSA (::RSA *rsa, bool has_private);
+      RSA (size_t size);
+      RSA (const RSA &other);
+      RSA (RSA &&other);
+      RSA& operator= (RSA other);
+      friend void swap (RSA &first, RSA &second); // nothrow
+      ~RSA ();
+      RSA public_key ();
+      inline const ::RSA* data () const
+      {
+        return m_rsa;
+      }
+    };
+  }
 }

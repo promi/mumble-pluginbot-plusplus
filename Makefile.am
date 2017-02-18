@@ -1,21 +1,23 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
-BUILT_SOURCES = src/git-info.hh
-EXTRA_DIST = tools/echo-git-info.sh
-#GIT_VERSION = $(shell git describe --dirty --always --tags)
-
 AM_CPPFLAGS = \
-	-std=c++1z \
 	-Wall \
 	-Wextra \
 	-pedantic \
 	-I$(srcdir)/src \
+	-I$(builddir)/src \
 	-I$(srcdir)/uvw/src \
-	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
+	-I$(builddir)/src/mumble \
+	$(OPUS_CFLAGS) \
+	$(OPENSSL_CFLAGS) \
+	$(PROTOBUF_CFLAGS) \
+	$(MPDCLIENT_CFLAGS) \
+	$(UV_CFLAGS)
 
 lib_LTLIBRARIES = \
 	libaither.la \
+	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la \
 	libmumble-pluginbot-plusplus-openssl.la \
@@ -30,6 +32,9 @@ libaither_la_SOURCES = \
 	src/aither/logger.cc \
 	src/aither/console-logger.cc \
 	src/aither/void-logger.cc
+
+libmumble_pluginbot_plusplus_filesystem_la_SOURCES = \
+	src/filesystem/path.cc
 
 libmumble_pluginbot_plusplus_io_la_SOURCES = \
 	src/io/sample-reader.cc \
@@ -71,9 +76,12 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/messages.cc \
 	src/mumble/mumble-2-mumble.cc \
 	src/mumble/packet-data-stream.cc \
-	src/mumble/Mumble.pb.cc \
 	src/mumble/udp-packet.cc \
 	src/mumble/user.cc
+
+nodist_libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
+	src/mumble/Mumble.pb.cc \
+	src/mumble/Mumble.pb.h
 
 libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 	src/mpd/audio-format.cc \
@@ -81,8 +89,15 @@ libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 	src/mpd/playlist.cc \
 	src/mpd/song.cc \
 	src/mpd/stats.cc \
-	src/mpd/status.cc \
+	src/mpd/status.cc 
+
+if USE_LIBUV
+libmumble_pluginbot_plusplus_mpd_la_SOURCES += \
+	src/mpd/status-listener-uvw.cc
+else
+libmumble_pluginbot_plusplus_mpd_la_SOURCES += \
 	src/mpd/status-listener.cc
+endif
 
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \
@@ -102,22 +117,50 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/util/youtube-dl.cc
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
+	$(OPENSSL_LIBS) \
 	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la
 
+libmumble_pluginbot_plusplus_opus_la_LIBADD = \
+	$(OPUS_LIBS)
+
 libmumble_pluginbot_plusplus_mumble_la_LIBADD = \
-	libmumble-pluginbot-plusplus-io.la \
+	$(PROTOBUF_LIBS) \
 	libaither.la \
+	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la \
 	libmumble-pluginbot-plusplus-openssl.la \
 	libmumble-pluginbot-plusplus-opus.la
 
+libmumble_pluginbot_plusplus_mpd_la_LIBADD = \
+	$(MPDCLIENT_LIBS) \
+	$(UV_LIBS)
+
 mumble_pluginbot_plusplus_LDADD = \
-	$(MUMBLE_PLUGINBOT_PLUSPLUS_LIBS) \
 	-lm \
+	$(PROTOBUF_LIBS) \
+	libaither.la \
+	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-mpd.la \
-	libmumble-pluginbot-plusplus-mumble.la \
-	-lstdc++fs
+	libmumble-pluginbot-plusplus-openssl.la \
+	libmumble-pluginbot-plusplus-opus.la \
+	libmumble-pluginbot-plusplus-mumble.la
 
 src/git-info.hh: $(HEADERS) $(SOURCES)
-	$(srcdir)/tools/echo-git-info.sh > $(srcdir)/src/git-info.hh
+	$(srcdir)/tools/echo-git-info.sh > $(builddir)/src/git-info.hh
+
+%.pb.cc %.pb.h: %.proto
+	$(PROTOC) --proto_path=$(srcdir) --cpp_out=$(builddir) $^
+
+dist_noinst_DATA = src/mumble/Mumble.proto
+
+MOSTLYCLEANFILES = \
+	src/git-info.hh \
+	src/mumble/Mumble.pb.cc \
+	src/mumble/Mumble.pb.h
+
+BUILT_SOURCES = \
+	src/git-info.hh \
+	src/mumble/Mumble.pb.h
+
+EXTRA_DIST = tools/echo-git-info.sh

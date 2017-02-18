@@ -21,37 +21,40 @@
 
 #include <stdexcept>
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  Name::Name ()
+  namespace X509
   {
-    m_name = X509_NAME_new ();
-    if (m_name == nullptr)
-      {
-        throw std::runtime_error ("X509_NAME_new () failed");
-      }
-  }
+    Name::Name ()
+    {
+      m_name = X509_NAME_new ();
+      if (m_name == nullptr)
+        {
+          throw std::runtime_error ("X509_NAME_new () failed");
+        }
+    }
 
-  Name::Name (X509_NAME *name) : m_name (name)
-  {
-  }
+    Name::Name (X509_NAME *name) : m_name (name)
+    {
+    }
 
-  Name::~Name ()
-  {
-    X509_NAME_free (m_name);
-  }
+    Name::~Name ()
+    {
+      X509_NAME_free (m_name);
+    }
 
-  void Name::add_entry (const std::string &field, const std::string &text)
-  {
-    if (field == "C" && text.size () > 2)
-      {
-        throw std::runtime_error ("Country name too long (should be 2 characters long)");
-      }
-    if (X509_NAME_add_entry_by_txt (m_name, field.c_str (), MBSTRING_UTF8,
-                                    reinterpret_cast<const unsigned char*> (text.c_str ()),
-                                    text.size (), -1, 0) != 1)
-      {
-        throw std::runtime_error ("X509_NAME_add_entry_by_txt () failed");
-      }
+    void Name::add_entry (const std::string &field, const std::string &text)
+    {
+      if (field == "C" && text.size () > 2)
+        {
+          throw std::runtime_error ("Country name too long (should be 2 characters long)");
+        }
+      if (X509_NAME_add_entry_by_txt (m_name, field.c_str (), MBSTRING_UTF8,
+                                      reinterpret_cast<const unsigned char*> (text.c_str ()),
+                                      text.size (), -1, 0) != 1)
+        {
+          throw std::runtime_error ("X509_NAME_add_entry_by_txt () failed");
+        }
+    }
   }
 }

@@ -22,15 +22,16 @@
 */
 #pragma once
 
-#include <experimental/filesystem>
 #include <string>
+
+#include "filesystem/filesystem.hh"
 
 namespace Util
 {
   class ImageMagick
   {
   public:
-    static void resize (const std::experimental::filesystem::path &from,
-                        const std::string &size, const std::experimental::filesystem::path &to);
+    static void resize (const FileSystem::path &from, const std::string &size,
+                        const FileSystem::path &to);
   };
 }

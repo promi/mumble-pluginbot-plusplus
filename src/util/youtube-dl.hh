@@ -22,10 +22,11 @@
 */
 #pragma once
 
-#include <experimental/filesystem>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "filesystem/filesystem.hh"
 
 namespace Util
 {
@@ -43,6 +44,6 @@ namespace Util
     std::vector<std::string> get_urls (const std::string &uri);
     std::vector<std::string> get_titles (const std::string &uri);
     std::vector<std::string> download (const std::string &uri,
-                                       const std::experimental::filesystem::path &dir);
+                                       const FileSystem::path &dir);
   };
 }

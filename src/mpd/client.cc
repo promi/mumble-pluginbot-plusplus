@@ -1008,6 +1008,7 @@ namespace Mpd
       }
   }
 
+  /*
   void Client::search_add_modified_since_constraint (Operator oper, time_t value)
   {
     if (!mpd_search_add_modified_since_constraint (pimpl->connection,
@@ -1017,6 +1018,7 @@ namespace Mpd
         throw std::runtime_error ("mpd_search_add_modified_since_constraint () failed");
       }
   }
+  */
 
   void Client::search_add_window (unsigned start, unsigned end)
   {

@@ -93,6 +93,9 @@ libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 
 if USE_LIBUV
 libmumble_pluginbot_plusplus_mpd_la_SOURCES += \
+	src/mpd/status-listener-uvw.cc
+else
+libmumble_pluginbot_plusplus_mpd_la_SOURCES += \
 	src/mpd/status-listener.cc
 endif
 
@@ -131,6 +134,7 @@ mumble_pluginbot_plusplus_LDADD = \
 	$(MPDCLIENT_LIBS) \
 	$(UV_LIBS) \
 	-lm \
+	libaither.la \
 	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-mpd.la \
 	libmumble-pluginbot-plusplus-mumble.la

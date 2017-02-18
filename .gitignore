@@ -24,6 +24,4 @@ ltmain.sh
 .libs/
 cert/
 m4/
-src/mumble/Mumble.pb.cc
-src/mumble/Mumble.pb.h
-src/git-info.hh
+

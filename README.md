@@ -66,10 +66,6 @@ The repository is autotools-based, you have to regenerate the configure script:
 
     $ ./autogen.sh
 
-Currently the protobuf files are not automatically build by the build scripts. You have to do this yourself:
-
-    $ cd src/mumble && protoc --cpp_out=. Mumble.proto && cd -
-
 Then the usual autotools process applies:
 
     $ ./configure

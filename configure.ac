@@ -10,6 +10,9 @@ AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
 
 AC_PROG_CXX
+AC_CHECK_PROG([PROTOC], [protoc], [protoc])
+AS_IF([test "x${PROTOC}" == "x"],
+    [AC_MSG_ERROR([ProtoBuf compiler "protoc" not found.])])
 LT_INIT
 
 # Make sure that pkg-config is installed!

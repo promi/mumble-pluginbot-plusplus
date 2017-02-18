@@ -1,17 +1,15 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4
 
-BUILT_SOURCES = src/git-info.hh
-EXTRA_DIST = tools/echo-git-info.sh
-#GIT_VERSION = $(shell git describe --dirty --always --tags)
-
 AM_CPPFLAGS = \
 	-std=c++1z \
 	-Wall \
 	-Wextra \
 	-pedantic \
 	-I$(srcdir)/src \
+	-I$(builddir)/src \
 	-I$(srcdir)/uvw/src \
+	-I$(builddir)/src/mumble \
 	$(OPUS_CFLAGS) \
 	$(OPENSSL_CFLAGS) \
 	$(PROTOBUF_CFLAGS) \
@@ -75,9 +73,12 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/messages.cc \
 	src/mumble/mumble-2-mumble.cc \
 	src/mumble/packet-data-stream.cc \
-	src/mumble/Mumble.pb.cc \
 	src/mumble/udp-packet.cc \
 	src/mumble/user.cc
+
+nodist_libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
+	src/mumble/Mumble.pb.cc \
+	src/mumble/Mumble.pb.h
 
 libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 	src/mpd/audio-format.cc \
@@ -128,4 +129,20 @@ mumble_pluginbot_plusplus_LDADD = \
 	-lstdc++fs
 
 src/git-info.hh: $(HEADERS) $(SOURCES)
-	$(srcdir)/tools/echo-git-info.sh > $(srcdir)/src/git-info.hh
+	$(srcdir)/tools/echo-git-info.sh > $(builddir)/src/git-info.hh
+
+%.pb.cc %.pb.h: %.proto
+	$(PROTOC) --proto_path=$(srcdir) --cpp_out=$(builddir) $^
+
+dist_noinst_DATA = src/mumble/Mumble.proto
+
+MOSTLYCLEANFILES = \
+	src/git-info.hh \
+	src/mumble/Mumble.pb.cc \
+	src/mumble/Mumble.pb.h
+
+BUILT_SOURCES = \
+	src/git-info.hh \
+	src/mumble/Mumble.pb.h
+
+EXTRA_DIST = tools/echo-git-info.sh

@@ -57,8 +57,12 @@ The code is using modern C++ language features only present in C++14.
 - libprotobuf
 - protobuf (for the protoc compiler)
 - libmpdclient
-- libuv
+- libuv (will most likely be an optional dependency in the future)
 - uvw (is automatically pulled in via a Git submodule)
+
+On Debian you can get the dependencies using Apt:
+
+    $ sudo apt-get install build-essential automake libtool pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 ## Building + Installing
 
@@ -71,6 +75,10 @@ Then the usual autotools process applies:
     $ ./configure
     $ make
     $ sudo make install
+	
+There is experimental support for Debian Jessie, to build there you should invoke configure like this:
+
+	$ CXX='g++ -std=c++1y' ./conifgure --without-libuv
 
 It should also work without installing, libtool provides a wrapper script for this:
 

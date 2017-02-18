@@ -193,8 +193,8 @@ namespace Mpd
     void search_add_any_tag_constraint (Operator oper, const std::string &value);
     /*
     void search_add_modified_since_constraint (Operator oper, time_t value);
-    */
     void search_add_window (unsigned start, unsigned end);
+    */
     void search_commit ();
     void search_cancel ();
     std::unique_ptr<std::pair<std::string, std::string>> recv_pair_tag (

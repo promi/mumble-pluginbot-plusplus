@@ -1018,7 +1018,6 @@ namespace Mpd
         throw std::runtime_error ("mpd_search_add_modified_since_constraint () failed");
       }
   }
-  */
 
   void Client::search_add_window (unsigned start, unsigned end)
   {
@@ -1027,6 +1026,7 @@ namespace Mpd
         throw std::runtime_error ("mpd_search_add_window () failed");
       }
   }
+  */
 
   void Client::search_commit ()
   {

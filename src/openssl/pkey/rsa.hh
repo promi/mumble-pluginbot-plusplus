@@ -25,8 +25,10 @@
 // RSA algorithm
 #include "openssl/rsa.h"
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
+  namespace PKey
+  {
   class RSA
   {
   private:
@@ -47,4 +49,5 @@ namespace OpenSSL::PKey
       return m_rsa;
     }
   };
+  }
 }

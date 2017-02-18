@@ -117,22 +117,26 @@ mumble_pluginbot_plusplus_SOURCES = \
 	src/util/youtube-dl.cc
 
 libmumble_pluginbot_plusplus_openssl_la_LIBADD = \
+	$(OPENSSL_LIBS) \
 	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la
 
+libmumble_pluginbot_plusplus_opus_la_LIBADD = \
+	$(OPUS_LIBS)
+
 libmumble_pluginbot_plusplus_mumble_la_LIBADD = \
-	libmumble-pluginbot-plusplus-io.la \
+	$(PROTOBUF_LIBS) \
 	libaither.la \
+	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la \
 	libmumble-pluginbot-plusplus-openssl.la \
 	libmumble-pluginbot-plusplus-opus.la
 
-mumble_pluginbot_plusplus_LDADD = \
-	$(OPUS_LIBS) \
-	$(OPENSSL_LIBS) \
-	$(PROTOBUF_LIBS) \
+libmumble_pluginbot_plusplus_mpd_la_LIBADD = \
 	$(MPDCLIENT_LIBS) \
-	$(UV_LIBS) \
+	$(UV_LIBS)
+
+mumble_pluginbot_plusplus_LDADD = \
 	-lm \
 	libaither.la \
 	libmumble-pluginbot-plusplus-filesystem.la \

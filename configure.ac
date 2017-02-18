@@ -43,12 +43,10 @@ AS_CASE(
   [no],  [],
          [PKG_CHECK_MODULES(UV, [libuv >= 1.9.0], [HAVE_LIBUV=1], [HAVE_LIBUV=0])])
 
-#if test "$with_libuv" != no -a "x$HAVE_LIBUV" -eq x1; then
-#   AM_CONDITIONAL([USE_LIBUV], [1])
-#   AC_DEFINE([USE_LIBUV], [1], [Define when libuv should be used.])
-#else
-#   AM_CONDITIONAL([USE_LIBUV], [0])
-#fi
+if test "$with_libuv" != no -a "x$HAVE_LIBUV" == x1; then
+   AC_DEFINE([USE_LIBUV], [1], [Define when libuv should be used.])
+fi
+AM_CONDITIONAL([USE_LIBUV], [test "$with_libuv" != no -a "x$HAVE_LIBUV" == x1])
 
 #AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile])

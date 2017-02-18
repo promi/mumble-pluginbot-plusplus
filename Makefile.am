@@ -89,8 +89,12 @@ libmumble_pluginbot_plusplus_mpd_la_SOURCES = \
 	src/mpd/playlist.cc \
 	src/mpd/song.cc \
 	src/mpd/stats.cc \
-	src/mpd/status.cc \
+	src/mpd/status.cc 
+
+if USE_LIBUV
+libmumble_pluginbot_plusplus_mpd_la_SOURCES += \
 	src/mpd/status-listener.cc
+endif
 
 mumble_pluginbot_plusplus_SOURCES = \
 	src/main.cc \

@@ -138,9 +138,12 @@ libmumble_pluginbot_plusplus_mpd_la_LIBADD = \
 
 mumble_pluginbot_plusplus_LDADD = \
 	-lm \
+	$(PROTOBUF_LIBS) \
 	libaither.la \
 	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-mpd.la \
+	libmumble-pluginbot-plusplus-openssl.la \
+	libmumble-pluginbot-plusplus-opus.la \
 	libmumble-pluginbot-plusplus-mumble.la
 
 src/git-info.hh: $(HEADERS) $(SOURCES)

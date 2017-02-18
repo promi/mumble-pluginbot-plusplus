@@ -46,7 +46,9 @@ namespace Mpd
     MusicbrainzAlbumID = MPD_TAG_MUSICBRAINZ_ALBUMID,
     MusicbrainzAlbumArtistID = MPD_TAG_MUSICBRAINZ_ALBUMARTISTID,
     MusicbrainzTrackID = MPD_TAG_MUSICBRAINZ_TRACKID,
+#ifdef MPD_TAG_MUSICBRAINZ_RELEASETRACKID
     MusicbrainzReleaseTrackID = MPD_TAG_MUSICBRAINZ_RELEASETRACKID,
+#endif
   };
 
   /**

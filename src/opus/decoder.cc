@@ -42,7 +42,7 @@ namespace Opus
 
   std::vector<int16_t> Decoder::decode (const std::vector<uint8_t> &data)
   {
-    static_assert(sizeof(opus_int16) == sizeof(int16_t));
+    static_assert(sizeof(opus_int16) == sizeof(int16_t), "opus_int16 != int16_t");
     std::vector<int16_t> samples (m_frame_size * m_channels, 0);
     auto sample_count = opus_decode (m_decoder, data.data (), data.size (),
                                      samples.data (),

@@ -12,7 +12,11 @@ AM_CPPFLAGS = \
 	-pedantic \
 	-I$(srcdir)/src \
 	-I$(srcdir)/uvw/src \
-	$(MUMBLE_PLUGINBOT_PLUSPLUS_CFLAGS)
+	$(OPUS_CFLAGS) \
+	$(OPENSSL_CFLAGS) \
+	$(PROTOBUF_CFLAGS) \
+	$(MPDCLIENT_CFLAGS) \
+	$(UV_CFLAGS)
 
 lib_LTLIBRARIES = \
 	libaither.la \
@@ -113,7 +117,11 @@ libmumble_pluginbot_plusplus_mumble_la_LIBADD = \
 	libmumble-pluginbot-plusplus-opus.la
 
 mumble_pluginbot_plusplus_LDADD = \
-	$(MUMBLE_PLUGINBOT_PLUSPLUS_LIBS) \
+	$(OPUS_LIBS) \
+	$(OPENSSL_LIBS) \
+	$(PROTOBUF_LIBS) \
+	$(MPDCLIENT_LIBS) \
+	$(UV_LIBS) \
 	-lm \
 	libmumble-pluginbot-plusplus-mpd.la \
 	libmumble-pluginbot-plusplus-mumble.la \

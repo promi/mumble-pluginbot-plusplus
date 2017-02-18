@@ -20,18 +20,21 @@
 
 #include <openssl/evp.h>
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
-  class EnvelopeMessageDigest
+  namespace PKey
   {
-  private:
-    const EVP_MD *m_evp_md;
-  public:
-    EnvelopeMessageDigest (const EVP_MD *evp_md);
-    static EnvelopeMessageDigest sha256 ();
-    inline auto data () const
+    class EnvelopeMessageDigest
     {
-      return m_evp_md;
-    }
-  };
+    private:
+      const EVP_MD *m_evp_md;
+    public:
+      EnvelopeMessageDigest (const EVP_MD *evp_md);
+      static EnvelopeMessageDigest sha256 ();
+      inline auto data () const
+      {
+        return m_evp_md;
+      }
+    };
+  }
 }

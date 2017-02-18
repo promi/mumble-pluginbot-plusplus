@@ -20,19 +20,22 @@
 
 #include <openssl/ssl.h>
 
-namespace OpenSSL::SSL
+namespace OpenSSL
 {
-  class Method
+  namespace SSL
   {
-  private:
-    const SSL_METHOD *m_ssl_method;
-  public:
-    Method (const SSL_METHOD *ssl_method);
-    static Method sslv23 ();
-    // static Method tls ();
-    inline auto data () const
+    class Method
     {
-      return m_ssl_method;
-    }
-  };
+    private:
+      const SSL_METHOD *m_ssl_method;
+    public:
+      Method (const SSL_METHOD *ssl_method);
+      static Method sslv23 ();
+      // static Method tls ();
+      inline auto data () const
+      {
+        return m_ssl_method;
+      }
+    };
+  }
 }

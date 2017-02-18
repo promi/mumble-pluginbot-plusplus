@@ -23,29 +23,32 @@
 
 #include "openssl/pkey/rsa.hh"
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
-  class Envelope
+  namespace PKey
   {
-  private:
-    EVP_PKEY *m_evp_pkey = nullptr;
-  public:
-    Envelope ();
-    ~Envelope ();
-    Envelope (EVP_PKEY *evp_pkey);
-    Envelope (const RSA &rsa);
-    Envelope (Envelope &&other);
-    Envelope& operator= (Envelope &&other);
-    // There is no dup () function to duplicate an Envelope_PKEY struct
-    // A workaround could be to use i2d_PrivateKey () and d2i_PrivateKey ()
-    // which gets the DER representation and then converts it back
-    // However there might only be a public key in the struct which complicates things?!
-    //Envelope (const Envelope &other) = delete;
-    //Envelope& operator= (Envelope other) = delete;
-    // friend void swap (RSA &first, RSA &second); // nothrow
-    inline const EVP_PKEY* data () const
+    class Envelope
     {
-      return m_evp_pkey;
-    }
-  };
+    private:
+      EVP_PKEY *m_evp_pkey = nullptr;
+    public:
+      Envelope ();
+      ~Envelope ();
+      Envelope (EVP_PKEY *evp_pkey);
+      Envelope (const RSA &rsa);
+      Envelope (Envelope &&other);
+      Envelope& operator= (Envelope &&other);
+      // There is no dup () function to duplicate an Envelope_PKEY struct
+      // A workaround could be to use i2d_PrivateKey () and d2i_PrivateKey ()
+      // which gets the DER representation and then converts it back
+      // However there might only be a public key in the struct which complicates things?!
+      //Envelope (const Envelope &other) = delete;
+      //Envelope& operator= (Envelope other) = delete;
+      // friend void swap (RSA &first, RSA &second); // nothrow
+      inline const EVP_PKEY* data () const
+      {
+        return m_evp_pkey;
+      }
+    };
+  }
 }

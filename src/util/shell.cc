@@ -28,43 +28,46 @@
 
 namespace StringUtils = Util::String;
 
-namespace Util::Shell
+namespace Util
 {
-  std::string squote (const std::string &s)
+  namespace Shell
   {
-    std::string result = "'";
-    for (const char &c : s)
-      {
-        if (c == '\'')
-          {
-            result += "'\\''";
-          }
-        else
-          {
-            result += c;
-          }
-      }
-    return result + "'";
-  };
+    std::string squote (const std::string &s)
+    {
+      std::string result = "'";
+      for (const char &c : s)
+        {
+          if (c == '\'')
+            {
+              result += "'\\''";
+            }
+          else
+            {
+              result += c;
+            }
+        }
+      return result + "'";
+    };
 
-  std::string exec (const std::string &cmd)
-  {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, int(*)(FILE*)> pipe (popen (cmd.c_str (), "r"), pclose);
-    if (pipe == nullptr)
-      {
-        throw std::runtime_error ("popen() failed");
-      }
-    while ((fgets (buffer.data (), buffer.size (), pipe.get ())) != nullptr)
-      {
-        result += buffer.data ();
-      }
-    return result;
-  }
+    std::string exec (const std::string &cmd)
+    {
+      std::array<char, 128> buffer;
+      std::string result;
+      std::unique_ptr<FILE, int(*)(FILE*)> pipe (popen (cmd.c_str (), "r"), pclose);
+      if (pipe == nullptr)
+        {
+          throw std::runtime_error ("popen() failed");
+        }
+      while ((fgets (buffer.data (), buffer.size (), pipe.get ())) != nullptr)
+        {
+          result += buffer.data ();
+        }
+      return result;
+    }
 
-  std::string nice_exec (const std::string &cmd)
-  {
-    return Shell::exec (StringUtils::intercalate ({"nice", "-n20", cmd}));
+    std::string nice_exec (const std::string &cmd)
+    {
+      return Shell::exec (StringUtils::intercalate ({"nice", "-n20", cmd}));
+    }
   }
 }

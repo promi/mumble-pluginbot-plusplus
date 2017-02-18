@@ -21,48 +21,50 @@
 
 #include <stdexcept>
 
-namespace OpenSSL::PKey
+namespace OpenSSL
 {
-  Envelope::Envelope ()
+  namespace PKey
   {
-    m_evp_pkey = EVP_PKEY_new ();
-    if (m_evp_pkey == nullptr)
-      {
-        throw std::runtime_error ("EVP_PKEY_new () failed");
-      }
-  }
+    Envelope::Envelope ()
+    {
+      m_evp_pkey = EVP_PKEY_new ();
+      if (m_evp_pkey == nullptr)
+        {
+          throw std::runtime_error ("EVP_PKEY_new () failed");
+        }
+    }
 
-  Envelope::~Envelope ()
-  {
-    EVP_PKEY_free (m_evp_pkey);
-  }
+    Envelope::~Envelope ()
+    {
+      EVP_PKEY_free (m_evp_pkey);
+    }
 
-  Envelope::Envelope (EVP_PKEY *evp_pkey)
-  {
-    m_evp_pkey = evp_pkey;
-  }
+    Envelope::Envelope (EVP_PKEY *evp_pkey)
+    {
+      m_evp_pkey = evp_pkey;
+    }
 
-  Envelope::Envelope (const RSA &rsa) : Envelope ()
-  {
-    if (EVP_PKEY_set1_RSA (m_evp_pkey, const_cast<::RSA*> (rsa.data ())) != 1)
-      {
-        throw std::runtime_error ("EVP_PKEY_set1_RSA () failed");
-      }
-  }
+    Envelope::Envelope (const RSA &rsa) : Envelope ()
+    {
+      if (EVP_PKEY_set1_RSA (m_evp_pkey, const_cast<::RSA*> (rsa.data ())) != 1)
+        {
+          throw std::runtime_error ("EVP_PKEY_set1_RSA () failed");
+        }
+    }
 
-  Envelope::Envelope (Envelope &&other)
-  {
-    m_evp_pkey = other.m_evp_pkey;
-    other.m_evp_pkey = nullptr;
-  }
+    Envelope::Envelope (Envelope &&other)
+    {
+      m_evp_pkey = other.m_evp_pkey;
+      other.m_evp_pkey = nullptr;
+    }
 
-  Envelope& Envelope::operator= (Envelope &&other)
-  {
-    assert (this != &other);
-    EVP_PKEY_free (m_evp_pkey);
-    m_evp_pkey = other.m_evp_pkey;
-    other.m_evp_pkey = nullptr;
-    return *this;
+    Envelope& Envelope::operator= (Envelope &&other)
+    {
+      assert (this != &other);
+      EVP_PKEY_free (m_evp_pkey);
+      m_evp_pkey = other.m_evp_pkey;
+      other.m_evp_pkey = nullptr;
+      return *this;
+    }
   }
-
 }

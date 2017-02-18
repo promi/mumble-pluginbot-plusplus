@@ -18,22 +18,25 @@
 */
 #include "openssl/ssl/method.hh"
 
-namespace OpenSSL::SSL
+namespace OpenSSL
 {
-  Method::Method (const SSL_METHOD *ssl_method) : m_ssl_method (ssl_method)
+  namespace SSL
   {
+    Method::Method (const SSL_METHOD *ssl_method) : m_ssl_method (ssl_method)
+    {
 
-  }
+    }
 
-  Method Method::sslv23 ()
-  {
-    return Method (SSLv23_method ());
-  }
+    Method Method::sslv23 ()
+    {
+      return Method (SSLv23_method ());
+    }
 
-  /*
-  Method Method::tls ()
-  {
-    return Method (TLS_method ());
+    /*
+    Method Method::tls ()
+    {
+      return Method (TLS_method ());
+    }
+    */
   }
-  */
 }

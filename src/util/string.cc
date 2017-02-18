@@ -18,24 +18,27 @@
 */
 #include "util/string.hh"
 
-namespace Util::String
+namespace Util
 {
-  std::string intercalate (const std::vector<std::string> &vector, char delimiter)
+  namespace String
   {
-    std::string result;
-    bool first = true;
-    for (const auto &s : vector)
-      {
-        if (first)
-          {
-            result = s;
-            first = false;
-          }
-        else
-          {
-            result += delimiter + s;
-          }
-      }
-    return result;
+    std::string intercalate (const std::vector<std::string> &vector, char delimiter)
+    {
+      std::string result;
+      bool first = true;
+      for (const auto &s : vector)
+        {
+          if (first)
+            {
+              result = s;
+              first = false;
+            }
+          else
+            {
+              result += delimiter + s;
+            }
+        }
+      return result;
+    }
   }
 }

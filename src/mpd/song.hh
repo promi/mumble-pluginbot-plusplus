@@ -38,7 +38,9 @@ namespace Mpd
     std::string uri () const;
     std::unique_ptr<std::string> tag (TagType type, unsigned idx) const;
     unsigned duration () const;
+    /*
     unsigned duration_ms () const;
+    */
     unsigned start () const;
     unsigned end () const;
     time_t last_modified () const;

@@ -21,17 +21,20 @@
 #include "openssl/x509/certificate.hh"
 #include "openssl/x509/extension.hh"
 
-namespace OpenSSL::X509
+namespace OpenSSL
 {
-  class ExtensionFactory
+  namespace X509
   {
-  private:
-    const OpenSSL::X509::Certificate &m_issuer_certificate;
-    const OpenSSL::X509::Certificate &m_subject_certificate;
-  public:
-    ExtensionFactory (const OpenSSL::X509::Certificate &issuer_certificate,
-                      const OpenSSL::X509::Certificate &subject_certificate);
-    Extension create_extension (const std::string &oid, const std::string &value,
-                                bool critical);
-  };
+    class ExtensionFactory
+    {
+    private:
+      const OpenSSL::X509::Certificate &m_issuer_certificate;
+      const OpenSSL::X509::Certificate &m_subject_certificate;
+    public:
+      ExtensionFactory (const OpenSSL::X509::Certificate &issuer_certificate,
+                        const OpenSSL::X509::Certificate &subject_certificate);
+      Extension create_extension (const std::string &oid, const std::string &value,
+                                  bool critical);
+    };
+  }
 }

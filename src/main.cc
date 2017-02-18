@@ -24,15 +24,15 @@
 #include <thread>
 #include <chrono>
 #include <getopt.h>
-#include <experimental/filesystem>
 
 #include "git-info.hh"
 #include "aither/log.hh"
+#include "filesystem/filesystem.hh"
 #include "openssl/openssl.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/settings.hh"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = FileSystem;
 
 std::string
 parse_cmd_options (int argc, char *argv[], MumblePluginBot::Settings &settings)
@@ -110,7 +110,7 @@ parse_cmd_options (int argc, char *argv[], MumblePluginBot::Settings &settings)
           break;
         case 9:
         case 'f':
-          settings.mpd.fifopath = optarg;
+          settings.mpd.fifopath = FileSystem::path {optarg};
           break;
         case 10:
         case 'H':
@@ -126,7 +126,7 @@ parse_cmd_options (int argc, char *argv[], MumblePluginBot::Settings &settings)
           break;
         case 13:
         case 'd':
-          settings.certdir = optarg;
+          settings.certdir = FileSystem::path {optarg};
           break;
         }
     }
@@ -152,26 +152,26 @@ set_dirs (MumblePluginBot::Settings &settings)
 {
   // https://standards.freedesktop.org/basedir-spec/basedir-spec-0.8.html
   fs::path home = getenv_nullsafe ("HOME");
-  assert (home != "");
+  assert (home.string () != "");
   fs::path xdg_data_home = getenv_nullsafe ("XDG_DATA_HOME");
-  if (xdg_data_home == "" || !xdg_data_home.is_absolute ())
+  if (xdg_data_home.string () == "" || !xdg_data_home.is_absolute ())
     {
       xdg_data_home = home / ".local" / "share";
     }
-  assert (xdg_data_home != "");
+  assert (xdg_data_home.string () != "");
   fs::path xdg_runtime_dir = getenv_nullsafe ("XDG_RUNTIME_DIR");
-  if (xdg_runtime_dir == "" || !xdg_runtime_dir.is_absolute ())
+  if (xdg_runtime_dir.string () == "" || !xdg_runtime_dir.is_absolute ())
     {
       std::cerr << "warning: XDG_RUNTIME_DIR is not set\n";
       xdg_runtime_dir = home / ".config";
     }
-  assert (xdg_runtime_dir != "");
+  assert (xdg_runtime_dir.string () != "");
   fs::path xdg_config_home = getenv_nullsafe ("XDG_CONFIG_HOME");
-  if (xdg_config_home == "" || !xdg_config_home.is_absolute ())
+  if (xdg_config_home.string () == "" || !xdg_config_home.is_absolute ())
     {
       xdg_config_home = home / ".config";
     }
-  assert (xdg_config_home != "");
+  assert (xdg_config_home.string () != "");
 
   const std::string &subdir = "mumble-pluginbot-plusplus";
   settings.main_tempdir = xdg_data_home / subdir / "temp";

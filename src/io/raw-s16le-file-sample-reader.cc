@@ -20,8 +20,8 @@
 #include "util/endian.hh"
 #include "io/raw-s16le-file-sample-reader.hh"
 
-RawFileReader::RawFileReader (const std::string &file)
-  : m_stream (file, std::ios::binary)
+RawFileReader::RawFileReader (const FileSystem::path &file)
+  : m_stream (file.string (), std::ios::binary)
 {
 }
 

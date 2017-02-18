@@ -21,8 +21,11 @@
 #include <string>
 #include <vector>
 
-namespace Util::String
+namespace Util
 {
-  std::string intercalate (const std::vector<std::string> &vector,
-                           char delimiter = ' ');
+  namespace String
+  {
+    std::string intercalate (const std::vector<std::string> &vector,
+                             char delimiter = ' ');
+  }
 }

@@ -33,7 +33,7 @@
 #include "util/string.hh"
 #include "util/youtube-dl.hh"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = FileSystem;
 namespace Shell = Util::Shell;
 
 namespace MumblePluginBot

@@ -26,7 +26,7 @@
 #include "util/base64.hh"
 #include "mumble/img-reader.hh"
 
-namespace fs = std::experimental::filesystem;
+namespace fs = FileSystem;
 
 namespace Mumble
 {
@@ -40,7 +40,7 @@ namespace Mumble
         throw std::runtime_error ("Image format must be on of the following: " +
                                   formats_to_string ());
       }
-    std::ifstream is (file);
+    std::ifstream is (file.string ());
     if (is.fail ())
       {
         throw std::runtime_error (std::string ("File could not be opened for reading: ")

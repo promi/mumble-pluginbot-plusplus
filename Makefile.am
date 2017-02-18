@@ -17,6 +17,7 @@ AM_CPPFLAGS = \
 
 lib_LTLIBRARIES = \
 	libaither.la \
+	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-io.la \
 	libmumble-pluginbot-plusplus-network.la \
 	libmumble-pluginbot-plusplus-openssl.la \
@@ -31,6 +32,9 @@ libaither_la_SOURCES = \
 	src/aither/logger.cc \
 	src/aither/console-logger.cc \
 	src/aither/void-logger.cc
+
+libmumble_pluginbot_plusplus_filesystem_la_SOURCES = \
+	src/filesystem/path.cc
 
 libmumble_pluginbot_plusplus_io_la_SOURCES = \
 	src/io/sample-reader.cc \
@@ -123,9 +127,9 @@ mumble_pluginbot_plusplus_LDADD = \
 	$(MPDCLIENT_LIBS) \
 	$(UV_LIBS) \
 	-lm \
+	libmumble-pluginbot-plusplus-filesystem.la \
 	libmumble-pluginbot-plusplus-mpd.la \
-	libmumble-pluginbot-plusplus-mumble.la \
-	-lstdc++fs
+	libmumble-pluginbot-plusplus-mumble.la
 
 src/git-info.hh: $(HEADERS) $(SOURCES)
 	$(srcdir)/tools/echo-git-info.sh > $(builddir)/src/git-info.hh

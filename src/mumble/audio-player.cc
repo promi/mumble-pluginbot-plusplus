@@ -75,7 +75,7 @@ namespace Mumble
     */
   }
 
-  void AudioPlayer::stream_named_pipe (const std::string &file)
+  void AudioPlayer::stream_named_pipe (const FileSystem::path &file)
   {
     if (!m_playing)
       {

@@ -178,7 +178,7 @@ namespace Mumble
     return m_users.at (m_session);
   }
 
-  std::string Client::imgmsg (const std::string &file)
+  std::string Client::imgmsg (const FileSystem::path &file)
   {
     return ImgReader::msg_from_file (file);
   }
@@ -210,7 +210,7 @@ namespace Mumble
     return m_users.at (session_id);
   }
 
-  User& Client::text_user_img (uint32_t session_id, const std::string &file)
+  User& Client::text_user_img (uint32_t session_id, const FileSystem::path &file)
   {
     return text_user_internal (session_id, ImgReader::msg_from_file (file));
   }
@@ -225,7 +225,8 @@ namespace Mumble
     return m_channels.at (channel_id);
   }
 
-  Channel& Client::text_channel_img (uint32_t channel_id, const std::string &file)
+  Channel& Client::text_channel_img (uint32_t channel_id,
+                                     const FileSystem::path &file)
   {
     return text_channel_internal (channel_id, ImgReader::msg_from_file (file));
   }

@@ -27,13 +27,14 @@
 #pragma once
 
 #include <string>
-#include <experimental/filesystem>
+
+#include "filesystem/filesystem.hh"
 
 namespace Mumble
 {
   struct SSLCertOpts
   {
-    std::experimental::filesystem::path cert_dir;
+    FileSystem::path cert_dir;
     std::string country_code = "US";
     std::string organization = "github.com";
     std::string organization_unit = "Engineering";

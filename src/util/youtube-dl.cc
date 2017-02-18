@@ -121,7 +121,7 @@ namespace Util
   }
 
   std::vector<std::string> YoutubeDl::download (const std::string &uri,
-      const std::experimental::filesystem::path &dir)
+      const FileSystem::path &dir)
   {
     std::vector<std::string> v;
     std::stringstream output {pimpl->nice_exec (StringUtils::intercalate({

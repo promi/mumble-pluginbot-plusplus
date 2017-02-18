@@ -46,9 +46,9 @@ What doesn't work:
 
 ## Dependencies
 
-The code is using modern C++ language features only present in C++14 and partly C++17. It currently uses the experimental filesystem library.
+The code is using modern C++ language features only present in C++14.
 
-- GCC 6.2+ or Clang 3.8+
+- GCC 4.9+ or Clang 3.8+
 - autoconf
 - automake
 - libtool

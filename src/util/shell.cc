@@ -47,7 +47,7 @@ namespace Util
             }
         }
       return result + "'";
-    };
+    }
 
     std::string exec (const std::string &cmd)
     {

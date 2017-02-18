@@ -19,27 +19,29 @@
 #pragma once
 
 #include <fstream>
+#include <sstream>
+#include <string>
+
+#include "filesystem/filesystem.hh"
 
 namespace IO
 {
   class File
   {
   public:
-    static inline std::string read_all_text (const
-        std::experimental::filesystem::path path)
+    static inline std::string read_all_text (const FileSystem::path &path)
     {
       // From http://stackoverflow.com/a/2602258/426242
-      std::ifstream ifs (path);
+      std::ifstream ifs (path.string ());
       std::stringstream buffer;
       buffer << ifs.rdbuf ();
       return buffer.str ();
     }
 
-    static inline void write_all_text (const std::experimental::filesystem::path
-                                       path,
-                                       const std::string text)
+    static inline void write_all_text (const FileSystem::path &path,
+                                       const std::string &text)
     {
-      std::ofstream ofs (path);
+      std::ofstream ofs (path.string ());
       std::stringstream buffer (text);
       buffer >> ofs.rdbuf ();
     }

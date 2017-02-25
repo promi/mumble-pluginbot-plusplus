@@ -23,6 +23,7 @@
 #include "pluginbot/plugins/youtube.hh"
 
 #include <chrono>
+#include <mutex>
 
 #include "mpd/client.hh"
 #include "pluginbot/html.hh"

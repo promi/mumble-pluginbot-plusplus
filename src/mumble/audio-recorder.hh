@@ -25,7 +25,8 @@
 
 #include <cstddef>
 #include <memory>
-#include <string>
+
+#include "filesystem/filesystem.hh"
 
 namespace Mumble
 {
@@ -38,7 +39,7 @@ namespace Mumble
     AudioRecorder (size_t sample_rate);
     bool recording () const;
     void stream_portaudio ();
-    void start (const std::string &file);
+    void start (const FileSystem::path &file);
     void stop ();
   };
 }

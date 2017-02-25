@@ -78,7 +78,7 @@ namespace Mumble
     */
   }
 
-  void AudioRecorder::start (const std::string &file)
+  void AudioRecorder::start (const FileSystem::path &file)
   {
     (void) file;
     if (pimpl->m_recording)

@@ -53,7 +53,8 @@ namespace Mumble
   };
 
   AudioRecorder::AudioRecorder (size_t sample_rate)
-    : pimpl (std::make_unique<Impl> (sample_rate) /* m_wav_format (WaveFile::Format (mono, pcm_16, sample_rate)) */)
+    : pimpl (std::make_unique<Impl>
+             (sample_rate) /* m_wav_format (WaveFile::Format (mono, pcm_16, sample_rate)) */)
   {
   }
 

@@ -57,11 +57,15 @@ namespace Mumble
     std::queue<std::vector<uint8_t>> m_plqueue;
     std::thread m_consume;
     // bool m_consume_running;
-    Impl (const Aither::Log &log, Codec codec, Connection &conn, size_t sample_rate, size_t channels, size_t bitrate)
-      : m_log (log), m_codec (codec), m_conn (conn), m_sample_rate (sample_rate), m_channels (channels), m_opus_encoder (m_log, static_cast<Opus::SampleRate> (sample_rate), sample_rate / 100, static_cast<Opus::Channels> (channels), COMPRESSED_SIZE)
-/*
-m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].min)
-*/
+    Impl (const Aither::Log &log, Codec codec, Connection &conn, size_t sample_rate,
+          size_t channels, size_t bitrate)
+      : m_log (log), m_codec (codec), m_conn (conn), m_sample_rate (sample_rate),
+        m_channels (channels), m_opus_encoder (m_log,
+            static_cast<Opus::SampleRate> (sample_rate), sample_rate / 100,
+            static_cast<Opus::Channels> (channels), COMPRESSED_SIZE)
+    /*
+    m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].min)
+    */
     {
       // TODO: Add other allowed values for opus
       assert (sample_rate == 48 * 1000);
@@ -73,15 +77,17 @@ m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].
       //m_celt_encoder.vbr_rate = bitrate
       //m_celt_encoder.prediction_request = 0
       m_consume = std::thread {[this] ()
-                               {
-                                 this->consume();
-                               }};
+      {
+        this->consume();
+      }
+                              };
     }
     void process_udp_tunnel (const MumbleProto::UDPTunnel &message);
     void consume ();
   };
-  
-  void Mumble2Mumble::Impl::process_udp_tunnel (const MumbleProto::UDPTunnel &message)
+
+  void Mumble2Mumble::Impl::process_udp_tunnel (const MumbleProto::UDPTunnel
+      &message)
   {
     std::lock_guard <std::mutex> lock (m_pds_lock);
     auto packetstr = message.packet ();
@@ -107,7 +113,8 @@ m_celt_encoder (sample_rate, sample_rate / 100, channels, [bitrate / 6800, 127].
                                 Connection &conn,
                                 size_t sample_rate,
                                 size_t channels, size_t bitrate)
-    : pimpl (std::make_unique<Impl> (log, codec, conn, sample_rate, channels, bitrate))
+    : pimpl (std::make_unique<Impl> (log, codec, conn, sample_rate, channels,
+                                     bitrate))
   {
   }
 

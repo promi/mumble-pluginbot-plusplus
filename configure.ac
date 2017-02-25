@@ -12,8 +12,8 @@ AM_SILENT_RULES([yes])
 AC_PROG_CXX
 #AX_CXX_COMPILE_STDCXX_14([noext], [mandatory])
 AC_CHECK_PROG([PROTOC], [protoc], [protoc])
-AS_IF([test "x${PROTOC}" == "x"],
-    [AC_MSG_ERROR([ProtoBuf compiler "protoc" not found.])])
+AS_IF([test "x${PROTOC}" = x],
+    [AC_MSG_ERROR(["ProtoBuf compiler 'protoc' not found."])])
 LT_INIT
 
 # Make sure that pkg-config is installed!

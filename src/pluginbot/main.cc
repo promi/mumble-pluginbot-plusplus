@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "git-info.hh"
+#include "mumble/cert-manager.hh"
 #include "mumble/configuration.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"

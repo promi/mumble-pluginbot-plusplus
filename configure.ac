@@ -34,19 +34,15 @@ AC_ARG_WITH(
   [],
   [with_libuv=check])
 
-# if     --with-libuv    -> it must be installed
-# elseif --without-libuv -> do nothing
-# else                   -> check whether it is installed
 AS_CASE(
   ["$with_libuv"],
-  [yes], [PKG_CHECK_MODULES(UV, [libuv >= 1.9.0], [HAVE_LIBUV=1])],
-  [no],  [],
+  [yes], [PKG_CHECK_MODULES(UV, [libuv >= 1.9.0], [HAVE_LIBUV=1],
+                            [AC_MSG_ERROR("libuv >= 1.9.0 is not installed")])],
+  [no],  [HAVE_LIBUV=0],
          [PKG_CHECK_MODULES(UV, [libuv >= 1.9.0], [HAVE_LIBUV=1], [HAVE_LIBUV=0])])
 
-if test "$with_libuv" != no -a "x$HAVE_LIBUV" == x1; then
-   AC_DEFINE([USE_LIBUV], [1], [Define when libuv should be used.])
-fi
-AM_CONDITIONAL([USE_LIBUV], [test "$with_libuv" != no -a "x$HAVE_LIBUV" == x1])
+AS_IF([test "x$HAVE_LIBUV" = x1], [AC_DEFINE([USE_LIBUV])])
+AM_CONDITIONAL([USE_LIBUV], [test "x$HAVE_LIBUV" = x1])
 
 #AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile])

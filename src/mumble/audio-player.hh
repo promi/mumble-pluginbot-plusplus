@@ -49,6 +49,8 @@ namespace Mumble
     void volume (int vol);
     int volume () const;
     bool playing () const;
+    // TODO: Split into three separate classes
+    // (i.e. FileAudioPlayer, PipeAudioPlayer and PortaudioPlayer)
     void play_file (const FileSystem::path &file);
     void stream_named_pipe (const FileSystem::path &pipe);
     bool stream_portaudio ();
@@ -59,4 +61,3 @@ namespace Mumble
     std::chrono::milliseconds framelength ();
   };
 }
-

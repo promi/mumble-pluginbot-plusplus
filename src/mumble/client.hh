@@ -46,7 +46,6 @@
 #include "Mumble.pb.h"
 #include "mumble/configuration.hh"
 #include "mumble/messages.hh"
-#include "mumble/audio-player.hh"
 #include "mumble/connection.hh"
 #include "mumble/channel.hh"
 #include "mumble/user.hh"
@@ -71,13 +70,11 @@ namespace Mumble
     int m_pingtime = 0;
     bool m_connected = false;
     bool m_synced = false;
-    uint m_bitrate = 0;
     std::unique_ptr<Connection> m_conn;
     std::map<int,
         std::list<
         std::function<void(const ::google::protobuf::Message&)>>> m_callbacks;
     std::list<std::function<void()>> m_connected_callbacks;
-    std::unique_ptr<AudioPlayer> m_audio_streamer;
     std::thread m_read_thread;
     std::thread m_ping_thread;
     bool m_read_thread_running;
@@ -100,6 +97,10 @@ namespace Mumble
     {
       return m_connected;
     }
+    inline auto& connection () const
+    {
+      return *m_conn;
+    }
     inline bool synced () const
     {
       return m_synced;
@@ -118,7 +119,6 @@ namespace Mumble
     }
     void deaf (bool b = true);
     void mute (bool b = true);
-    AudioPlayer& player ();
     User& me ();
     std::string imgmsg (const FileSystem::path &file);
     void comment (const std::string &newcomment);
@@ -150,10 +150,6 @@ namespace Mumble
     void fetch_session_comment (uint32_t id);
     User* find_user (const std::string &name);
     Channel* find_channel (const std::string &name);
-    void bitrate (int bitrate);
-    int bitrate ();
-    void frame_length (std::chrono::milliseconds framelength);
-    std::chrono::milliseconds frame_length ();
     inline void on_connected (std::function<void()> f)
     {
       m_connected_callbacks.push_back (f);

@@ -69,7 +69,6 @@ namespace Mumble
     m_synced = false;
     m_ready = false;
     m_connected = false;
-    m_audio_streamer = nullptr;
     m_read_thread_running = false;
     m_read_thread.join ();
     m_ping_thread_running = false;
@@ -88,20 +87,6 @@ namespace Mumble
     MumbleProto::UserState message;
     message.set_self_mute (b);
     send (message);
-  }
-
-  AudioPlayer& Client::player ()
-  {
-    if (!m_codec_usable)
-      {
-        throw std::runtime_error ("no usable codec");
-      }
-    if (!m_audio_streamer)
-      {
-        m_audio_streamer = std::make_unique<AudioPlayer> (m_log, m_codec, *m_conn,
-                           m_config.sample_rate, m_bitrate);
-      }
-    return *m_audio_streamer;
   }
 
   User& Client::me ()
@@ -230,53 +215,6 @@ namespace Mumble
     return find_model (m_channels, name);
   }
 
-  void Client::bitrate (int bitrate)
-  {
-    try
-      {
-        m_audio_streamer->bitrate (bitrate);
-      }
-    catch (...)
-      {
-      }
-  }
-
-  int Client::bitrate ()
-  {
-    try
-      {
-        return m_audio_streamer->bitrate ();
-      }
-    catch (...)
-      {
-        return 0;
-      }
-  }
-
-  void Client::frame_length (std::chrono::milliseconds framelength)
-  {
-    try
-      {
-        m_audio_streamer->framelength (framelength);
-      }
-    catch (...)
-      {
-      }
-  }
-
-  std::chrono::milliseconds Client::frame_length ()
-  {
-    using namespace std::chrono_literals;
-    try
-      {
-        return m_audio_streamer->framelength ();
-      }
-    catch (...)
-      {
-        return 0ms;
-      }
-  }
-
   void Client::read ()
   {
     while (m_read_thread_running)
@@ -320,12 +258,6 @@ namespace Mumble
       }
   }
 
-  template<class T>
-  constexpr const T& clamp (const T& v, const T& lo, const T& hi)
-  {
-    return v < lo ? lo : v > hi ? hi : v;
-  }
-
   void Client::init_callbacks ()
   {
     on<MumbleProto::ServerSync> ([this] (auto msg)
@@ -333,7 +265,6 @@ namespace Mumble
       if (msg.has_max_bandwidth ())
         {
           m_max_bandwidth = msg.max_bandwidth ();
-          m_bitrate = clamp (m_config.bitrate, 0, m_max_bandwidth - 32000);
         }
       m_session = msg.session ();
       m_synced = true;
@@ -447,10 +378,6 @@ namespace Mumble
               @codec =  [Codec::alpha, Codec::beta][[message.alpha, message.beta].index(encoder.bitstream_version)]
               encoder.destroy
         */
-      }
-    if (m_audio_streamer != nullptr)
-      {
-        m_audio_streamer->codec (m_codec);
       }
   }
 

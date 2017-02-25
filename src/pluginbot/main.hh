@@ -27,6 +27,7 @@
 
 #include "aither/log.hh"
 #include "mumble/Mumble.pb.h"
+#include "mumble/audio-player.hh"
 #include "mumble/client.hh"
 #include "pluginbot/settings.hh"
 #include "pluginbot/plugin.hh"
@@ -45,6 +46,7 @@ namespace MumblePluginBot
     Settings &settings;
     std::function<void(const std::string&)> reply;
     Mumble::Client &cli;
+    Mumble::AudioPlayer &player;
     const Main &main;
   };
 
@@ -77,6 +79,7 @@ namespace MumblePluginBot
     Mumble::Configuration m_config;
     std::pair<Mumble::CertificatePaths, Mumble::Certificate> m_cert;
     std::unique_ptr<Mumble::Client> m_cli;
+    std::unique_ptr<Mumble::AudioPlayer> m_player;
     Settings m_settings;
     Settings m_configured_settings;
     const Aither::Log &m_log;

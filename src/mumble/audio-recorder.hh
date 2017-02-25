@@ -23,47 +23,22 @@
 */
 #pragma once
 
-#include <string>
-#include <mutex>
-#include <map>
-#include <queue>
 #include <cstddef>
-#include <cstdint>
-
-#include "Mumble.pb.h"
-#include "mumble/packet-data-stream.hh"
-#include "opus/decoder.hh"
+#include <memory>
+#include <string>
 
 namespace Mumble
 {
-  struct ClientIntf
-  {
-  };
-
   class AudioRecorder
   {
   private:
-    ClientIntf &m_client;
-    size_t m_sample_rate;
-    // WaveFile::Format m_wav_format;
-    PacketDataStream m_pds;
-    std::mutex m_pds_lock;
-    std::map<uint32_t, Opus::Decoder> m_opus_decoders;
-    // std::map<uint32_t, Celt::Decoder> m_celt_decoders;
-    std::map<uint32_t, std::queue<int>> m_queues;
-    bool m_recording = false;
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
   public:
-    AudioRecorder (ClientIntf &client, size_t sample_rate);
-    inline bool recording () const
-    {
-      return m_recording;
-    }
+    AudioRecorder (size_t sample_rate);
+    bool recording () const;
     void stream_portaudio ();
     void start (const std::string &file);
     void stop ();
-  private:
-    void process_udp_tunnel (const MumbleProto::UDPTunnel &message);
-    void write_audio ();
-    void portaudio ();
   };
 }

@@ -23,11 +23,37 @@
 */
 #include "mumble/audio-recorder.hh"
 
+#include <mutex>
+#include <map>
+#include <queue>
+#include <cstdint>
+
+#include "Mumble.pb.h"
+#include "mumble/packet-data-stream.hh"
+#include "opus/decoder.hh"
+
 namespace Mumble
 {
-  AudioRecorder::AudioRecorder (ClientIntf &client, size_t sample_rate)
-    : m_client (client), m_sample_rate (
-      sample_rate) /* m_wav_format (WaveFile::Format (mono, pcm_16, sample_rate)) */
+  struct AudioRecorder::Impl
+  {
+    size_t m_sample_rate;
+    // WaveFile::Format m_wav_format;
+    PacketDataStream m_pds;
+    std::mutex m_pds_lock;
+    std::map<uint32_t, Opus::Decoder> m_opus_decoders;
+    // std::map<uint32_t, Celt::Decoder> m_celt_decoders;
+    std::map<uint32_t, std::queue<int>> m_queues;
+    bool m_recording = false;
+    Impl (size_t sample_rate) : m_sample_rate (sample_rate)
+    {
+    }
+    void process_udp_tunnel (const MumbleProto::UDPTunnel &message);
+    void write_audio ();
+    void portaudio ();
+  };
+
+  AudioRecorder::AudioRecorder (size_t sample_rate)
+    : pimpl (std::make_unique<Impl> (sample_rate) /* m_wav_format (WaveFile::Format (mono, pcm_16, sample_rate)) */)
   {
   }
 
@@ -54,7 +80,7 @@ namespace Mumble
   void AudioRecorder::start (const std::string &file)
   {
     (void) file;
-    if (m_recording)
+    if (pimpl->m_recording)
       {
         return;
       }
@@ -69,7 +95,7 @@ namespace Mumble
 
   void AudioRecorder::stop ()
   {
-    if (!m_recording)
+    if (!pimpl->m_recording)
       {
         return;
       }

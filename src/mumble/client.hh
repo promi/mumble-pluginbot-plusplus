@@ -44,9 +44,6 @@
 #include "aither/log.hh"
 #include "filesystem/filesystem.hh"
 #include "Mumble.pb.h"
-#include "mumble/cert-manager.hh"
-#include "mumble/mumble-2-mumble.hh"
-#include "mumble/audio-recorder.hh"
 #include "mumble/configuration.hh"
 #include "mumble/messages.hh"
 #include "mumble/audio-player.hh"
@@ -75,7 +72,6 @@ namespace Mumble
     bool m_connected = false;
     bool m_synced = false;
     uint m_bitrate = 0;
-    std::unique_ptr<AudioRecorder> m_recorder;
     std::unique_ptr<Connection> m_conn;
     std::map<int,
         std::list<
@@ -108,8 +104,6 @@ namespace Mumble
     {
       return m_synced;
     }
-    const CertManager& cert_manager ();
-    const AudioRecorder& recorder ();
     inline std::string codec () const
     {
       if (!m_codec_usable)
@@ -122,11 +116,6 @@ namespace Mumble
     {
       return m_codec;
     }
-    void mumble2mumble (bool rec);
-    std::list<uint32_t> m2m_speakers ();
-    std::vector<int16_t> m2m_get_frame (uint32_t speaker);
-    void m2m_writeframe (const std::vector<int16_t> &frame);
-    size_t m2m_getsize (uint32_t speaker);
     void deaf (bool b = true);
     void mute (bool b = true);
     AudioPlayer& player ();

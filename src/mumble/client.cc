@@ -76,21 +76,6 @@ namespace Mumble
     m_ping_thread.join ();
   }
 
-  const AudioRecorder& Client::recorder ()
-  {
-    if (!m_codec_usable)
-      {
-        throw std::runtime_error ("no usable codec");
-      }
-    if (m_recorder == nullptr)
-      {
-        Mumble::ClientIntf intf;
-        m_recorder = std::make_unique<AudioRecorder> (intf,
-                     m_config.sample_rate);
-      }
-    return *m_recorder;
-  }
-
   void Client::deaf (bool b)
   {
     MumbleProto::UserState message;

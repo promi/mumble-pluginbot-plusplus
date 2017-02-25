@@ -25,9 +25,9 @@ namespace Mpd
 {
   struct StatusListener::Impl
   {
-    
+
   };
-  
+
   StatusListener::StatusListener (const std::string &ip, uint16_t port,
                                   std::function<void (const FlagSet<Idle> &)> status_cb)
     : pimpl (std::make_unique<Impl> ())

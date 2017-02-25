@@ -70,7 +70,6 @@ namespace Mumble
     m_ready = false;
     m_connected = false;
     m_audio_streamer = nullptr;
-    m_m2m = nullptr;
     m_read_thread_running = false;
     m_read_thread.join ();
     m_ping_thread_running = false;
@@ -90,59 +89,6 @@ namespace Mumble
                      m_config.sample_rate);
       }
     return *m_recorder;
-  }
-
-  void Client::mumble2mumble (bool rec)
-  {
-    if (m_m2m != nullptr)
-      {
-        return;
-      }
-    m_m2m = std::make_unique<Mumble2Mumble> (m_log, m_codec, *m_conn,
-            m_config.sample_rate, m_config.sample_rate / 100, 1, m_bitrate);
-    if (rec)
-      {
-        on<MumbleProto::UDPTunnel> ([this] (auto m)
-        {
-          m_m2m->process_udp_tunnel (m);
-        });
-      }
-  }
-
-  std::list<uint32_t> Client::m2m_speakers ()
-  {
-    if (m_m2m == nullptr)
-      {
-        throw std::runtime_error ("M2M not initializied");
-      }
-    return m_m2m->getspeakers ();
-  }
-
-  std::vector<int16_t> Client::m2m_get_frame (uint32_t speaker)
-  {
-    if (m_m2m == nullptr)
-      {
-        throw std::runtime_error ("M2M not initializied");
-      }
-    return m_m2m->getframe (speaker);
-  }
-
-  void Client::m2m_writeframe (const std::vector<int16_t>& frame)
-  {
-    if (m_m2m == nullptr)
-      {
-        throw std::runtime_error ("M2M not initializied");
-      }
-    return m_m2m->produce (frame);
-  }
-
-  size_t Client::m2m_getsize (uint32_t speaker)
-  {
-    if (m_m2m == nullptr)
-      {
-        throw std::runtime_error ("M2M not initializied");
-      }
-    return m_m2m->getsize (speaker);
   }
 
   void Client::deaf (bool b)
@@ -516,10 +462,6 @@ namespace Mumble
               @codec =  [Codec::alpha, Codec::beta][[message.alpha, message.beta].index(encoder.bitstream_version)]
               encoder.destroy
         */
-      }
-    if (m_m2m != nullptr)
-      {
-        m_m2m->codec (m_codec);
       }
     if (m_audio_streamer != nullptr)
       {

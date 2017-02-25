@@ -75,7 +75,6 @@ namespace Mumble
     bool m_connected = false;
     bool m_synced = false;
     uint m_bitrate = 0;
-    std::unique_ptr<Mumble2Mumble> m_m2m;
     std::unique_ptr<AudioRecorder> m_recorder;
     std::unique_ptr<Connection> m_conn;
     std::map<int,

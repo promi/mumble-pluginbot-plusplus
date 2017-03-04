@@ -27,6 +27,7 @@
 #include <algorithm>
 
 #include "git-info.hh"
+#include "mumble/cert-manager.hh"
 #include "mumble/configuration.hh"
 #include "pluginbot/main.hh"
 #include "pluginbot/plugin.hh"
@@ -117,14 +118,14 @@ namespace MumblePluginBot
 
   int Main::overall_bandwidth () const
   {
-    return calc_overall_bandwidth(m_cli->frame_length ().count (),
-                                  m_cli->bitrate ());
+    return calc_overall_bandwidth(m_player->framelength ().count (),
+                                  m_player->bitrate ());
   }
 
   void Main::start_duckthread ()
   {
     using namespace std::chrono_literals;
-    auto &player = m_cli->player ();
+    auto &player = *m_player;
     if (m_duckthread_running)
       {
         return;
@@ -151,6 +152,12 @@ namespace MumblePluginBot
       {
         AITHER_DEBUG("[killduckthread] can't kill because #{$!}");
       }
+  }
+
+  template<class T>
+  constexpr const T& clamp (const T& v, const T& lo, const T& hi)
+  {
+    return v < lo ? lo : v > hi ? hi : v;
   }
 
   void Main::mumble_start ()
@@ -211,6 +218,9 @@ namespace MumblePluginBot
         m_cli->disconnect ();
         return;
       }
+    uint bitrate = clamp (m_config.bitrate, 0, m_cli->max_bandwidth () - 32000);
+    m_player = std::make_unique<Mumble::AudioPlayer> (m_log, m_cli->codec_int (),
+               m_cli->connection (), m_config.sample_rate, bitrate);
     {
       const std::string &targetchannel = m_settings.connection.targetchannel;
       if (targetchannel != "")
@@ -238,7 +248,7 @@ namespace MumblePluginBot
       (void)_;
       if (m_settings.ducking)
         {
-          m_cli->player ().volume (m_settings.ducking_vol);
+          m_player->volume (m_settings.ducking_vol);
           this->start_duckthread ();
         }
     });
@@ -260,7 +270,7 @@ namespace MumblePluginBot
     // Load all plugins
     // TODO: Load from dynamic plugin libraries in a system-wide and a user plugin dir
     // Dir["./plugins/ *.rb"].each do |f|
-    auto &player = m_cli->player ();
+    auto &player = *m_player;
     m_plugins.push_back (std::make_unique<VersionPlugin> (m_log, m_settings, *m_cli,
                          player));
     auto messages_ptr = std::make_unique<MessagesPlugin> (m_log, m_settings, *m_cli,
@@ -600,7 +610,7 @@ namespace MumblePluginBot
     };
 
     CommandArgs ca = {msg, command, arguments, msg_userid, m_plugins, m_settings, reply,
-                      *m_cli, *this
+                      *m_cli, *m_player, *this
                      };
     bool boundto_msg_user = m_settings.boundto == std::to_string (msg_userid);
 
@@ -756,13 +766,13 @@ namespace MumblePluginBot
   {
     if (ca.arguments == "")
       {
-        const std::string &bitrate = std::to_string (ca.cli.bitrate ());
+        const std::string &bitrate = std::to_string (ca.player.bitrate ());
         ca.reply ("Encoding is set to " + bitrate + " bit/s.");
       }
     else
       {
         int bitrate = std::stoi (ca.arguments);
-        ca.cli.bitrate (bitrate);
+        ca.player.bitrate (bitrate);
         ca.reply ("Encoding is set now to " + std::to_string (bitrate) + " bit/s.");
         ca.reply ("The calculated overall bandwidth is " + std::to_string (
                     ca.main.overall_bandwidth ()) + " bit/s.");
@@ -773,14 +783,14 @@ namespace MumblePluginBot
   {
     if (ca.arguments == "")
       {
-        std::chrono::milliseconds frame_length = ca.cli.frame_length ();
+        std::chrono::milliseconds frame_length = ca.player.framelength ();
         ca.reply ("Sending in " + std::to_string (frame_length.count ()) +
                   " ms frames.");
       }
     else
       {
         std::chrono::milliseconds frame_length {std::stoi (ca.arguments)};
-        ca.cli.frame_length (frame_length);
+        ca.player.framelength (frame_length);
         ca.reply ("Sending now in " + std::to_string (frame_length.count ()) +
                   " ms frames.");
         ca.reply ("The calculated overall bandwidth is " + std::to_string (
@@ -795,9 +805,10 @@ namespace MumblePluginBot
     ca.reply (br_tag + u_tag ("Current bandwidth related settings:") + br_tag +
               "The calculated overall bandwidth (audio + overhead): " + std::to_string (
                 ca.main.overall_bandwidth ()) + " bit/s" + br_tag +
-              " Audio encoding bandwidth: " + std::to_string (ca.cli.bitrate ()) + " bit/s" +
+              " Audio encoding bandwidth: " + std::to_string (ca.player.bitrate ()) + " bit/s"
+              +
               br_tag +
-              " Framesize: " + std::to_string (ca.cli.frame_length ().count ()) + " ms");
+              " Framesize: " + std::to_string (ca.player.framelength ().count ()) + " ms");
   }
 
   void Main::plugins (CommandArgs &ca)

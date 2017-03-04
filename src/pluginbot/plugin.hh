@@ -26,6 +26,7 @@
 #include <memory>
 
 #include "aither/log.hh"
+#include "mumble/audio-player.hh"
 #include "mumble/client.hh"
 #include "pluginbot/settings.hh"
 

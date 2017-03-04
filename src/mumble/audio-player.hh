@@ -25,83 +25,39 @@
 */
 #pragma once
 
+#include <cstddef>
 #include <chrono>
-#include <thread>
 #include <memory>
-#include <vector>
-#include <queue>
 
 #include "aither/log.hh"
 #include "filesystem/filesystem.hh"
-#include "io/sample-reader.hh"
-#include "io/raw-s16le-file-sample-reader.hh"
-#include "mumble/connection.hh"
-#include "io/wavefile-format.hh"
-#include "io/wavefile-reader.hh"
-#include "opus/encoder.hh"
 #include "mumble/codec.hh"
-#include "mumble/packet-data-stream.hh"
+#include "mumble/connection.hh"
 
 namespace Mumble
 {
   class AudioPlayer
   {
   private:
-    const Aither::Log &m_log;
-    int m_volume = 100;
-    bool m_playing = false;
-    Connection &m_conn;
-    // WaveFile::Format m_wav_format;
-    Codec m_codec;
-    size_t m_bitrate;
-    size_t m_sample_rate;
-    size_t m_framesize;
-    std::unique_ptr<SampleReader> m_file;
-    std::thread m_bounded_produce_thread;
-    std::unique_ptr<Opus::Encoder> m_encoder;
-    uint32_t m_seq = 0;
-    std::queue<std::vector<uint8_t>> m_queue;
-    PacketDataStream m_pds;
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
   public:
-    static const int COMPRESSED_SIZE = 48;
     AudioPlayer (const Aither::Log &log, Codec codec, Connection &connection,
                  size_t sample_rate, size_t bitrate);
     ~AudioPlayer();
     void codec (Codec val);
-    inline void volume (int vol)
-    {
-      m_volume = vol;
-    }
-    inline int volume () const
-    {
-      return m_volume;
-    }
-    inline bool playing () const
-    {
-      return m_playing;
-    }
-    void play_file (const std::string &file);
+    void volume (int vol);
+    int volume () const;
+    bool playing () const;
+    // TODO: Split into three separate classes
+    // (i.e. FileAudioPlayer, PipeAudioPlayer and PortaudioPlayer)
+    void play_file (const FileSystem::path &file);
     void stream_named_pipe (const FileSystem::path &pipe);
     bool stream_portaudio ();
     void stop ();
     void bitrate (size_t bitrate);
-    inline int bitrate () const
-    {
-      return m_bitrate;
-    }
+    int bitrate () const;
     void framelength (const std::chrono::milliseconds ms);
-    inline std::chrono::milliseconds framelength ()
-    {
-      return std::chrono::milliseconds (m_framesize / COMPRESSED_SIZE);
-    }
-  private:
-    void create_encoder (size_t sample_rate, size_t bitrate);
-    std::vector<int16_t> change_volume (const std::vector<int16_t> &samples);
-    void bounded_produce ();
-    void produce ();
-    void portaudio ();
-    void encode_samples (const std::vector<int16_t> &samples);
-    void consume ();
+    std::chrono::milliseconds framelength ();
   };
 }
-

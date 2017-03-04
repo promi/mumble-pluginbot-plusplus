@@ -71,6 +71,7 @@ libmumble_pluginbot_plusplus_mumble_la_SOURCES = \
 	src/mumble/cert-manager.cc \
 	src/mumble/channel.cc \
 	src/mumble/client.cc \
+	src/mumble/client-impl.cc \
 	src/mumble/connection.cc \
 	src/mumble/img-reader.cc \
 	src/mumble/messages.cc \

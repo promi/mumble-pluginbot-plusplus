@@ -26,14 +26,54 @@
 #include "mumble/audio-player.hh"
 #include "mumble/udp-packet.hh"
 
+#include <memory>
+#include <queue>
+#include <thread>
+#include <vector>
+
+#include "io/raw-s16le-file-sample-reader.hh"
+#include "io/sample-reader.hh"
+#include "io/wavefile-format.hh"
+#include "io/wavefile-reader.hh"
+#include "mumble/packet-data-stream.hh"
+#include "opus/encoder.hh"
+
 namespace Mumble
 {
+  struct AudioPlayer::Impl
+  {
+    static const int COMPRESSED_SIZE = 48;
+    const Aither::Log &m_log;
+    int m_volume = 100;
+    bool m_playing = false;
+    Connection &m_conn;
+    // WaveFile::Format m_wav_format;
+    Codec m_codec;
+    size_t m_bitrate;
+    size_t m_sample_rate;
+    size_t m_framesize;
+    std::unique_ptr<SampleReader> m_file;
+    std::thread m_bounded_produce_thread;
+    std::unique_ptr<Opus::Encoder> m_encoder;
+    uint32_t m_seq = 0;
+    std::queue<std::vector<uint8_t>> m_queue;
+    PacketDataStream m_pds;
+    Impl (const Aither::Log &log, Codec codec, Connection &connection,
+          size_t sample_rate, size_t bitrate);
+    void create_encoder (size_t sample_rate, size_t bitrate);
+    std::vector<int16_t> change_volume (const std::vector<int16_t> &samples);
+    void bounded_produce ();
+    void produce ();
+    void portaudio ();
+    void encode_samples (const std::vector<int16_t> &samples);
+    void consume ();
+  };
+
   namespace wav = WaveFile;
   // namespace pa = PortAudio;
 
-  AudioPlayer::AudioPlayer (const Aither::Log &log, Codec codec,
-                            Connection &connection,
-                            size_t sample_rate, size_t bitrate)
+  AudioPlayer::Impl::Impl (const Aither::Log &log, Codec codec,
+                           Connection &connection, size_t sample_rate, size_t bitrate)
     : m_log (log), m_conn (connection),
   /* m_wav_format (wav::Format (wav::Channels::mono, wav::SampleFormat::pcm_16,
      static_cast<size_t> (sample_rate))),*/
@@ -46,19 +86,135 @@ namespace Mumble
     create_encoder (m_sample_rate, m_bitrate);
   }
 
+  void AudioPlayer::Impl::bounded_produce ()
+  {
+    // TODO: Check if frame_size is in bytes or in samples
+    m_file->each_buffer (m_encoder->frame_size (), [this] (const auto &samples)
+    {
+      this->encode_samples (samples);
+      this->consume ();
+      return this->m_playing;
+    });
+    m_playing = false;
+  }
+
+  void AudioPlayer::Impl::produce ()
+  {
+    // TODO: Check if frame_size is in bytes or in samples
+    encode_samples (m_file->read (m_encoder->frame_size ()));
+    consume ();
+  }
+
+  void AudioPlayer::Impl::portaudio ()
+  {
+    /*
+        begin
+          @portaudio.read(@audiobuffer)
+          @queue << @encoder.encode_ptr(@audiobuffer.to_ptr)
+          consume
+        rescue
+          sleep 0.2
+        end
+     */
+  }
+
+  void AudioPlayer::Impl::encode_samples (const std::vector<int16_t> &samples)
+  {
+    if (m_volume == 100)
+      {
+        m_queue.push (m_encoder->encode (samples));
+      }
+    else
+      {
+        m_queue.push (m_encoder->encode (change_volume (samples)));
+      }
+  }
+
+  void AudioPlayer::Impl::consume (void)
+  {
+    m_seq %= 1'000'000;
+    m_seq++;
+
+    auto frame = m_queue.front ();
+    m_queue.pop ();
+
+    UDPPacket packet;
+    packet.type = m_codec;
+    packet.target = 0;
+    packet.sequence_number = m_seq;
+    packet.payload = frame;
+    m_conn.send_udp_tunnel_message (packet.data (m_pds));
+  }
+
+  void AudioPlayer::Impl::create_encoder (size_t sample_rate, size_t bitrate)
+  {
+    // kill_threads ();
+    m_encoder = nullptr;
+
+    if (m_codec == Codec::alpha || m_codec == Codec::beta)
+      {
+        /*
+              m_encoder = Celt::Encoder (sample_rate, sample_rate / 100, 1,
+                                         clamp (bitrate / 800, 0, 127));
+              m_encoder.vbr_rate (bitrate);
+              m_encoder.prediction_request (false);
+        */
+      }
+    else
+      {
+        // TODO: check other valid sample_rates (see opus-constants.h)
+        assert (sample_rate == 48'000 /*'*/);
+        m_encoder = std::make_unique<Opus::Encoder>
+                    (m_log, static_cast<Opus::SampleRate> (sample_rate), m_framesize,
+                     Opus::Channels::mono, 7200);
+        m_encoder->bitrate (bitrate);
+        // constrainted vbr doesn't work with Opus::Signal::voice
+        m_encoder->signal (Opus::Signal::music);
+        m_encoder->vbr (true);
+        m_encoder->vbr_constraint (true);
+        m_encoder->packet_loss_percentage (10);
+        m_encoder->dtx (true);
+      }
+  }
+
+  std::vector<int16_t> AudioPlayer::Impl::change_volume (const
+      std::vector<int16_t>
+      &samples)
+  {
+    std::vector<int16_t> v;
+    for (const auto &s : samples)
+      {
+        //std::transform (std::begin (samples), std::end (samples),
+        //                std::back_inserter (v),
+        //                [this] (int16_t s)
+        //{
+        //  return s * (m_volume / 100.0);
+        //});
+        v.push_back (s * (m_volume / 100.0));
+      }
+    return v;
+  }
+
+  AudioPlayer::AudioPlayer (const Aither::Log &log, Codec codec,
+                            Connection &connection, size_t sample_rate,
+                            size_t bitrate) : pimpl (std::make_unique<Impl> (log, codec, connection,
+                                  sample_rate, bitrate))
+  {
+  }
+
   AudioPlayer::~AudioPlayer ()
   {
-    m_bounded_produce_thread.join ();
+    pimpl->m_bounded_produce_thread.join ();
     // kill_threads ()
   }
 
   void AudioPlayer::codec (Codec val)
   {
-    m_codec = val;
-    create_encoder (m_sample_rate, m_bitrate);
+    pimpl->m_codec = val;
+    pimpl->create_encoder (pimpl->m_sample_rate, pimpl->m_bitrate);
   }
 
-  void AudioPlayer::play_file (const std::string &file)
+  void AudioPlayer::play_file (const FileSystem::path &file)
   {
     (void) file;
     throw std::runtime_error ("not fully implemented yet");
@@ -77,14 +233,14 @@ namespace Mumble
 
   void AudioPlayer::stream_named_pipe (const FileSystem::path &file)
   {
-    if (!m_playing)
+    if (!pimpl->m_playing)
       {
-        m_file = std::make_unique<RawFileReader> (file);
-        m_bounded_produce_thread = std::thread ([this] ()
+        pimpl->m_file = std::make_unique<RawFileReader> (file);
+        pimpl->m_bounded_produce_thread = std::thread ([this] ()
         {
-          bounded_produce ();
+          pimpl->bounded_produce ();
         });
-        m_playing = true;
+        pimpl->m_playing = true;
       }
   }
 
@@ -111,33 +267,33 @@ namespace Mumble
 
   void AudioPlayer::stop ()
   {
-    if (m_playing)
+    if (pimpl->m_playing)
       {
         // kill_threads ();
-        m_encoder->reset ();
-        if (!m_file->closed ())
+        pimpl->m_encoder->reset ();
+        if (!pimpl->m_file->closed ())
           {
-            m_file->close ();
+            pimpl->m_file->close ();
           }
         /*
-        if (!m_portaudio.stopped ())
+        if (!pimpl->m_portaudio.stopped ())
           {
-                  m_portaudio.stop ();
+                  pimpl->m_portaudio.stop ();
                 }
         */
-        m_playing = false;
-        m_bounded_produce_thread.join ();
+        pimpl->m_playing = false;
+        pimpl->m_bounded_produce_thread.join ();
       }
   }
 
   void AudioPlayer::bitrate (size_t val)
   {
-    if (!(m_codec == Codec::alpha || m_codec == Codec::beta))
+    if (!(pimpl->m_codec == Codec::alpha || pimpl->m_codec == Codec::beta))
       {
         try
           {
-            m_encoder->bitrate (val);
-            m_bitrate = val;
+            pimpl->m_encoder->bitrate (val);
+            pimpl->m_bitrate = val;
           }
         catch (...)
           {
@@ -169,10 +325,10 @@ namespace Mumble
       {
         framelength = 60.f;
       }
-    m_framesize = COMPRESSED_SIZE * framelength;
+    pimpl->m_framesize = Impl::COMPRESSED_SIZE * framelength;
     try
       {
-        m_encoder->frame_size (m_framesize);
+        pimpl->m_encoder->frame_size (pimpl->m_framesize);
         /*
         if (!m_portaudio.stopped ())
           {
@@ -185,111 +341,23 @@ namespace Mumble
       }
   }
 
-  void AudioPlayer::create_encoder (size_t sample_rate, size_t bitrate)
+  void AudioPlayer::volume (int vol)
   {
-    // kill_threads ();
-    m_encoder = nullptr;
-
-    if (m_codec == Codec::alpha || m_codec == Codec::beta)
-      {
-        /*
-              m_encoder = Celt::Encoder (sample_rate, sample_rate / 100, 1,
-                                         clamp (bitrate / 800, 0, 127));
-              m_encoder.vbr_rate (bitrate);
-              m_encoder.prediction_request (false);
-        */
-      }
-    else
-      {
-        // TODO: check other valid sample_rates (see opus-constants.h)
-        assert (sample_rate == 48'000 /*'*/);
-        m_encoder = std::make_unique<Opus::Encoder>
-                    (m_log, static_cast<Opus::SampleRate> (sample_rate), m_framesize,
-                     Opus::Channels::mono, 7200);
-        m_encoder->bitrate (bitrate);
-        // constrainted vbr doesn't work with Opus::Signal::voice
-        m_encoder->signal (Opus::Signal::music);
-        m_encoder->vbr (true);
-        m_encoder->vbr_constraint (true);
-        m_encoder->packet_loss_percentage (10);
-        m_encoder->dtx (true);
-      }
+    pimpl->m_volume = vol;
   }
 
-  std::vector<int16_t> AudioPlayer::change_volume (const std::vector<int16_t>
-      &samples)
+  int AudioPlayer::volume () const
   {
-    std::vector<int16_t> v;
-    for (const auto &s : samples)
-      {
-        //std::transform (std::begin (samples), std::end (samples),
-        //                std::back_inserter (v),
-        //                [this] (int16_t s)
-        //{
-        //  return s * (m_volume / 100.0);
-        //});
-        v.push_back (s * (m_volume / 100.0));
-      }
-    return v;
+    return pimpl->m_volume;
   }
 
-  void AudioPlayer::bounded_produce ()
+  int AudioPlayer::bitrate () const
   {
-    // TODO: Check if frame_size is in bytes or in samples
-    m_file->each_buffer (m_encoder->frame_size (), [this] (const auto &samples)
-    {
-      this->encode_samples (samples);
-      this->consume ();
-      return this->m_playing;
-    });
-    m_playing = false;
+    return pimpl->m_bitrate;
   }
 
-  void AudioPlayer::produce ()
+  std::chrono::milliseconds AudioPlayer::framelength ()
   {
-    // TODO: Check if frame_size is in bytes or in samples
-    encode_samples (m_file->read (m_encoder->frame_size ()));
-    consume ();
-  }
-
-  void AudioPlayer::portaudio ()
-  {
-    /*
-        begin
-          @portaudio.read(@audiobuffer)
-          @queue << @encoder.encode_ptr(@audiobuffer.to_ptr)
-          consume
-        rescue
-          sleep 0.2
-        end
-     */
-  }
-
-  void AudioPlayer::encode_samples (const std::vector<int16_t> &samples)
-  {
-    if (m_volume == 100)
-      {
-        m_queue.push (m_encoder->encode (samples));
-      }
-    else
-      {
-        m_queue.push (m_encoder->encode (change_volume (samples)));
-      }
-  }
-
-  void AudioPlayer::consume (void)
-  {
-    m_seq %= 1'000'000;
-    m_seq++;
-
-    auto frame = m_queue.front ();
-    m_queue.pop ();
-
-    UDPPacket packet;
-    packet.type = m_codec;
-    packet.target = 0;
-    packet.sequence_number = m_seq;
-    packet.payload = frame;
-    m_conn.send_udp_tunnel_message (packet.data (m_pds));
+    return std::chrono::milliseconds (pimpl->m_framesize / Impl::COMPRESSED_SIZE);
   }
 }

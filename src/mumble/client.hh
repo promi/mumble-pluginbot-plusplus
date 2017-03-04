@@ -56,175 +56,61 @@ namespace Mumble
   class Client
   {
   private:
-    const Aither::Log &m_log;
-    const Configuration &m_config;
-    const Certificate &m_cert;
-    const std::string m_client_identification;
-    std::map<uint32_t, User> m_users;
-    std::map<uint32_t, Channel> m_channels;
-    bool m_ready = false;
-    Codec m_codec = Codec::opus;
-    bool m_codec_usable = false;
-    int m_max_bandwidth = 0;
-    std::unique_ptr<MumbleProto::Reject> m_rejectmessage = nullptr;
-    int m_pingtime = 0;
-    bool m_connected = false;
-    bool m_synced = false;
-    std::unique_ptr<Connection> m_conn;
-    std::map<int,
-        std::list<
-        std::function<void(const ::google::protobuf::Message&)>>> m_callbacks;
-    std::list<std::function<void()>> m_connected_callbacks;
-    std::thread m_read_thread;
-    std::thread m_ping_thread;
-    bool m_read_thread_running;
-    bool m_ping_thread_running;
-    uint32_t m_session;
+    struct Impl;
+    std::unique_ptr<Impl> pimpl;
   public:
     Client (const Aither::Log &log, const Configuration &config,
             const Certificate &cert,
             const std::string &client_identification = "Unknown 0.1");
-    inline ~Client ()
-    {
-      m_read_thread_running = false;
-      m_ping_thread_running = false;
-      m_read_thread.join ();
-      m_ping_thread.join ();
-    }
+    ~Client ();
     bool connect ();
     void disconnect ();
-    inline bool connected () const
-    {
-      return m_connected;
-    }
-    inline auto& connection () const
-    {
-      return *m_conn;
-    }
-    inline bool synced () const
-    {
-      return m_synced;
-    }
-    inline std::string codec () const
-    {
-      if (!m_codec_usable)
-        {
-          throw std::string ("no usable codec");
-        }
-      return to_string (m_codec);
-    }
-    inline Codec codec_int () const
-    {
-      return m_codec;
-    }
+    bool connected () const;
+    Connection& connection () const;
+    bool synced () const;
+    std::string codec () const;
+    Codec codec_int () const;
     void deaf (bool b = true);
     void mute (bool b = true);
     User& me ();
-    std::string imgmsg (const FileSystem::path &file);
     void comment (const std::string &newcomment);
-    Channel& join_channel (const std::string &channel);
-    template <class T>
-    inline User& text_user (const T &user, const std::string &message)
-    {
-      return text_user_internal (user_session (user), message);
-    }
-    template<class T>
-    inline User& text_user_img (const T &user, const FileSystem::path &file)
-    {
-      return text_user_img_internal (user_session (user), file);
-    }
-    template<class T>
-    inline Channel& text_channel (const T &channel, const std::string &message)
-    {
-      return text_channel_internal (channel_id (channel), message);
-    }
-    template<class T>
-    inline Channel& text_channel_img (const T &channel,
-                                      const FileSystem::path &file)
-    {
-      return text_channel_img_internal (channel_id (channel),  file);
-    }
+    void join_channel (const std::string &name);
+    void text_user (uint32_t session, const std::string &message);
+    void text_user_img (uint32_t session, const FileSystem::path &file);
+    void text_channel (uint32_t channel_id, const std::string &message);
+    void text_channel_img (uint32_t channel_id, const FileSystem::path &file);
     void avatar (const std::string &img);
-    void fetch_avatar (uint32_t id);
-    void fetch_channel_description (uint32_t id);
-    void fetch_session_comment (uint32_t id);
+    void avatar (uint32_t id);
+    void channel_description (uint32_t id);
+    void comment (uint32_t id);
     User* find_user (const std::string &name);
     Channel* find_channel (const std::string &name);
-    inline void on_connected (std::function<void()> f)
-    {
-      m_connected_callbacks.push_back (f);
-    }
-    /*
-    // Doesn't work like this ...
-    template <class T>
-    inline void remove_callback (std::function<void(const T&)> f)
-    {
-      // m_callbacks [std::type_index (typeid (T))].remove (f);
-    }
-    */
+    void on_connected (std::function<void()> f);
+    std::map<int,
+        std::list<
+        std::function<void(const ::google::protobuf::Message&)>>>& callbacks ();
+    void on (int type, std::function<void(const ::google::protobuf::Message&)> f);
     template <class T>
     inline void on (std::function<void(const T&)> f)
     {
-      m_callbacks [Messages::sym_to_type.at (std::type_index (typeid (
-          T)))].push_back ([f] (const auto &message)
+      on (Messages::sym_to_type.at (std::type_index (typeid (T))), [f] (
+            const auto &message)
       {
         f (dynamic_cast<const T&>(message));
       });
     }
+    void send (int type, const ::google::protobuf::Message& msg);
     template <class T>
-    inline void send (const T &message)
+    inline void send (const T &msg)
     {
-      m_conn->send_message (Messages::sym_to_type.at (std::type_index (typeid (T))),
-                            message);
+      send (Messages::sym_to_type.at (std::type_index (typeid (T))), msg);
     }
-    inline auto& pingtime () const
-    {
-      return m_pingtime;
-    }
-    inline const auto& rejectmessage () const
-    {
-      return m_rejectmessage;
-    }
-    inline auto& users ()
-    {
-      return m_users;
-    }
-    inline auto& channels ()
-    {
-      return m_channels;
-    }
-    inline auto& max_bandwidth () const
-    {
-      return m_max_bandwidth;
-    }
+    int pingtime () const;
+    const MumbleProto::Reject& rejectmessage () const;
+    const std::map<uint32_t, User>& users () const;
+    const std::map<uint32_t, Channel>& channels () const;
+    int max_bandwidth () const;
     void register_self ();
-    inline bool ready ()
-    {
-      return m_ready;
-    }
-  private:
-    User& text_user_internal (uint32_t session_id, const std::string &message_text);
-    User& text_user_img (uint32_t session_id, const FileSystem::path &file);
-    Channel& text_channel_internal (uint32_t channel_id,
-                                    const std::string &message_text);
-    Channel& text_channel_img (uint32_t channel_id, const FileSystem::path &file);
-    void send_internal (int type, const ::google::protobuf::Message& msg);
-    void read ();
-    void ping ();
-    void run_callbacks (int type, const ::google::protobuf::Message& msg);
-    void init_callbacks ();
-    void version_exchange ();
-    void authenticate ();
-    void codec_version (const MumbleProto::CodecVersion &message);
-    uint32_t channel_id (const std::string &channelname);
-    uint32_t channel_id (const Channel &channel);
-    uint32_t channel_id (uint32_t user_id);
-    uint32_t user_session (const std::string &username);
-    uint32_t user_session (const User &user);
-    uint32_t user_session (uint32_t user_id);
-    static uint32_t encode_version(int major, int minor, int patch)
-    {
-      return (major << 16) | (minor << 8) | (patch & 0xff);
-    }
+    bool ready () const;
   };
 }

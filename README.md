@@ -78,7 +78,7 @@ Then the usual autotools process applies:
 	
 There is experimental support for Debian Jessie, to build there you should invoke configure like this:
 
-	$ CXX='g++ -std=c++1y' ./conifgure --without-libuv
+    $ CXX='g++ -std=c++1y' ./configure --without-libuv
 
 It should also work without installing, libtool provides a wrapper script for this:
 
@@ -97,6 +97,10 @@ https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mp
 When using `gdb` you should either install first and invoke `gdb` as usual or you can use `libtool`s execute mode to debug without installing:
 
     $ libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.example.org ...
+    
+For the best debugging experience you should compile with debugging symbols and without optimizations:
+
+    $ CXX='clang++ -std=c++14' CXXFLAGS='-O0 -ggdb' ./configure
 
 ## License
 

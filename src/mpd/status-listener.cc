@@ -21,20 +21,28 @@
 #include <chrono>
 #include <thread>
 
+#include "network/tcp-socket.hh"
+
 namespace Mpd
 {
   struct StatusListener::Impl
   {
+    bool m_stop_signaled = false;
+    State m_state = State::NotStarted;
+    TCPSocket m_socket;
+    std::function<void (const FlagSet<Idle> &)> m_status_cb;
 
+    Impl (const std::string &ip, uint16_t port,
+          std::function<void (const FlagSet<Idle> &)> status_cb)
+      : m_socket (ip, port), m_status_cb (status_cb)
+    {
+    }
   };
 
   StatusListener::StatusListener (const std::string &ip, uint16_t port,
                                   std::function<void (const FlagSet<Idle> &)> status_cb)
-    : pimpl (std::make_unique<Impl> ())
+    : pimpl (std::make_unique<Impl> (ip, port, status_cb))
   {
-    (void) ip;
-    (void) port;
-    (void) status_cb;
   }
 
   StatusListener::~StatusListener ()
@@ -43,19 +51,37 @@ namespace Mpd
 
   void StatusListener::stop ()
   {
+    pimpl->m_stop_signaled = true;
   }
 
   void StatusListener::run ()
   {
+    using namespace std::chrono_literals;
+
+    pimpl->m_state = State::Started;
+    try
+      {
+        pimpl->m_socket.connect ();
+      }
+    catch (const std::exception &e)
+      {
+        pimpl->m_state = State::UnableToConnect;
+        return;
+      }
+    while (!pimpl->m_stop_signaled)
+      {
+        // TODO: Actually send the "idle" command to MPD and parse the answer
+        // This is already implemented in status-listener-uvw.cc (but depdends on libuv)
+        // WORKAROUND: Just always return Idle::Player every 2 seconds
+        pimpl->m_status_cb (FlagSet<Idle> (Idle::Player));
+        std::this_thread::sleep_for (2000ms);
+      }
+    pimpl->m_state = State::Stopped;
   }
 
   StatusListener::State StatusListener::state ()
   {
-    using namespace std::chrono_literals;
-    while (true)
-      {
-        std::this_thread::sleep_for (500ms);
-      }
+    return pimpl->m_state;
   }
 }
 

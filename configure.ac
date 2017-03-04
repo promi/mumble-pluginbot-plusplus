@@ -1,10 +1,10 @@
 AC_INIT(
   [mumble-pluginbot-plusplus],
-  [0.6],
+  [0.7],
   [https://github.com/promi/mumble-pluginbot-plusplus/issues],
   [],
   [https://github.com/promi/mumble-pluginbot-plusplus])
-  
+
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign])
 AM_SILENT_RULES([yes])
@@ -18,7 +18,7 @@ LT_INIT
 
 # Make sure that pkg-config is installed!
 # The PKG_CHECK_MODULES macro prints a horrible error message when
-# pkg-config is not installed at autogen time.                   
+# pkg-config is not installed at autogen time.
 #
 # It is also required when the first PKG_CHECK_MODULES is inside a conditional
 PKG_PROG_PKG_CONFIG

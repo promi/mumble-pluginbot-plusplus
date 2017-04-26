@@ -29,4 +29,22 @@ namespace Aither
     (void) format;
     return 0;
   }
+
+  int VoidLogger::print (const std::string &s)
+  {
+    (void) s;
+    return 0;
+  }
+
+  int VoidLogger::print (const char *s)
+  {
+    (void) s;
+    return 0;
+  }
+
+  int VoidLogger::print (int i)
+  {
+    (void) i;
+    return 0;
+  }
 }

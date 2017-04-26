@@ -30,6 +30,9 @@ namespace Aither
     ConsoleLogger (FILE* fp);
     ~ConsoleLogger ();
     int printf (const char *format, ...) override;
+    int print (const std::string &s) override;
+    int print (const char *s) override;
+    int print (int i) override;
   private:
     struct Impl;
     const std::unique_ptr<Impl> pimpl;

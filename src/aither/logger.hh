@@ -29,6 +29,9 @@ namespace Aither
   public:
     virtual ~Logger ();
     virtual int printf (const char *format, ...) = 0;
+    virtual int print (const std::string &s) = 0;
+    virtual int print (const char *s) = 0;
+    virtual int print (int i) = 0;
   };
   std::string get_date_string (std::chrono::system_clock::time_point t);
   std::string get_datetime_string (std::chrono::system_clock::time_point t);

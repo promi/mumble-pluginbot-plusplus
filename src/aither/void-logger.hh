@@ -29,5 +29,8 @@ namespace Aither
   public:
     VoidLogger ();
     int printf (const char *format, ...) override;
+    int print (const std::string &s) override;
+    int print (const char *s) override;
+    int print (int i) override;
   };
 }

@@ -46,4 +46,21 @@ namespace Aither
     va_end (args);
     return rc;
   }
+
+  int ConsoleLogger::print (const std::string &s)
+  {
+    // Don't just call printf, there might be embedded percent chars in s
+    return std::fputs (s.c_str (), pimpl->m_fp);
+  }
+
+  int ConsoleLogger::print (const char *s)
+  {
+    // Don't just call printf, there might be embedded percent chars in s
+    return std::fputs (s, pimpl->m_fp);
+  }
+
+  int ConsoleLogger::print (int i)
+  {
+    return printf ("%d", i);
+  }
 }

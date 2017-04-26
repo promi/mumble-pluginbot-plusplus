@@ -54,18 +54,18 @@ namespace Aither
 
 Aither::Logger& operator<< (Aither::Logger& l, const std::string &s)
 {
-  l.printf (s.c_str ());
+  l.print (s);
   return l;
 }
 
 Aither::Logger& operator<< (Aither::Logger& l, const char *s)
 {
-  l.printf (s);
+  l.print (s);
   return l;
 }
 
 Aither::Logger& operator<< (Aither::Logger& l, int i)
 {
-  l.printf ("%d", i);
+  l.print (i);
   return l;
 }

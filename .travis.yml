@@ -1,5 +1,7 @@
 language: cpp
 
+dist: trusty
+
 sudo: false
 
 compiler:
@@ -15,4 +17,10 @@ addons:
       - libmpdclient-dev
       - protobuf-compiler
 
-before_script: ./autogen.sh
+before_script:
+  - ./autogen.sh
+
+script:
+  - CXX='g++ -std=c++1y' ./configure --without-libuv
+  - make
+  - make test

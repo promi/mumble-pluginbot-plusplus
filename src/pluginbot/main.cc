@@ -25,6 +25,7 @@
 #include <thread>
 #include <functional>
 #include <algorithm>
+#include <system_error>
 
 #include "git-info.hh"
 #include "mumble/cert-manager.hh"

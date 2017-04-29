@@ -1,3 +1,18 @@
 language: cpp
-before_install: sudo apt-get -y install libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler 
+
+sudo: false
+
+compiler:
+  - clang
+  - gcc
+
+addons:
+  apt:
+    packages:
+      - libopus-dev
+      - libssl-dev
+      - libprotobuf-dev
+      - libmpdclient-dev
+      - protobuf-compiler
+
 before_script: ./autogen.sh

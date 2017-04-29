@@ -1,5 +1,7 @@
 # mumble-pluginbot-plusplus
 
+[![Build Status](https://travis-ci.org/promi/mumble-pluginbot-plusplus.svg?branch=master)](https://travis-ci.org/promi/mumble-pluginbot-plusplus)
+
 ## Introduction
 
 mumble-pluginbot-plusplus is an extensible [Mumble](https://wiki.mumble.info/wiki/Main_Page) bot which can play audio, can be fed by different sources, and much more.

@@ -11,6 +11,8 @@ compiler:
 addons:
   apt:
     packages:
+      - gcc-4.8
+      - clang-3.5
       - libopus-dev
       - libssl-dev
       - libprotobuf-dev
@@ -19,8 +21,5 @@ addons:
 
 before_script:
   - ./autogen.sh
-
-script:
-  - CXX='g++ -std=c++1y' ./configure --without-libuv
-  - make
-  - make test
+  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.8 -std=c++1y'
+  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.5 -std=c++1y'

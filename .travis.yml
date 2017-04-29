@@ -30,3 +30,6 @@ before_script:
   - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6 -std=c++1y'; fi
   - echo "$CXX"
   - $CXX --version
+
+script:
+  - ./configure && make && make check

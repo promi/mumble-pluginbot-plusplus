@@ -1,6 +1,7 @@
 # mumble-pluginbot-plusplus
 
 [![Build Status](https://travis-ci.org/promi/mumble-pluginbot-plusplus.svg?branch=master)](https://travis-ci.org/promi/mumble-pluginbot-plusplus)
+[![Coverty Scan Status](https://scan.coverity.com/projects/12590/badge.svg?flat=1)](https://scan.coverity.com/projects/promi-mumble-pluginbot-plusplus)
 
 ## Introduction
 

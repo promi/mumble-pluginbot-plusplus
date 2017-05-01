@@ -67,10 +67,10 @@ On Debian you can get the dependencies using Apt:
 
     sudo apt-get install build-essential automake libtool pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
-On Ubuntu 14.04 (Trusty Thar) (GCC) you have to also add the ubuntu-toolchain-r/test PPA:
+On Ubuntu 14.04 (Trusty Thar) (GCC) you have to also add the `ubuntu-toolchain-r/test` PPA:
 
-    sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-    sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+    sudo apt-add-repository "ppa:ubuntu-toolchain-r/test"
+    sudo apt-get install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 ## Building + Installing
 

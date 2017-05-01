@@ -84,7 +84,7 @@ Then the usual autotools process applies:
     make
     sudo make install
 	
-There is experimental support for Debian Jessie and Ubuntu Trusty, to build there you should invoke configure like this:
+There is experimental support for Debian Jessie and Ubuntu Trusty, invoke configure like this:
 
     CXX='g++ -std=c++1y' ./configure --without-libuv
 
@@ -102,11 +102,11 @@ https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mp
 
 ## Debugging
 
-When using `gdb` you can either install first and invoke `gdb` as usual or you can use `libtool`s execute mode to debug without installing:
+When using `gdb` either install first and invoke `gdb` as usual or use `libtool`s execute mode to debug without installing:
 
     libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.example.org ...
     
-For the best debugging experience you should compile with debugging symbols and without optimizations:
+For the best debugging experience compile with debugging symbols and without optimizations:
 
     CXX='clang++ -std=c++14' CXXFLAGS='-O0 -ggdb' ./configure
 

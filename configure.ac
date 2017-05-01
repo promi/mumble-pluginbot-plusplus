@@ -1,6 +1,6 @@
 AC_INIT(
   [mumble-pluginbot-plusplus],
-  [develop],
+  [0.9],
   [https://github.com/promi/mumble-pluginbot-plusplus/issues],
   [],
   [https://github.com/promi/mumble-pluginbot-plusplus])

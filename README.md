@@ -1,6 +1,7 @@
 # mumble-pluginbot-plusplus
 
 [![Build Status](https://travis-ci.org/promi/mumble-pluginbot-plusplus.svg?branch=master)](https://travis-ci.org/promi/mumble-pluginbot-plusplus)
+[![Coverty Scan Status](https://scan.coverity.com/projects/12590/badge.svg?flat=1)](https://scan.coverity.com/projects/promi-mumble-pluginbot-plusplus)
 
 ## Introduction
 
@@ -50,7 +51,7 @@ What doesn't work:
 
 The code is using modern C++ language features only present in C++14.
 
-- GCC 4.9+ or Clang 3.8+
+- GCC 4.9+ or Clang 3.6+
 - autoconf
 - automake
 - libtool
@@ -64,31 +65,36 @@ The code is using modern C++ language features only present in C++14.
 
 On Debian you can get the dependencies using Apt:
 
-    $ sudo apt-get install build-essential automake libtool pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+    sudo apt-get install build-essential automake libtool pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+
+On Ubuntu 14.04 (Trusty Thar) (GCC) you have to also add the `ubuntu-toolchain-r/test` PPA:
+
+    sudo apt-add-repository "ppa:ubuntu-toolchain-r/test"
+    sudo apt-get install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 ## Building + Installing
 
 The repository is autotools-based, you have to regenerate the configure script:
 
-    $ ./autogen.sh
+    ./autogen.sh
 
 Then the usual autotools process applies:
 
-    $ ./configure
-    $ make
-    $ sudo make install
+    ./configure
+    make
+    sudo make install
 	
-There is experimental support for Debian Jessie, to build there you should invoke configure like this:
+There is experimental support for Debian Jessie and Ubuntu Trusty, invoke configure like this:
 
-    $ CXX='g++ -std=c++1y' ./configure --without-libuv
+    CXX='g++ -std=c++1y' ./configure --without-libuv
 
-It should also work without installing, libtool provides a wrapper script for this:
+It also works without installing. libtool provides a wrapper script for this:
 
-    $ ./mumble-pluginbot-plusplus --help
+    ./mumble-pluginbot-plusplus --help
     
 A running mpd is currently necessary or the bot will crash, there is a script included to start mpd:
 
-    $ tools/start-mpd.sh
+    tools/start-mpd.sh
 
 However the script expects a working mpd.conf in `~/.config/mumble-pluginbot-plusplus/mpd.conf`. You can start with the example script from the mumble-ruby-pluginbot repository:
 
@@ -96,13 +102,13 @@ https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mp
 
 ## Debugging
 
-When using `gdb` you should either install first and invoke `gdb` as usual or you can use `libtool`s execute mode to debug without installing:
+When using `gdb` either install first and invoke `gdb` as usual or use `libtool`s execute mode to debug without installing:
 
-    $ libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.example.org ...
+    libtool --mode=execute gdb --args ./mumble-pluginbot-plusplus -h mumble.example.org ...
     
-For the best debugging experience you should compile with debugging symbols and without optimizations:
+For the best debugging experience compile with debugging symbols and without optimizations:
 
-    $ CXX='clang++ -std=c++14' CXXFLAGS='-O0 -ggdb' ./configure
+    CXX='clang++ -std=c++14' CXXFLAGS='-O0 -ggdb' ./configure
 
 ## License
 
@@ -120,4 +126,3 @@ The code consists of several libtool libraries and a binary:
 - libmumble-pluginbot-plusplus-mumble - Utility classes to talk to a Mumble server
 - libmumble-pluginbot-plusplus-mpd - Utility classes to talk to a MPD server
 - mumble-pluginbot-plusplus - The main binary containing the core Bot and the enabled plugins
-

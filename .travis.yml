@@ -11,8 +11,8 @@ env:
    - secure: "rO1SMrH3lv8LjM6JQ32i4Mw+3V7SoSKGR/updHdpOCNeU3n7ux6XdQIbJ5juMiapt7RCut2hfy2gBVUVjeK0l3qGJ7nwB+GS6EfZPpLmSlJQZmnyihhL0tNAx4ihgWfeama50frPwU90n+iC6hl5ArFKpuHWlLOBTPZzaWntS3j/z5TFwrtrN/y0VZZhrvlEiwL9HHPNMXTB7IYkEEDEZCJAlPB+v3dNqyazNn4SVLdvFuZF8NbYhln89a0kt4uvAMqrsvHqMHlb78Gok3oXfNDxWpTZWTauVtfKNeKpsgyHLAcyo8tXCcaodJuVOXfaWzKYjAWr3BClDVGLbIgXyG75PLkXNY1v0VMlNCj9YlUeNZSgFfKtQUq8viyyTdjjfFns/uymxR6UEeNdkltOuoZNMQOxgIpYqCQ0SRYfRPck7yT+H+di64zN5kyWIUPfjjwKKr4voWw6WEhlIcZhsICcS9GGKRA+NGWODJn94cOA7k5XwsyO1RV3Sd0na6/iTriUi7Z1k9FFm1mx7TeQxblo5l6QRcz0C8TrNfkHv7r56E08bv+XKNGS//X6nD1OXlIifdeAOsyzuHWxkeGV0ESvmEQbYEewmnNWSGSTPAANUC+w+2lDd70O3xnkmKbQjRCHa8uKrIDQS5a3Ny2bRizAwhwdR+j7zPIpXMIPe9g="
 
 compiler:
-  - clang
   - gcc
+  - clang
 
 addons:
   apt:
@@ -34,9 +34,9 @@ addons:
       name: "promi/mumble-pluginbot-plusplus"
       description: "Build submitted via Travis CI"
     notification_email: prometheus@unterderbruecke.de
-    build_command_prepend: "./configure; make clean"
+    build_command_prepend: "cov-configure --comptype gcc --compiler gcc-4.9 --template; ./configure; make clean"
     build_command: "make -j 4"
-    branch_pattern: master
+    branch_pattern: coverity_scan
 
 before_script:
   - ./autogen.sh
@@ -45,8 +45,12 @@ before_script:
   - echo "$CXX"
   - $CXX --version
 
-script:
-  - ./configure && make && make check
+# https://github.com/travis-ci/travis-ci/issues/1975#issuecomment-216604414
+before_install:
+  - test $TRAVIS_BRANCH != coverity_scan -o ${TRAVIS_JOB_NUMBER##*.} = 1 || exit 0
+# - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
-#before_install:
-#      - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+
+script:
+  - test $TRAVIS_BRANCH != coverity_scan || exit 0
+  - ./configure && make && make check

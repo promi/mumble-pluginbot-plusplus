@@ -70,7 +70,7 @@ On Debian you can get the dependencies using Apt:
 On Ubuntu 14.04 (Trusty Thar) (GCC) you have to also add the ubuntu-toolchain-r/test PPA:
 
     sudo -E apt-add-repository -y "ppa:ubuntu-toolchain-r/test"
-	sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+    sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 ## Building + Installing
 
@@ -81,7 +81,7 @@ The repository is autotools-based, you have to regenerate the configure script:
 Then the usual autotools process applies:
 
     ./configure
-	make
+    make
     sudo make install
 	
 There is experimental support for Debian Jessie and Ubuntu Trusty, to build there you should invoke configure like this:

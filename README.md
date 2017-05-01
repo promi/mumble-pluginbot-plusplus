@@ -51,7 +51,7 @@ What doesn't work:
 
 The code is using modern C++ language features only present in C++14.
 
-- GCC 4.9+ or Clang 3.8+
+- GCC 4.9+ or Clang 3.6+
 - autoconf
 - automake
 - libtool

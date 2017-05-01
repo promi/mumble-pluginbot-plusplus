@@ -24,7 +24,7 @@ environment:
 #      MSYS2_ARCH: i686
 
 build_script:
-  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%
+  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%'
   - 'if "%compiler%"=="msys2" mingw64_shell.bat "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
   - 'if "%compiler%"=="msys2" mingw64_shell.bat "echo $PKG_CONFIG_PATH"'
   - 'if "%compiler%"=="msys2" mingw64_shell.bat "ls -l /mingw64/lib/pkgconfig/"'

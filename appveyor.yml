@@ -23,11 +23,11 @@ environment:
 #      MINGW_CHOST: i686-w64-mingw32
 #      MSYS2_ARCH: i686
 
-install:
-  - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
+#install:
+#  - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
 
 build_script:
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{automake,libtool,pkg-config,g++,libopus,libssl,libprotobuf,libmpdclient,protobuf-compiler}"'
+  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{pkg-config,gcc,opus,openssl,protobuf}"'
   - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
 
 # disable automatic tests

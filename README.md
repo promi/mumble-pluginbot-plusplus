@@ -80,7 +80,8 @@ The repository is autotools-based, you have to regenerate the configure script:
 
 Then the usual autotools process applies:
 
-    ./configure && make
+    ./configure
+	make
     sudo make install
 	
 There is experimental support for Debian Jessie and Ubuntu Trusty, to build there you should invoke configure like this:

@@ -24,7 +24,7 @@ environment:
 #      MSYS2_ARCH: i686
 
 build_script:
-  - 'if "%compiler%"=="msys2" set PATH="C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%"'
+  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%'
   - 'if "%compiler%"=="msys2" echo %PATH%'
   - 'if "%compiler%"=="msys2" dir C:\msys64\'
   - 'if "%compiler%"=="msys2" mingw64 "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'

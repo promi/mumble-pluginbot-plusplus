@@ -23,14 +23,12 @@ environment:
 #      MINGW_CHOST: i686-w64-mingw32
 #      MSYS2_ARCH: i686
 
-#install:
-#  - C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-x86_64-ragel"
-
 build_script:
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{pkg-config,gcc,opus,openssl,protobuf}"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "echo $PKG_CONFIG_PATH"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "ls -l /mingw64/lib/pkgconfig/"'
-  - 'if "%compiler%"=="msys2" C:\msys64\usr\bin\bash -lc "cd $APPVEYOR_BUILD_FOLDER; PATH=$PATH:/mingw64/bin:/mingw32/bin; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
+  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%
+  - 'if "%compiler%"=="msys2" mingw64_shell.bat "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
+  - 'if "%compiler%"=="msys2" mingw64_shell.bat "echo $PKG_CONFIG_PATH"'
+  - 'if "%compiler%"=="msys2" mingw64_shell.bat "ls -l /mingw64/lib/pkgconfig/"'
+  - 'if "%compiler%"=="msys2" mingw64_shell.bat "cd $APPVEYOR_BUILD_FOLDER; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
 
 # disable automatic tests
 test: off

@@ -15,22 +15,24 @@ environment:
 #      ARCH: x86
 #      CFG: debug
     - compiler: msys2
+      MSYSTEM: mingw64
       MINGW_PREFIX: /c/msys64/mingw64/
       MINGW_CHOST: x86_64-w64-mingw32
       MSYS2_ARCH: x86_64
 #    - compiler: msys2
+#      MSYSTEM: mingw32
 #      MINGW_PREFIX: /c/msys64/mingw32/
 #      MINGW_CHOST: i686-w64-mingw32
 #      MSYS2_ARCH: i686
 
 build_script:
-  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\mingw64\bin;C:\msys64\usr\bin;C:\msys64;%PATH%'
+  - 'if "%compiler%"=="msys2" set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;C:\msys64;%PATH%'
   - 'if "%compiler%"=="msys2" echo %PATH%'
   - 'if "%compiler%"=="msys2" dir C:\msys64\'
-  - 'if "%compiler%"=="msys2" mingw64 "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
-  - 'if "%compiler%"=="msys2" mingw64 "echo $PKG_CONFIG_PATH"'
-  - 'if "%compiler%"=="msys2" mingw64 "ls -l /mingw64/lib/pkgconfig/"'
-  - 'if "%compiler%"=="msys2" mingw64 "cd $APPVEYOR_BUILD_FOLDER; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
+  - 'if "%compiler%"=="msys2" bash --login -c pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
+  - 'if "%compiler%"=="msys2" bash --login -c "echo $PKG_CONFIG_PATH"'
+  - 'if "%compiler%"=="msys2" bash --login -c "ls -l /$MSYSTEM/lib/pkgconfig/"'
+  - 'if "%compiler%"=="msys2" bash --login -c "cd $APPVEYOR_BUILD_FOLDER; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'
 
 # disable automatic tests
 test: off

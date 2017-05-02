@@ -29,7 +29,7 @@ build_script:
   - 'if "%compiler%"=="msys2" set PATH=C:\msys64\%MSYSTEM%\bin;C:\msys64\usr\bin;C:\msys64;%PATH%'
   - 'if "%compiler%"=="msys2" echo %PATH%'
   - 'if "%compiler%"=="msys2" dir C:\msys64\'
-  - 'if "%compiler%"=="msys2" bash --login -c pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
+  - 'if "%compiler%"=="msys2" bash --login -c "pacman --noconfirm -S mingw-w64-$MSYS2_ARCH-{opus,protobuf}"'
   - 'if "%compiler%"=="msys2" bash --login -c "echo $PKG_CONFIG_PATH"'
   - 'if "%compiler%"=="msys2" bash --login -c "ls -l /$MSYSTEM/lib/pkgconfig/"'
   - 'if "%compiler%"=="msys2" bash --login -c "cd $APPVEYOR_BUILD_FOLDER; ./autogen.sh; ./configure --build=$MINGW_CHOST --host=$MINGW_CHOST --prefix=$MINGW_PREFIX; make; make check"'

@@ -19,6 +19,7 @@
 */
 #include "mpd/client.hh"
 
+#include <functional>
 #include <stdexcept>
 #include <mpd/client.h>
 

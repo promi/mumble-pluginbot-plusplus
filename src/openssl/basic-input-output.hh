@@ -29,7 +29,7 @@ namespace OpenSSL
   class BasicInputOutput
   {
   protected:
-    BIO *m_bio;
+    BIO *m_bio = nullptr;
     BasicInputOutput ();
   public:
     virtual ~BasicInputOutput ();

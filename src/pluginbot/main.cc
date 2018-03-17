@@ -102,10 +102,6 @@ namespace MumblePluginBot
       {
         AITHER_WARNING("Can't join timertick thread");
       }
-    catch (const std::system_error &e)
-      {
-        AITHER_WARNING("Can't join timertick thread");
-      }
   }
 
   void Main::disconnect ()

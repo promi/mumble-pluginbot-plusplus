@@ -59,7 +59,7 @@ namespace Mumble
     std::thread m_ping_thread;
     bool m_read_thread_running;
     bool m_ping_thread_running;
-    uint32_t m_session;
+    uint32_t m_session = 0;
 
     Impl (const Aither::Log &log, const Configuration &config,
           const Certificate &cert, const std::string &client_identification);

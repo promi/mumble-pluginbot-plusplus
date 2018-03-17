@@ -176,7 +176,10 @@ namespace Mumble
         uint8_t x = v & 0xFC;
         if (x == 0xF0)
           {
-            val = get_next () << 24 | get_next () << 16 | get_next () << 8 | get_next ();
+            val = static_caset<int64_t> (get_next () << 24 | 
+                                         get_next () << 16 | 
+                                         get_next () << 8 | 
+                                         get_next ());
           }
         else if ( x == 0xF4)
           {

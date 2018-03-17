@@ -37,7 +37,7 @@ namespace Opus
     size_t m_frame_size;
     size_t m_channels;
     OpusDecoder *m_decoder;
-    int32_t m_lasterror;
+    int32_t m_lasterror = 0;
   public:
     Decoder (size_t sample_rate, size_t frame_size, size_t channels);
     ~Decoder ();

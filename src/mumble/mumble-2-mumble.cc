@@ -171,6 +171,7 @@ namespace Mumble
                        std::back_inserter (part));
             m_plqueue.push (m_opus_encoder.encode (part));
           }
+        break;
       /*
       when Codec::alpha
           while @rawaudio.size >= ( @celt_encoder.frame_size * 2 )

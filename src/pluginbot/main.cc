@@ -98,6 +98,10 @@ namespace MumblePluginBot
         m_ticktimer_running = false;
         m_ticktimer.join ();
       }
+    catch (const std::runtime_error &e)
+      {
+        AITHER_WARNING("Can't join timertick thread");
+      }
     catch (const std::system_error &e)
       {
         AITHER_WARNING("Can't join timertick thread");

@@ -39,7 +39,6 @@ addons:
     branch_pattern: coverity_scan
 
 before_script:
-  - ./autogen.sh
   - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
   - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
   - echo "$CXX"

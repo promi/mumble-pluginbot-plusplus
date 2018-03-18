@@ -26,7 +26,7 @@
 #include <map>
 
 #include "aither/log.hh"
-#include "mumble/Mumble.pb.h"
+#include "Mumble.pb.h"
 #include "mumble/audio-player.hh"
 #include "mumble/client.hh"
 #include "pluginbot/settings.hh"

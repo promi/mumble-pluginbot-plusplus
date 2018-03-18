@@ -28,6 +28,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <vector>
 
 #include "Mumble.pb.h"
 

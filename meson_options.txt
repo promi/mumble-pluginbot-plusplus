@@ -1,0 +1,2 @@
+option('uv', type : 'combo', choices : ['auto', 'yes', 'no'],
+       value : 'auto', description : 'support efficient MPD status polling')

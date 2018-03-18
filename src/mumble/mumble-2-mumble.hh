@@ -28,7 +28,7 @@
 #include <list>
 #include <vector>
 #include "aither/log.hh"
-#include "mumble/Mumble.pb.h"
+#include "Mumble.pb.h"
 #include "mumble/connection.hh"
 #include "mumble/codec.hh"
 

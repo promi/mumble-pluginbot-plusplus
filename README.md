@@ -60,37 +60,33 @@ The code is using modern C++ language features only present in C++14.
 - libprotobuf
 - protobuf (for the protoc compiler)
 - libmpdclient
-- libuv (will most likely be an optional dependency in the future)
+- libuv (optional)
 - uvw (is automatically pulled in via a Git submodule)
 
 On Debian you can get the dependencies using Apt:
 
-    sudo apt-get install build-essential automake libtool pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+    sudo apt-get install build-essential meson pkg-config libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 On Ubuntu 14.04 (Trusty Thar) (GCC) you have to also add the `ubuntu-toolchain-r/test` PPA:
 
     sudo apt-add-repository "ppa:ubuntu-toolchain-r/test"
-    sudo apt-get install build-essential automake libtool g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
+    sudo apt-get install build-essential meson g++-4.9 libopus-dev libssl-dev libprotobuf-dev libmpdclient-dev protobuf-compiler
 
 ## Building + Installing
 
-The repository is autotools-based, you have to regenerate the configure script:
+The repository is meson-based, you have to create a build directory with meson:
 
-    ./autogen.sh
+    meson debug
 
-Then the usual autotools process applies:
+Then enter the directory and run ninja:
 
-    ./configure
-    make
-    sudo make install
+    cd debug
+    ninja
+    sudo ninja install
 	
-There is experimental support for Debian Jessie and Ubuntu Trusty, invoke configure like this:
+It also works without installing.
 
-    CXX='g++ -std=c++1y' ./configure --without-libuv
-
-It also works without installing. libtool provides a wrapper script for this:
-
-    ./mumble-pluginbot-plusplus --help
+    debug/mumble-pluginbot-plusplus --help
     
 A running mpd is currently necessary or the bot will crash, there is a script included to start mpd:
 
@@ -101,6 +97,8 @@ However the script expects a working mpd.conf in `~/.config/mumble-pluginbot-plu
 https://github.com/MusicGenerator/mumble-ruby-pluginbot/blob/master/templates/mpd.conf
 
 ## Debugging
+
+TODO: This section is outdated after the switch from autotools to meson!
 
 When using `gdb` either install first and invoke `gdb` as usual or use `libtool`s execute mode to debug without installing:
 

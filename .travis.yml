@@ -34,14 +34,14 @@ addons:
       name: "promi/mumble-pluginbot-plusplus"
       description: "Build submitted via Travis CI"
     notification_email: prometheus@unterderbruecke.de
-    build_command_prepend: "cov-configure --comptype gcc --compiler gcc-4.9 --template; ./configure; make clean"
-    build_command: "make -j 4"
+    build_command_prepend: "cov-configure --comptype gcc --compiler gcc-4.9 --template; meson build; cd build; ninja clean"
+    build_command: "ninja test"
     branch_pattern: coverity_scan
 
 before_script:
   - ./autogen.sh
-  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9 -std=c++1y'; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6 -std=c++1y'; fi
+  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
   - echo "$CXX"
   - $CXX --version
 
@@ -50,7 +50,8 @@ before_install:
   - test $TRAVIS_BRANCH != coverity_scan -o ${TRAVIS_JOB_NUMBER##*.} = 1 || exit 0
 # - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
-
 script:
   - test $TRAVIS_BRANCH != coverity_scan || exit 0
-  - ./configure && make && make check
+  - meson build
+  - cd build
+  - ninja test

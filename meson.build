@@ -100,7 +100,8 @@ mpd_srcs = [
   'src/mpd/playlist.cc',
   'src/mpd/song.cc',
   'src/mpd/stats.cc',
-  'src/mpd/status.cc'
+  'src/mpd/status.cc',
+  dependencies : [network_dep]
 ]
 
 mpd_deps = [mpdclient_dep]

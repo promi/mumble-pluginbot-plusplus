@@ -29,7 +29,6 @@ addons:
       - libprotobuf-dev
       - libmpdclient-dev
       - protobuf-compiler
-      - meson
   coverity_scan:
     project:
       name: "promi/mumble-pluginbot-plusplus"
@@ -47,6 +46,7 @@ before_script:
 
 # https://github.com/travis-ci/travis-ci/issues/1975#issuecomment-216604414
 before_install:
+  - sudo pip3 install meson
   - test $TRAVIS_BRANCH != coverity_scan -o ${TRAVIS_JOB_NUMBER##*.} = 1 || exit 0
 # - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 

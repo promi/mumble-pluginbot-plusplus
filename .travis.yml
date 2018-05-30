@@ -15,11 +15,13 @@ matrix:
     - os: linux
       language: python
       python: "3.6"
-      compiler: gcc
+      env:
+        - CXX=g++-4.9
     - os: linux
       language: python
       python: "3.6"
-      compiler: clang
+      env:
+        - CXX=clang++-3.6
 
 addons:
   apt:
@@ -47,8 +49,6 @@ addons:
 
 before_script:
   - export PATH="`pwd`/build:${PATH}"
-  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-linux.zip && unzip -q ninja-linux.zip -d build; fi
   #  - echo "$CXX"
 #  - $CXX --version

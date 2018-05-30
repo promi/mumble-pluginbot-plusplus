@@ -53,7 +53,7 @@ python:
   - "3.6"
 
 install:
-  - python3.6 pip3 install meson
+  - pip install meson
 
 script:
 #  - test $TRAVIS_BRANCH != coverity_scan || exit 0

@@ -14,14 +14,15 @@ compiler:
   - gcc
   - clang
 
-#addons:
-#  apt:
+addons:
+  apt:
 #    sources:
 #      # For newer gcc version
 #      - ubuntu-toolchain-r-test
 #      # For newer clang version
 #      - llvm-toolchain-trusty
-#    packages:
+    packages:
+      - python-3.6
 #      - g++-4.9
 #      - clang-3.6
 #      - libopus-dev
@@ -49,11 +50,11 @@ compiler:
 #  - test $TRAVIS_BRANCH != coverity_scan -o ${TRAVIS_JOB_NUMBER##*.} = 1 || exit 0
 # - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
-python:
-  - "3.6"
+#python:
+#  - "3.6"
 
 install:
-  - pip install meson
+  - pip3 install meson
 
 script:
 #  - test $TRAVIS_BRANCH != coverity_scan || exit 0

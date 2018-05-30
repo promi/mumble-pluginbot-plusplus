@@ -14,15 +14,21 @@ compiler:
   - gcc
   - clang
 
-addons:
-  apt:
+matrix:
+  include:
+    - os: linux
+      language: python
+      python: "3.6"
+
+#addons:
+#  apt:
 #    sources:
 #      # For newer gcc version
 #      - ubuntu-toolchain-r-test
 #      # For newer clang version
 #      - llvm-toolchain-trusty
-    packages:
-      - python-3.6
+#    packages:
+#      - python-3.6
 #      - g++-4.9
 #      - clang-3.6
 #      - libopus-dev

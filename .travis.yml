@@ -16,7 +16,6 @@ matrix:
       language: python
       python: "3.6"
       compiler: gcc
-  include:
     - os: linux
       language: python
       python: "3.6"
@@ -49,7 +48,8 @@ addons:
 before_script:
   - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
   - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
-#  - echo "$CXX"
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget https://github.com/ninja-build/ninja/releases/download/v1.7.2/ninja-linux.zip && unzip -q ninja-linux.zip -d build; fi
+  #  - echo "$CXX"
 #  - $CXX --version
 
 # https://github.com/travis-ci/travis-ci/issues/1975#issuecomment-216604414

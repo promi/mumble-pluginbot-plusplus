@@ -101,7 +101,6 @@ mpd_srcs = [
   'src/mpd/song.cc',
   'src/mpd/stats.cc',
   'src/mpd/status.cc',
-  dependencies : [network_dep]
 ]
 
 mpd_deps = [mpdclient_dep]
@@ -132,7 +131,8 @@ mpd_lib = shared_library(
   'mumble-pluginbot-plusplus-mpd',
   mpd_srcs,
   include_directories : mpd_incdirs,
-  dependencies : mpd_deps)
+  dependencies : mpd_deps,
+  link_with : [network_lib])
 
 git_info_sh = find_program('tools/gen-git-info.sh')
 

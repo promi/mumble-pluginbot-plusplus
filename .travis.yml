@@ -10,32 +10,31 @@ env:
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "rO1SMrH3lv8LjM6JQ32i4Mw+3V7SoSKGR/updHdpOCNeU3n7ux6XdQIbJ5juMiapt7RCut2hfy2gBVUVjeK0l3qGJ7nwB+GS6EfZPpLmSlJQZmnyihhL0tNAx4ihgWfeama50frPwU90n+iC6hl5ArFKpuHWlLOBTPZzaWntS3j/z5TFwrtrN/y0VZZhrvlEiwL9HHPNMXTB7IYkEEDEZCJAlPB+v3dNqyazNn4SVLdvFuZF8NbYhln89a0kt4uvAMqrsvHqMHlb78Gok3oXfNDxWpTZWTauVtfKNeKpsgyHLAcyo8tXCcaodJuVOXfaWzKYjAWr3BClDVGLbIgXyG75PLkXNY1v0VMlNCj9YlUeNZSgFfKtQUq8viyyTdjjfFns/uymxR6UEeNdkltOuoZNMQOxgIpYqCQ0SRYfRPck7yT+H+di64zN5kyWIUPfjjwKKr4voWw6WEhlIcZhsICcS9GGKRA+NGWODJn94cOA7k5XwsyO1RV3Sd0na6/iTriUi7Z1k9FFm1mx7TeQxblo5l6QRcz0C8TrNfkHv7r56E08bv+XKNGS//X6nD1OXlIifdeAOsyzuHWxkeGV0ESvmEQbYEewmnNWSGSTPAANUC+w+2lDd70O3xnkmKbQjRCHa8uKrIDQS5a3Ny2bRizAwhwdR+j7zPIpXMIPe9g="
 
-compiler:
-  - gcc
-  - clang
-
 matrix:
   include:
     - os: linux
       language: python
       python: "3.6"
+      compiler:
+        - gcc
+        - clang
 
-#addons:
-#  apt:
-#    sources:
-#      # For newer gcc version
-#      - ubuntu-toolchain-r-test
-#      # For newer clang version
-#      - llvm-toolchain-trusty
-#    packages:
-#      - python-3.6
-#      - g++-4.9
-#      - clang-3.6
-#      - libopus-dev
-#      - libssl-dev
-#      - libprotobuf-dev
-#      - libmpdclient-dev
-#      - protobuf-compiler
+addons:
+  apt:
+    sources:
+      # For newer gcc version
+      - ubuntu-toolchain-r-test
+      # For newer clang version
+      - llvm-toolchain-trusty
+    packages:
+      - python-3.6
+      - g++-4.9
+      - clang-3.6
+      - libopus-dev
+      - libssl-dev
+      - libprotobuf-dev
+      - libmpdclient-dev
+      - protobuf-compiler
 #  coverity_scan:
 #    project:
 #      name: "promi/mumble-pluginbot-plusplus"
@@ -45,9 +44,9 @@ matrix:
 #    build_command: "ninja test"
 #    branch_pattern: coverity_scan
 
-#before_script:
-#  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
-#  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
+before_script:
+  - if [ "$CXX" = "g++" ]; then export CXX='g++-4.9'; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX='clang++-3.6'; fi
 #  - echo "$CXX"
 #  - $CXX --version
 
@@ -55,9 +54,6 @@ matrix:
 #before_install:
 #  - test $TRAVIS_BRANCH != coverity_scan -o ${TRAVIS_JOB_NUMBER##*.} = 1 || exit 0
 # - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
-
-#python:
-#  - "3.6"
 
 install:
   - pip3 install meson

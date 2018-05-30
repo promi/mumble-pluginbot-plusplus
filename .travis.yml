@@ -29,6 +29,7 @@ addons:
       - libprotobuf-dev
       - libmpdclient-dev
       - protobuf-compiler
+      - meson
   coverity_scan:
     project:
       name: "promi/mumble-pluginbot-plusplus"
